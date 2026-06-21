@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-[#EEF5FB] text-[#0F172A] font-sans antialiased overflow-x-hidden;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #EEF5FB;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+}
+
+@layer components {
+  /* Neumorphic Shadow Cards */
+  .card-shadow {
+    box-shadow: 6px 6px 12px #d5dee5, -6px -6px 12px #ffffff;
+  }
+  
+  .card-shadow-sm {
+    box-shadow: 3px 3px 6px #d5dee5, -3px -3px 6px #ffffff;
+  }
+  
+  .card-shadow-lg {
+    box-shadow: 10px 10px 20px #d5dee5, -10px -10px 20px #ffffff;
+  }
+  
+  .card-shadow-inset {
+    box-shadow: inset 4px 4px 8px #d5dee5, inset -4px -4px 8px #ffffff;
+  }
+
+  /* Decorative Floating Circles in Background */
+  .floating-circle-bg {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(21, 151, 229, 0.08) 0%, rgba(30, 136, 229, 0.01) 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+}
+
+/* Page Transition Transitions */
+.page-container {
+  width: 100%;
+  min-height: 100vh;
+}
