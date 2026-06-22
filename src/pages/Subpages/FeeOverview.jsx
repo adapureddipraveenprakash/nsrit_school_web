@@ -100,13 +100,14 @@ const FeeOverview = () => {
           {/* Quick Action Links grid matching Screenshot 5 */}
           <div className="grid grid-cols-4 gap-3 select-none">
             {[
-              { label: 'Class Fees', sub: 'Setup', icon: <FiGrid className="w-4 h-4" />, color: 'text-brand-blue bg-[#EEF5FB]' },
+              { label: 'Class Fees', sub: 'Setup', icon: <FiGrid className="w-4 h-4" />, color: 'text-brand-blue bg-[#EEF5FB]', path: '/settings/class-fee-templates' },
               { label: 'Fee Plans', sub: 'Manage', icon: <FiSliders className="w-4 h-4" />, color: 'text-accent-purple bg-[#F3E8FF]' },
               { label: 'Ledger', sub: 'Open', icon: <FiBook className="w-4 h-4" />, color: 'text-[#FF9F1C] bg-[#FFF8EE]' },
-              { label: 'Reports', sub: 'View', icon: <FiFileText className="w-4 h-4" />, color: 'text-[#23C16B] bg-[#E8F8F0]' }
+              { label: 'Reports', sub: 'View', icon: <FiFileText className="w-4 h-4" />, color: 'text-[#23C16B] bg-[#E8F8F0]', path: '/settings/branch-analytics' }
             ].map((item, idx) => (
               <div
                 key={idx}
+                onClick={() => item.path && navigate(item.path)}
                 className="bg-white rounded-[22px] p-3 border border-[#e2e8f0]/40 card-shadow flex flex-col items-center justify-center text-center cursor-pointer hover:border-brand-blue/30 active:scale-95 transition-all"
               >
                 <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-2 ${item.color}`}>

@@ -21,6 +21,11 @@ import StudentRecordsModal from './Subpages/StudentRecords';
 import FeeSetupModal from './Subpages/FeeSetup';
 import AuditLogsModal from './Subpages/AuditLogs';
 import BranchAdminDashboard from './BranchAdminDashboard';
+import PrincipalDashboard from './PrincipalDashboard';
+import CoordinatorDashboard from './CoordinatorDashboard';
+import TeacherDashboard from './TeacherDashboard';
+import ParentDashboard from './ParentDashboard';
+import AccountantDashboard from './AccountantDashboard';
 
 const Dashboard = () => {
   const {
@@ -41,6 +46,21 @@ const Dashboard = () => {
 
   if (activeRole === 'BRANCH_ADMIN') {
     return <BranchAdminDashboard />;
+  }
+  if (activeRole === 'PRINCIPAL') {
+    return <PrincipalDashboard />;
+  }
+  if (activeRole === 'COORDINATOR') {
+    return <CoordinatorDashboard />;
+  }
+  if (activeRole === 'TEACHER' || activeRole === 'CLASS_TEACHER') {
+    return <TeacherDashboard />;
+  }
+  if (activeRole === 'PARENT') {
+    return <ParentDashboard />;
+  }
+  if (activeRole === 'ACCOUNTANT') {
+    return <AccountantDashboard />;
   }
 
   // Modal Control States

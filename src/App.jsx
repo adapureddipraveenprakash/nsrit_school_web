@@ -36,6 +36,10 @@ import AttendanceOverview from './pages/Subpages/AttendanceOverview';
 import FeeOverview from './pages/Subpages/FeeOverview';
 import BranchAnalytics from './pages/Subpages/BranchAnalytics';
 import BranchSettings from './pages/Subpages/BranchSettings';
+import Timetable from './pages/Subpages/Timetable';
+import PromotionManagement from './pages/Subpages/PromotionManagement';
+import Suggestions from './pages/Subpages/Suggestions';
+import Homework from './pages/Subpages/Homework';
 
 
 
@@ -129,6 +133,10 @@ const AnimatedRoutes = () => {
           <Route path="/settings/fee-overview" element={<FeeOverview />} />
           <Route path="/settings/branch-analytics" element={<BranchAnalytics />} />
           <Route path="/settings/branch-settings" element={<BranchSettings />} />
+          <Route path="/settings/timetable" element={<Timetable />} />
+          <Route path="/settings/promotions" element={<PromotionManagement />} />
+          <Route path="/settings/suggestions" element={<Suggestions />} />
+          <Route path="/settings/homework" element={<Homework />} />
           
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
