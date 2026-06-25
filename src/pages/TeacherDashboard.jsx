@@ -114,29 +114,24 @@ const TeacherDashboard = () => {
           <div className="flex flex-col items-center">
             <div className="text-2xl font-black text-[#1597E5] mb-1 select-none leading-none h-6 flex items-center justify-center font-sans">?</div>
             <p className="text-xl font-black text-dark leading-none">14</p>
-            <p className="text-[10px] text-secondaryText font-bold uppercase tracking-wider mt-2 leading-none">Students</p>
+            <p className="text-[9px] sm:text-[10px] text-secondaryText font-bold uppercase tracking-wider mt-2 leading-normal">Students</p>
           </div>
           <div className="pl-1 flex flex-col items-center">
             <div className="text-2xl text-[#1597E5] flex items-center justify-center mb-1 select-none h-6"><FiBookOpen className="w-5.5 h-5.5 text-[#1597E5]" /></div>
             <p className="text-xl font-black text-dark leading-none">0</p>
-            <p className="text-[10px] text-secondaryText font-bold uppercase tracking-wider mt-2 leading-none">Subjects</p>
+            <p className="text-[9px] sm:text-[10px] text-secondaryText font-bold uppercase tracking-wider mt-2 leading-normal">Subjects</p>
           </div>
           <div className="pl-1 flex flex-col items-center">
             <div className="text-2xl text-[#23C16B] flex items-center justify-center mb-1 select-none h-6"><FiCheckCircle className="w-5.5 h-5.5 text-[#23C16B]" /></div>
             <p className="text-xl font-black text-dark leading-none">0</p>
-            <p className="text-[10px] text-secondaryText font-bold uppercase tracking-wider mt-2 leading-none">Marked</p>
+            <p className="text-[9px] sm:text-[10px] text-secondaryText font-bold uppercase tracking-wider mt-2 leading-normal">Marked</p>
           </div>
           <div className="pl-1 flex flex-col items-center">
             <div className="text-2xl text-[#8B5CF6] flex items-center justify-center mb-1 select-none h-6">
-              <svg stroke="currentColor" fill="none" strokeWidth="2.2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" className="w-5.5 h-5.5 text-[#8B5CF6]">
-                <rect x="7" y="5" width="14" height="10" rx="1" />
-                <path d="M12 15v3m-3 3h6" />
-                <circle cx="3.5" cy="11.5" r="1.5" />
-                <path d="M2 17a1.5 1.5 0 013 0v4H2v-4z" />
-              </svg>
+              <FiUser className="w-5.5 h-5.5 text-[#8B5CF6]" />
             </div>
             <p className="text-xl font-black text-dark leading-none">1</p>
-            <p className="text-[10px] text-secondaryText font-bold uppercase tracking-wider mt-2 leading-none">Class Tchr</p>
+            <p className="text-[9px] sm:text-[10px] text-secondaryText font-bold uppercase tracking-wider mt-2 leading-normal">Class Tchr</p>
           </div>
         </div>
       </div>
@@ -167,8 +162,8 @@ const TeacherDashboard = () => {
           className="bg-white rounded-[24px] border border-[#e2e8f0]/40 p-6 card-shadow flex justify-between items-center cursor-pointer hover:border-[#1597E5]/20 transition-all group"
         >
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-[#EEF5FB] rounded-full flex items-center justify-center text-[#1597E5] shrink-0 select-none">
-              <svg className="w-5.5 h-5.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="w-10 h-10 bg-[#EEF5FB] rounded-full flex items-center justify-center text-[#1597E5] shrink-0 select-none">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
@@ -176,10 +171,10 @@ const TeacherDashboard = () => {
               <h3 className="text-sm font-bold text-dark group-hover:text-brand-blue transition-colors">
                 1 – Section A
               </h3>
-              <p className="text-2xl font-black text-[#1597E5] mt-1 leading-none">
+              <p className="text-xl font-bold text-[#1597E5] mt-1 leading-none">
                 — students
               </p>
-              <p className="text-[11px] text-secondaryText font-semibold mt-1.5 leading-none">
+              <p className="text-[11px] text-secondaryText font-semibold mt-1.5 leading-snug">
                 No subjects linked
               </p>
             </div>
@@ -280,10 +275,10 @@ const TeacherDashboard = () => {
                   <h4 className="text-sm font-bold text-dark group-hover:text-brand-blue transition-colors">
                     {item.title}
                   </h4>
-                  <p className={`text-2xl font-black mt-1 leading-none ${item.textColor}`}>
+                  <p className={`text-xl font-semibold mt-1 leading-none ${item.textColor}`}>
                     {item.val}
                   </p>
-                  <p className="text-[11px] text-secondaryText font-semibold mt-1.5 leading-none">
+                  <p className="text-[11px] text-secondaryText font-semibold mt-1.5 leading-snug">
                     {item.desc}
                   </p>
                 </div>

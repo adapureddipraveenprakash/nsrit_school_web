@@ -246,7 +246,7 @@ const AttendanceOverview = () => {
                 </div>
 
                 {/* Status Badge */}
-                <span className={`px-2.5 py-1 rounded-lg text-[8px] font-extrabold tracking-wider ${
+                <span className={`px-2.5 py-1 rounded-lg text-[8px] font-extrabold tracking-wider shrink-0 ${
                   isPresent ? 'bg-[#E8F8F0] text-[#23C16B]' : 'bg-red-50 text-[#E53E3E]'
                 }`}>
                   {student.status.toUpperCase()}
@@ -624,7 +624,7 @@ const AttendanceOverview = () => {
                     </div>
 
                     {/* Status Badge */}
-                    <span className={`px-2.5 py-1.5 rounded-lg text-[8px] font-extrabold tracking-wider ${
+                    <span className={`px-2.5 py-1.5 rounded-lg text-[8px] font-extrabold tracking-wider shrink-0 ${
                       isPresent ? 'bg-[#E8F8F0] text-[#23C16B]' : 'bg-red-50 text-[#E53E3E]'
                     }`}>
                       {student.status.toUpperCase()}
@@ -688,7 +688,7 @@ const AttendanceOverview = () => {
                     </div>
 
                     {/* Status Badge */}
-                    <span className={`px-2.5 py-1.5 rounded-lg text-[8px] font-extrabold tracking-wider ${
+                    <span className={`px-2.5 py-1.5 rounded-lg text-[8px] font-extrabold tracking-wider shrink-0 ${
                       isPaid 
                         ? 'bg-[#E8F8F0] text-[#23C16B]' 
                         : isUnpaid 
@@ -790,7 +790,7 @@ const AttendanceOverview = () => {
               </div>
 
               {/* Status Badge */}
-              <span className={`px-2.5 py-1.5 rounded-lg text-[8px] font-extrabold tracking-wider ${
+              <span className={`px-2.5 py-1.5 rounded-lg text-[8px] font-extrabold tracking-wider shrink-0 ${
                 isPresent ? 'bg-[#E8F8F0] text-[#23C16B]' : 'bg-red-50 text-[#E53E3E]'
               }`}>
                 {student.status.toUpperCase()}

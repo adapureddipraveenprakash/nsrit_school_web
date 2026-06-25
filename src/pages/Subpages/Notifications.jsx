@@ -216,7 +216,7 @@ const Notifications = () => {
       </div>
 
       {/* Sticky Bottom New Notice Button Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 md:left-[260px]">
+      <div className="fixed bottom-0 left-0 right-0 z-30 md:left-[288px]">
         <div className="max-w-[640px] mx-auto px-4 pb-0">
           <button
             onClick={() => navigate('/settings/post-notice')}

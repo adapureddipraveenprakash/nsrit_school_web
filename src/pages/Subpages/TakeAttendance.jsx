@@ -214,7 +214,7 @@ const TakeAttendance = () => {
               </div>
 
               {/* Status Badge */}
-              <span className={`px-2.5 py-1.5 rounded-lg text-[8px] font-extrabold tracking-wider ${
+              <span className={`px-2.5 py-1.5 rounded-lg text-[8px] font-extrabold tracking-wider shrink-0 ${
                 isPresent ? 'bg-[#E8F8F0] text-[#23C16B]' : 'bg-red-50 text-[#EF4444]'
               }`}>
                 {isPresent ? '✓ PRESENT' : '✗ ABSENT'}
@@ -225,7 +225,7 @@ const TakeAttendance = () => {
       </div>
 
       {/* Sticky Bottom Save Attendance Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 md:left-[260px] select-none">
+      <div className="fixed bottom-0 left-0 right-0 z-30 md:left-[288px] select-none">
         <div className="max-w-[640px] mx-auto px-4 pb-2.5">
           <button
             onClick={handleSave}

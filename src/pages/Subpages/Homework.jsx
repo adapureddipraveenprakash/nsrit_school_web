@@ -107,7 +107,7 @@ const Homework = () => {
       </div>
 
       {/* Sticky Bottom Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 md:left-[260px] select-none">
+      <div className="fixed bottom-0 left-0 right-0 z-30 md:left-[288px] select-none">
         <div className="max-w-[640px] mx-auto px-4 pb-2.5">
           <button
             onClick={() => navigate('/settings/take-attendance')}

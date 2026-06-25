@@ -216,7 +216,7 @@ const StudentRecords = () => {
                   </div>
 
                   {/* Status Badge */}
-                  <span className={`px-2.5 py-1 rounded-lg text-[8px] font-extrabold tracking-wider ${
+                  <span className={`px-2.5 py-1 rounded-lg text-[8px] font-extrabold tracking-wider shrink-0 ${
                     isInactive ? 'bg-red-50 text-[#E53E3E]' : 'bg-[#E8F8F0] text-[#23C16B]'
                   }`}>
                     {student.status.toUpperCase()}
@@ -706,7 +706,7 @@ const StudentRecords = () => {
       </div>
 
       {/* Sticky Bottom Add Student Button Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 md:left-[260px] animate-[slideUp_0.3s_ease-out]">
+      <div className="fixed bottom-0 left-0 right-0 z-30 md:left-[288px] animate-[slideUp_0.3s_ease-out]">
         <div className="max-w-[640px] mx-auto px-4 pb-0">
           <button
             onClick={() => navigate('/settings/create-student')}

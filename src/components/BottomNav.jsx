@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { FiGrid, FiUsers, FiSettings, FiBell, FiHome, FiCalendar, FiUser, FiDollarSign, FiLayers } from 'react-icons/fi';
 import { BiBuildingHouse, BiReceipt } from 'react-icons/bi';
 import { HiOutlinePresentationChartLine as ChartIcon } from 'react-icons/hi2';
@@ -7,6 +7,7 @@ import { useApp } from '../context/AppContext';
 
 const BottomNav = () => {
   const { activeRole } = useApp();
+  const location = useLocation();
   const menuItems = [
     { name: 'Dashboard', path: '/dashboard', icon: <FiGrid className="w-5 h-5" /> },
     { name: 'Schools', path: '/schools', icon: <BiBuildingHouse className="w-5 h-5" /> },
@@ -46,7 +47,7 @@ const BottomNav = () => {
     if (activeRole === 'TEACHER' || activeRole === 'CLASS_TEACHER') {
       return [
         { name: 'Home', path: '/dashboard', icon: <FiGrid className="w-5 h-5" /> },
-        { name: 'Students', path: '/settings/teacher-students', icon: <span className="text-lg font-extrabold leading-none -mb-0.5 select-none">?</span> },
+        { name: 'Students', path: '/settings/teacher-students', icon: <FiUsers className="w-5 h-5" /> },
         { name: 'Notifications', path: '/settings/notifications', icon: <FiBell className="w-5 h-5" /> },
       ];
     }
@@ -57,6 +58,9 @@ const BottomNav = () => {
       return true;
     });
   })();
+
+  const isMatch = filteredItems.some(item => item.path === location.pathname);
+  if (!isMatch) return null;
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-[#e2e8f0]/80 px-2 py-2 flex justify-around items-center z-40 shadow-[0_-8px_20px_rgba(15,23,42,0.05)]">
