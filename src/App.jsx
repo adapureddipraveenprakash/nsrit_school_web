@@ -10,60 +10,60 @@ import BottomNav from './components/BottomNav';
 import Drawer from './components/Drawer';
 
 // Pages
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import Schools from './pages/Schools';
-import Users from './pages/Users';
-import Reports from './pages/Reports';
-import Settings from './pages/Settings';
+import Login from './pages/shared/Login';
+import Dashboard from './pages/mainAdmin/Dashboard';
+import Schools from './pages/mainAdmin/Schools';
+import Users from './pages/mainAdmin/Users';
+import Reports from './pages/mainAdmin/Reports';
+import Settings from './pages/mainAdmin/Settings';
 
 // Subpages / Configurations from school.docx
-import BranchContext from './pages/Subpages/BranchContext';
-import CreateBranch from './pages/Subpages/CreateBranch';
-import StudentRecords from './pages/Subpages/StudentRecords';
-import FeeSetup from './pages/Subpages/FeeSetup';
-import AuditLogs from './pages/Subpages/AuditLogs';
-import RevenueOverview from './pages/Subpages/RevenueOverview';
-import GlobalReports from './pages/Subpages/GlobalReports';
-import MyProfile from './pages/Subpages/MyProfile';
-import Notifications from './pages/Subpages/Notifications';
-import SendNotification from './pages/Subpages/SendNotification';
-import PostNotice from './pages/Subpages/PostNotice';
-import CreateStudent from './pages/Subpages/CreateStudent';
-import CreateFeePlan from './pages/Subpages/CreateFeePlan';
-import BulkUpload from './pages/Subpages/BulkUpload';
-import Teachers from './pages/Subpages/Teachers';
-import CreateTeacher from './pages/Subpages/CreateTeacher';
-import ClassTeachers from './pages/Subpages/ClassTeachers';
-import AttendanceOverview from './pages/Subpages/AttendanceOverview';
-import FeeOverview from './pages/Subpages/FeeOverview';
-import FeePlans from './pages/Subpages/FeePlans';
-import FeeLedger from './pages/Subpages/FeeLedger';
-import BranchAnalytics from './pages/Subpages/BranchAnalytics';
-import BranchSettings from './pages/Subpages/BranchSettings';
-import EditBranch from './pages/Subpages/EditBranch';
-import Timetable from './pages/Subpages/Timetable';
-import PromotionManagement from './pages/Subpages/PromotionManagement';
-import Suggestions from './pages/Subpages/Suggestions';
-import Homework from './pages/Subpages/Homework';
-import Coordinators from './pages/Subpages/Coordinators';
-import Accountants from './pages/Subpages/Accountants';
-import Sections from './pages/Subpages/Sections';
-import ClassManagement from './pages/Subpages/ClassManagement';
-import GraduateStudents from './pages/Subpages/GraduateStudents';
-import HolidayManagement from './pages/Subpages/HolidayManagement';
-import AcademicYear from './pages/Subpages/AcademicYear';
-import FeeCollection from './pages/Subpages/FeeCollection';
-import FeeReports from './pages/Subpages/FeeReports';
-import FeeHistory from './pages/Subpages/FeeHistory';
-import TeacherStudents from './pages/Subpages/TeacherStudents';
-import Expenses from './pages/Subpages/Expenses';
-import RecordPayment from './pages/Subpages/RecordPayment';
-import BranchReports from './pages/Subpages/BranchReports';
-import Events from './pages/Subpages/Events';
-import CorrectAttendance from './pages/Subpages/CorrectAttendance';
-import TakeAttendance from './pages/Subpages/TakeAttendance';
-import NoticeBoard from './pages/Subpages/NoticeBoard';
+import BranchContext from './pages/mainAdmin/subpages/BranchContext';
+import CreateBranch from './pages/mainAdmin/subpages/CreateBranch';
+import StudentRecords from './pages/shared/StudentRecords';
+import FeeSetup from './pages/mainAdmin/subpages/FeeSetup';
+import AuditLogs from './pages/mainAdmin/subpages/AuditLogs';
+import RevenueOverview from './pages/mainAdmin/subpages/RevenueOverview';
+import GlobalReports from './pages/mainAdmin/subpages/GlobalReports';
+import MyProfile from './pages/shared/MyProfile';
+import Notifications from './pages/shared/Notifications';
+import SendNotification from './pages/coordinator/subpages/SendNotification';
+import PostNotice from './pages/coordinator/subpages/PostNotice';
+import CreateStudent from './pages/branchAdmin/subpages/CreateStudent';
+import CreateFeePlan from './pages/branchAdmin/subpages/CreateFeePlan';
+import BulkUpload from './pages/branchAdmin/subpages/BulkUpload';
+import Teachers from './pages/shared/Teachers';
+import CreateTeacher from './pages/branchAdmin/subpages/CreateTeacher';
+import ClassTeachers from './pages/branchAdmin/subpages/ClassTeachers';
+import AttendanceOverview from './pages/shared/AttendanceOverview';
+import FeeOverview from './pages/shared/FeeOverview';
+import FeePlans from './pages/accountant/subpages/FeePlans';
+import FeeLedger from './pages/accountant/subpages/FeeLedger';
+import BranchAnalytics from './pages/branchAdmin/subpages/BranchAnalytics';
+import BranchSettings from './pages/branchAdmin/subpages/BranchSettings';
+import EditBranch from './pages/mainAdmin/subpages/EditBranch';
+import Timetable from './pages/shared/Timetable';
+import PromotionManagement from './pages/principal/subpages/PromotionManagement';
+import Suggestions from './pages/parent/subpages/Suggestions';
+import Homework from './pages/teacher/subpages/Homework';
+import Coordinators from './pages/principal/subpages/Coordinators';
+import Accountants from './pages/principal/subpages/Accountants';
+import Sections from './pages/branchAdmin/subpages/Sections';
+import ClassManagement from './pages/coordinator/subpages/ClassManagement';
+import GraduateStudents from './pages/principal/subpages/GraduateStudents';
+import HolidayManagement from './pages/principal/subpages/HolidayManagement';
+import AcademicYear from './pages/principal/subpages/AcademicYear';
+import FeeCollection from './pages/accountant/subpages/FeeCollection';
+import FeeReports from './pages/accountant/subpages/FeeReports';
+import FeeHistory from './pages/accountant/subpages/FeeHistory';
+import TeacherStudents from './pages/teacher/subpages/TeacherStudents';
+import Expenses from './pages/accountant/subpages/Expenses';
+import RecordPayment from './pages/accountant/subpages/RecordPayment';
+import BranchReports from './pages/accountant/subpages/BranchReports';
+import Events from './pages/parent/subpages/Events';
+import CorrectAttendance from './pages/teacher/subpages/CorrectAttendance';
+import TakeAttendance from './pages/teacher/subpages/TakeAttendance';
+import NoticeBoard from './pages/shared/NoticeBoard';
 
 
 
@@ -117,10 +117,10 @@ const LayoutShell = ({ children }) => {
 
 const AnimatedRoutes = () => {
   const location = useLocation();
-  const { user, activeRole } = useApp();
+  const { user, activeRole, roleSelectionPending } = useApp();
   const isMainAdmin = activeRole === 'MAIN_ADMIN';
 
-  if (!user) {
+  if (!user || roleSelectionPending) {
     return (
       <Routes>
         <Route path="/login" element={<Login />} />

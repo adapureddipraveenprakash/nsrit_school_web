@@ -1,12 +1,14 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { FiGrid, FiUsers, FiSettings, FiHome, FiCalendar, FiBell, FiUser, FiDollarSign, FiLayers } from 'react-icons/fi';
+import React, { useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { FiGrid, FiUsers, FiSettings, FiHome, FiCalendar, FiBell, FiUser, FiDollarSign, FiLayers, FiMoreVertical } from 'react-icons/fi';
 import { BiBuildingHouse, BiReceipt } from 'react-icons/bi';
 import { HiOutlinePresentationChartLine } from 'react-icons/hi2';
 import { useApp } from '../context/AppContext';
 
 const Sidebar = () => {
-  const { logout, activeRole } = useApp();
+  const { logout, activeRole, user, switchRole } = useApp();
+  const navigate = useNavigate();
+  const [showSwitchMenu, setShowSwitchMenu] = useState(false);
 
   const filteredItems = (() => {
     if (activeRole === 'COORDINATOR') {
@@ -92,9 +94,51 @@ const Sidebar = () => {
       </nav>
 
       {/* Footer Info */}
-      <div className="mt-auto px-4 py-3 bg-[#EEF5FB] rounded-card border border-white/80 shadow-sm text-center">
-        <p className="text-xs font-semibold text-dark">{activeRole.replace('_', ' ')}</p>
-        <p className="text-[10px] text-secondaryText mt-0.5">NSRIT Connect ERP v1.0.0</p>
+      <div className="mt-auto relative select-none">
+        <div className="flex items-center justify-between px-4 py-3 bg-[#EEF5FB] rounded-card border border-white/80 shadow-sm">
+          <div className="text-left">
+            <p className="text-xs font-semibold text-dark">{activeRole.replace('_', ' ')}</p>
+            <p className="text-[10px] text-secondaryText mt-0.5">NSRIT Connect ERP v1.0.0</p>
+          </div>
+          {user?.roles && user.roles.length > 1 && (
+            <div className="relative">
+              <button
+                onClick={() => setShowSwitchMenu(!showSwitchMenu)}
+                className="p-1.5 hover:bg-slate-200/50 rounded-full text-secondaryText hover:text-dark transition-colors cursor-pointer"
+              >
+                <FiMoreVertical className="w-4 h-4" />
+              </button>
+              
+              {showSwitchMenu && (
+                <div className="absolute bottom-12 right-0 w-48 bg-white border border-[#e2e8f0] rounded-xl shadow-xl z-30 py-1.5 overflow-hidden divide-y divide-slate-100">
+                  <p className="text-[8px] font-black text-secondaryText tracking-wider uppercase px-3 py-1.5">Switch Role</p>
+                  {user.roles.map((role) => (
+                    <button
+                      key={role}
+                      onClick={async () => {
+                        setShowSwitchMenu(false);
+                        try {
+                          await switchRole(role);
+                          navigate('/dashboard');
+                        } catch (err) {
+                          alert(err.message);
+                        }
+                      }}
+                      className={`w-full text-left px-3 py-2 text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
+                        role === activeRole 
+                          ? 'bg-[#EEF5FB] text-brand-blue' 
+                          : 'text-secondaryText hover:text-dark hover:bg-slate-50'
+                      }`}
+                    >
+                      <span>{role.replace('_', ' ')}</span>
+                      {role === activeRole && <span className="w-1.5 h-1.5 bg-[#23C16B] rounded-full" />}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </aside>
   );

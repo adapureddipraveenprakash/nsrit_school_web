@@ -1,392 +1,465 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import authService from '../services/authService';
+import * as dataService from '../services/dataService';
+import { getJSON, setJSON, STORAGE_KEYS } from '../services/storage';
+
+const normalizeBranch = (b) => {
+  if (!b) return null;
+  return {
+    id: b.id,
+    name: b.name || '',
+    code: b.branchCode || b.code || '',
+    location: b.city || b.location || '',
+    address: b.address || '',
+    state: b.state || '',
+    pincode: b.pincode || '',
+    contact: b.phone || b.contact || '',
+    email: b.email || '',
+    active: b.isActive ?? (b.status === 'ACTIVE' || (b.active ?? true)),
+    principal: b.principalName || b.principal || 'Unassigned',
+    createdAt: b.createdAt ? new Date(b.createdAt).toLocaleDateString('en-GB').replace(/\//g, '-') : new Date().toLocaleDateString('en-GB').replace(/\//g, '-'),
+    studentsCount: b.studentsCount || 0,
+    facultyCount: b.facultyCount || 0,
+    coordinatorsCount: b.coordinatorsCount || 0
+  };
+};
 
 const AppContext = createContext();
 
-// Seed data constants matching screenshots
-const SEED_BRANCHES = [
-  {
-    id: 'sontyam-id',
-    name: 'Sontyam',
-    code: 'SO',
-    principal: 'B. Geetha',
-    location: 'Visakhapatnam',
-    studentsCount: 107,
-    facultyCount: 12,
-    coordinatorsCount: 2,
-    active: true,
-    createdAt: '11-06-2026',
-  }
-];
-
-const SEED_USERS = [
-  {
-    uid: 'main-admin-uid',
-    role: 'MAIN_ADMIN',
-    name: 'Main Admin',
-    phone: '7670818348',
-    email: 'admin@nsrit.edu.in',
-    status: 'active',
-    createdAt: '2026-06-21T12:00:00Z',
-  },
-  {
-    uid: 'branch-admin-uid',
-    role: 'BRANCH_ADMIN',
-    name: 'Branch Admin',
-    phone: '9505985859',
-    email: 'admin.so@nsrit.edu.in',
-    status: 'active',
-    createdAt: '2026-06-21T12:00:00Z',
-  },
-  {
-    uid: 'principal-uid',
-    role: 'PRINCIPAL',
-    name: 'B. Geetha',
-    phone: '9100046512',
-    email: 'principal.so@nsrit.edu.in',
-    status: 'active',
-    createdAt: '2026-06-21T12:00:00Z',
-  },
-  {
-    uid: 'coordinator-uid',
-    role: 'COORDINATOR',
-    name: 'C. Rama Rao',
-    phone: '8297191669',
-    email: 'coordinator.so@nsrit.edu.in',
-    status: 'active',
-    createdAt: '2026-06-21T12:00:00Z',
-  },
-  {
-    uid: 'teacher-uid',
-    role: 'TEACHER',
-    name: 'Salapu Vasanthi',
-    phone: '9347339048',
-    email: 'teacher.so@nsrit.edu.in',
-    status: 'active',
-    createdAt: '2026-06-21T12:00:00Z',
-  },
-  {
-    uid: 'parent-uid',
-    role: 'PARENT',
-    name: 'P. Prasad',
-    phone: '9492801646',
-    email: 'parent.so@nsrit.edu.in',
-    status: 'active',
-    createdAt: '2026-06-21T12:00:00Z',
-  },
-  {
-    uid: 'accountant-uid',
-    role: 'ACCOUNTANT',
-    name: 'Patsamatla Padma Manjula',
-    phone: '9951335377',
-    email: 'accountant.so@nsrit.edu.in',
-    status: 'active',
-    createdAt: '2026-06-21T12:00:00Z',
-  }
-];
-
-const SEED_FEES = {
-  collected: 10000,
-  pending: 4369000,
-  concession: 0,
-};
-
-const SEED_AUDIT_LOGS = [
-  { id: 1, userId: 'main-admin-uid', userName: 'Main Admin', action: 'Created Sontyam Branch', timestamp: '2026-06-21T10:15:00Z' },
-  { id: 2, userId: 'main-admin-uid', userName: 'Main Admin', action: 'Configured global class fee structure', timestamp: '2026-06-21T11:30:00Z' },
-  { id: 3, userId: 'main-admin-uid', userName: 'Main Admin', action: 'Assigned B. Geetha as Principal', timestamp: '2026-06-21T12:05:00Z' },
-];
-
-const SEED_NOTIFICATIONS = [
-  { id: 1, title: 'Fee Deadline Extended', message: 'The last date to submit academic term fees has been extended to July 5th.', targetRole: 'ALL', createdAt: '2026-06-21T14:30:00Z' },
-  { id: 2, title: 'Staff Meeting Schedule', message: 'All branch coordinators and principals are requested to join the general briefing tomorrow.', targetRole: 'COORDINATOR', createdAt: '2026-06-21T13:00:00Z' },
-];
-
 export const AppProvider = ({ children }) => {
-  // Load initial data from LocalStorage or seed defaults
-  const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('nsrit_user');
-    return saved ? JSON.parse(saved) : null;
-  });
+  // ─── Auth State ─────────────────────────────────────────────────────────────
+  const [user, setUser] = useState(null);
+  const [activeRole, setActiveRole] = useState(null);
+  const [isBootstrapping, setIsBootstrapping] = useState(true);
+  const [isSwitchingUser, setIsSwitchingUser] = useState(false);
+  const [roleSelectionPending, setRoleSelectionPending] = useState(false);
 
-  const [branches, setBranches] = useState(() => {
-    const saved = localStorage.getItem('nsrit_branches');
-    return saved ? JSON.parse(saved) : SEED_BRANCHES;
-  });
+  // ─── Auth Flow State ─────────────────────────────────────────────────────────
+  const [verificationId, setVerificationId] = useState(null);
+  const [pendingPhone, setPendingPhone] = useState(null);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState(null);
 
-  const [users, setUsers] = useState(() => {
-    const saved = localStorage.getItem('nsrit_users');
-    return saved ? JSON.parse(saved) : SEED_USERS;
-  });
+  // ─── Branch Context (Main Admin feature) ─────────────────────────────────────
+  const [currentBranchContext, setCurrentBranchContext] = useState(() =>
+    getJSON(STORAGE_KEYS.MAIN_ADMIN_BRANCH_CONTEXT)
+  );
 
-  const [fees, setFees] = useState(() => {
-    const saved = localStorage.getItem('nsrit_fees');
-    return saved ? JSON.parse(saved) : SEED_FEES;
-  });
+  // ─── Data Cache (fetched from Firebase Data Connect) ─────────────────────────
+  const [branches, setBranches] = useState([]);
+  const [branchesLoading, setBranchesLoading] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [fees, setFees] = useState({ collected: 0, pending: 0, concession: 0 });
+  const [auditLogs, setAuditLogs] = useState([]);
 
-  const [auditLogs, setAuditLogs] = useState(() => {
-    const saved = localStorage.getItem('nsrit_audit_logs');
-    return saved ? JSON.parse(saved) : SEED_AUDIT_LOGS;
-  });
-
-  const [notifications, setNotifications] = useState(() => {
-    const saved = localStorage.getItem('nsrit_notifications');
-    return saved ? JSON.parse(saved) : SEED_NOTIFICATIONS;
-  });
-
-  // Current simulation states
-  const [currentBranchContext, setCurrentBranchContext] = useState(null); // null = global context, otherwise a branch object
-  const [activeRole, setActiveRole] = useState(() => {
-    const saved = localStorage.getItem('nsrit_active_role');
-    return saved || 'MAIN_ADMIN';
-  });
-
-  // Save changes to local storage
+  // ─── Bootstrap: restore session on page load ─────────────────────────────────
   useEffect(() => {
-    if (user) {
-      localStorage.setItem('nsrit_user', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('nsrit_user');
-    }
-  }, [user]);
-
-  useEffect(() => {
-    localStorage.setItem('nsrit_branches', JSON.stringify(branches));
-  }, [branches]);
-
-  useEffect(() => {
-    localStorage.setItem('nsrit_users', JSON.stringify(users));
-  }, [users]);
-
-  useEffect(() => {
-    localStorage.setItem('nsrit_fees', JSON.stringify(fees));
-  }, [fees]);
-
-  useEffect(() => {
-    localStorage.setItem('nsrit_audit_logs', JSON.stringify(auditLogs));
-  }, [auditLogs]);
-
-  useEffect(() => {
-    localStorage.setItem('nsrit_notifications', JSON.stringify(notifications));
-  }, [notifications]);
-
-  useEffect(() => {
-    localStorage.setItem('nsrit_active_role', activeRole);
-  }, [activeRole]);
-
-  // Migration effect to ensure seed phone numbers are loaded
-  useEffect(() => {
-    setUsers(prev => {
-      const seedMap = new Map(SEED_USERS.map(u => [u.uid, u]));
-      let updated = false;
-      const newUsers = prev.map(u => {
-        if (seedMap.has(u.uid)) {
-          const seed = seedMap.get(u.uid);
-          if (u.phone !== seed.phone || u.role !== seed.role || u.name !== seed.name) {
-            updated = true;
-            return { ...u, phone: seed.phone, role: seed.role, name: seed.name, email: seed.email };
-          }
+    (async () => {
+      try {
+        const session = await authService.getStoredSession();
+        if (session?.user) {
+          setUser(session.user);
+          setActiveRole(session.user.role);
         }
-        return u;
-      });
-      SEED_USERS.forEach(seed => {
-        if (!prev.some(u => u.uid === seed.uid)) {
-          newUsers.push(seed);
-          updated = true;
-        }
-      });
-      return updated ? newUsers : prev;
-    });
+      } catch (err) {
+        console.warn('[AppContext] Bootstrap failed:', err.message);
+      } finally {
+        setIsBootstrapping(false);
+      }
+    })();
   }, []);
 
-  // Sync active user name / details if they change in SEED_USERS
+  // ─── Fetch branches when user is a Main Admin ─────────────────────────────────
   useEffect(() => {
-    if (user) {
-      const match = SEED_USERS.find(u => u.uid === user.uid);
-      if (match && (user.name !== match.name || user.phone !== match.phone || user.role !== match.role)) {
-        setUser(prev => ({ ...prev, name: match.name, phone: match.phone, role: match.role }));
-      }
+    if (!user) { setBranches([]); return; }
+    if (activeRole === 'MAIN_ADMIN' || activeRole === 'BRANCH_ADMIN') {
+      fetchBranches();
     }
-  }, [user]);
+  }, [user, activeRole]);
 
-  // Auth Operations
-  const login = (phone, customRole = null) => {
-    // Standard simulation: log in the user matching phone, or default to Main Admin
-    const foundUser = users.find(u => u.phone === phone) || {
-      uid: 'simulated-user-' + Date.now(),
-      role: 'MAIN_ADMIN',
-      name: 'Main Admin',
-      phone: phone,
-      email: 'admin@nsrit.edu.in',
-      status: 'active',
-      createdAt: new Date().toISOString()
-    };
-    const startRole = customRole || foundUser.role;
-    setUser({ ...foundUser, role: startRole });
-    setActiveRole(startRole);
-    addLog(`Logged in with phone +91${phone} as ${startRole}`);
-  };
-
-  const logout = () => {
-    setUser(null);
-    setCurrentBranchContext(null);
-    localStorage.removeItem('nsrit_user');
-    localStorage.removeItem('nsrit_active_role');
-  };
-
-  const switchRole = (role) => {
-    setActiveRole(role);
-    if (user) {
-      const updatedUser = { ...user, role };
-      setUser(updatedUser);
+  // ─── Persist branch context to localStorage ────────────────────────────────────
+  useEffect(() => {
+    if (currentBranchContext) {
+      setJSON(STORAGE_KEYS.MAIN_ADMIN_BRANCH_CONTEXT, currentBranchContext);
+    } else {
+      try { localStorage.removeItem(STORAGE_KEYS.MAIN_ADMIN_BRANCH_CONTEXT); } catch { /* ignore */ }
     }
-    addLog(`Switched simulation role to ${role}`);
-  };
+  }, [currentBranchContext]);
 
-  // Database Operations
-  const addBranch = (branchData) => {
-    const newBranch = {
-      id: 'branch-' + Date.now(),
-      studentsCount: 0,
-      facultyCount: 0,
-      coordinatorsCount: 0,
-      active: true,
-      createdAt: new Date().toLocaleDateString('en-GB').replace(/\//g, '-'),
-      ...branchData
-    };
-    setBranches(prev => [newBranch, ...prev]);
-    addLog(`Created new branch: ${branchData.name} (${branchData.code})`);
-  };
-
-  const updateBranch = (id, updatedFields) => {
-    setBranches(prev => prev.map(b => b.id === id ? { ...b, ...updatedFields } : b));
-    if (currentBranchContext && currentBranchContext.id === id) {
-      setCurrentBranchContext(prev => ({ ...prev, ...updatedFields }));
+  // ─── Data Fetch Helpers ───────────────────────────────────────────────────────
+  const fetchBranches = useCallback(async () => {
+    setBranchesLoading(true);
+    try {
+      const data = await dataService.getBranches();
+      setBranches(data.map(normalizeBranch));
+    } catch (err) {
+      console.error('[AppContext] Failed to fetch branches:', err.message);
+    } finally {
+      setBranchesLoading(false);
     }
-    addLog(`Updated branch details for: ${updatedFields.name || id}`);
-  };
+  }, []);
 
-  const deleteBranch = (id) => {
-    const foundBranch = branches.find(b => b.id === id);
-    setBranches(prev => prev.filter(b => b.id !== id));
-    if (currentBranchContext && currentBranchContext.id === id) {
-      setCurrentBranchContext(null);
-    }
-    addLog(`Deleted branch: ${foundBranch?.name || id} (${foundBranch?.code || 'N/A'})`);
-  };
+  const fetchGlobalReportsAndFees = useCallback(async () => {
+    try {
+      const data = await dataService.getGlobalReports();
+      if (data) {
+        let rawUsers = data.users || [];
+        let rawStudents = data.students || [];
+        let feePlans = data.studentFeePlans || [];
 
-  const addUser = (userData) => {
-    const newUser = {
-      uid: 'user-' + Date.now(),
-      status: 'active',
-      createdAt: new Date().toISOString(),
-      ...userData
-    };
-    setUsers(prev => [newUser, ...prev]);
-    addLog(`Created user: ${userData.name} as ${userData.role}`);
-    
-    // If creating a user in a branch, update the branch counters
-    if (userData.branchId) {
-      setBranches(prev => prev.map(b => {
-        if (b.id === userData.branchId) {
-          if (userData.role === 'PRINCIPAL') {
-            return { ...b, principal: userData.name };
-          }
-          if (userData.role === 'COORDINATOR') {
-            return { ...b, coordinatorsCount: b.coordinatorsCount + 1 };
-          }
-          if (userData.role === 'TEACHER') {
-            return { ...b, facultyCount: b.facultyCount + 1 };
-          }
+        // Scope to branch for branch admin and accountants
+        const targetBranchId = (activeRole !== 'MAIN_ADMIN') ? user?.branchId : null;
+        if (targetBranchId) {
+          rawUsers = rawUsers.filter(u => u.branchId === targetBranchId);
+          rawStudents = rawStudents.filter(s => s.branchId === targetBranchId);
+          feePlans = feePlans.filter(fp => fp.student?.branchId === targetBranchId);
         }
-        return b;
-      }));
-    }
-  };
 
-  const changeUserRole = (phone, newRole) => {
-    setUsers(prev => prev.map(u => {
-      if (u.phone === phone) {
-        addLog(`Changed role of user ${u.name} to ${newRole}`);
-        return { ...u, role: newRole };
+        setUsers(rawUsers);
+
+        // Map branches with counts computed dynamically from global reports data
+        const rawBranches = data.branches || [];
+        const computedBranches = rawBranches.map(b => {
+          const branchStudents = (data.students || []).filter(s => s.branchId === b.id && s.isActive !== false);
+          const branchTeachers = (data.users || []).filter(u => u.branchId === b.id && ['TEACHER', 'CLASS_TEACHER'].includes(u.role) && u.isActive !== false);
+          const branchCoordinators = (data.users || []).filter(u => u.branchId === b.id && u.role === 'COORDINATOR' && u.isActive !== false);
+          
+          return {
+            ...b,
+            studentsCount: branchStudents.length,
+            facultyCount: branchTeachers.length,
+            coordinatorsCount: branchCoordinators.length
+          };
+        });
+
+        setBranches(computedBranches.map(normalizeBranch));
+
+        const paidFees = feePlans.reduce(
+          (sum, plan) =>
+            sum +
+            (plan.reportPayments || [])
+              .filter(payment => String(payment.status || 'RECORDED').toUpperCase() !== 'REVERSED')
+              .reduce((paymentSum, payment) => paymentSum + Number(payment.amount || 0), 0),
+          0,
+        );
+        const totalFees = feePlans.reduce((sum, plan) => sum + Number(plan.totalAmount || 0), 0);
+        const concessionFees = feePlans.reduce((sum, plan) => sum + Number(plan.concessionAmount || 0), 0);
+
+        setFees({
+          collected: paidFees,
+          pending: Math.max(totalFees - paidFees, 0),
+          concession: concessionFees
+        });
       }
-      return u;
-    }));
-  };
-
-  const addNotification = (notif) => {
-    const newNotif = {
-      id: 'notif-' + Date.now(),
-      createdAt: new Date().toISOString(),
-      ...notif
-    };
-    setNotifications(prev => [newNotif, ...prev]);
-    addLog(`Broadcast notification: "${notif.title}" for ${notif.targetRole}`);
-  };
-
-  const updateFees = (updatedFees) => {
-    setFees(prev => ({ ...prev, ...updatedFees }));
-    addLog(`Updated global fee setup`);
-  };
-
-  const clearNotifications = () => {
-    setNotifications([]);
-    addLog('Cleared all system notifications');
-  };
-
-  const updateProfile = (profileData) => {
-    if (user) {
-      const updatedUser = { ...user, ...profileData };
-      setUser(updatedUser);
-      setUsers(prev => prev.map(u => u.uid === user.uid ? { ...u, ...profileData } : u));
-      addLog(`Updated profile details: ${Object.keys(profileData).join(', ')}`);
+    } catch (err) {
+      console.error('[AppContext] Failed to fetch global reports:', err.message);
     }
-  };
+  }, [user, activeRole]);
 
-  const addLog = (action) => {
-    const newLog = {
-      id: 'log-' + Date.now(),
-      userId: user?.uid || 'anonymous',
-      userName: user?.name || 'System',
-      action,
-      timestamp: new Date().toISOString(),
+  const fetchAuditLogs = useCallback(async () => {
+    try {
+      const logs = await dataService.getAuditLogs({ limit: 100 });
+      setAuditLogs(logs);
+    } catch (err) {
+      console.error('[AppContext] Failed to fetch audit logs:', err.message);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!user) {
+      setUsers([]);
+      setFees({ collected: 0, pending: 0, concession: 0 });
+      setAuditLogs([]);
+      return;
+    }
+    const roles = ['MAIN_ADMIN', 'BRANCH_ADMIN', 'ACCOUNTANT'];
+    if (roles.includes(activeRole)) {
+      fetchGlobalReportsAndFees();
+      if (activeRole === 'MAIN_ADMIN') {
+        fetchAuditLogs();
+      }
+      const interval = setInterval(() => {
+        fetchGlobalReportsAndFees();
+        if (activeRole === 'MAIN_ADMIN') {
+          fetchAuditLogs();
+        }
+      }, 15000);
+      return () => clearInterval(interval);
+    }
+  }, [user, activeRole, fetchGlobalReportsAndFees, fetchAuditLogs]);
+
+  // ─── Auth Operations ──────────────────────────────────────────────────────────
+
+  // Step 1: Send OTP
+  const sendOtp = useCallback(async ({ countryCode = '+91', phoneNumber }) => {
+    setAuthLoading(true);
+    setAuthError(null);
+    const result = await authService.sendOtp({ countryCode, phoneNumber });
+    setAuthLoading(false);
+    if (result.ok) {
+      setVerificationId(result.data.verificationId);
+      setPendingPhone(result.data.fullPhoneNumber);
+      return { ok: true };
+    }
+    setAuthError(result.error);
+    return { ok: false, error: result.error };
+  }, []);
+
+  // Step 2: Verify OTP
+  const verifyOtp = useCallback(async ({ otp }) => {
+    if (!verificationId) return { ok: false, error: 'No verification ID. Please request OTP again.' };
+    setAuthLoading(true);
+    setAuthError(null);
+    const result = await authService.verifyOtp({
+      verificationId,
+      otp,
+      phoneNumber: pendingPhone,
+    });
+    setAuthLoading(false);
+    if (result.ok) {
+      const u = result.data.user;
+      setUser(u);
+      setActiveRole(u.role);
+      setVerificationId(null);
+      setPendingPhone(null);
+      setIsSwitchingUser(false);
+      if (Array.isArray(u.roles) && u.roles.length > 1) {
+        setRoleSelectionPending(true);
+      } else {
+        setRoleSelectionPending(false);
+      }
+      return { ok: true, user: u };
+    }
+    setAuthError(result.error);
+    return { ok: false, error: result.error };
+  }, [verificationId, pendingPhone]);
+
+  const clearAuthError = useCallback(() => setAuthError(null), []);
+
+  const logout = useCallback(async () => {
+    await authService.logout();
+    setUser(null);
+    setActiveRole(null);
+    setRoleSelectionPending(false);
+    setCurrentBranchContext(null);
+    setBranches([]);
+    setVerificationId(null);
+    setPendingPhone(null);
+    setAuthError(null);
+    setIsSwitchingUser(false);
+  }, []);
+
+  const switchUser = useCallback(async () => {
+    await authService.logout();
+    setUser(null);
+    setActiveRole(null);
+    setRoleSelectionPending(false);
+    setVerificationId(null);
+    setPendingPhone(null);
+    setAuthError(null);
+    setIsSwitchingUser(true);
+    // Keep branch context so Main Admin can re-login without re-selecting
+  }, []);
+
+  const switchRole = useCallback(async (newRole) => {
+    try {
+      const result = await authService.switchRole(newRole);
+      setUser(result.user);
+      setActiveRole(result.user.role);
+      setRoleSelectionPending(false);
+    } catch (err) {
+      console.error('[AppContext] Role switch failed:', err.message);
+      throw err;
+    }
+  }, []);
+
+  // ─── Branch Context operations ─────────────────────────────────────────────
+  const enterBranchContext = useCallback((branch) => {
+    setCurrentBranchContext(branch);
+  }, []);
+
+  const leaveBranchContext = useCallback(() => {
+    setCurrentBranchContext(null);
+  }, []);
+
+  // ─── Mutation helpers (delegate to dataService, re-fetch as needed) ──────────
+  const addBranch = useCallback(async (payload) => {
+    const gqlPayload = {
+      name: payload.name,
+      branchCode: payload.branchCode || payload.code,
+      address: payload.address,
+      city: payload.city || payload.location,
+      state: payload.state,
+      pincode: payload.pincode,
+      phone: payload.phone || payload.contact,
+      email: payload.email,
+      status: payload.status || (payload.active ? 'ACTIVE' : 'INACTIVE')
     };
-    setAuditLogs(prev => [newLog, ...prev]);
+    const res = await dataService.createBranch(gqlPayload);
+    await fetchBranches(); // refresh
+    return res;
+  }, [fetchBranches]);
+
+  const updateBranch = useCallback(async (id, payload) => {
+    const gqlPayload = {
+      id: id,
+      name: payload.name,
+      address: payload.address,
+      city: payload.city || payload.location,
+      state: payload.state,
+      pincode: payload.pincode,
+      phone: payload.phone || payload.contact,
+      email: payload.email,
+      status: payload.status || (payload.active ? 'ACTIVE' : 'INACTIVE'),
+      isActive: payload.isActive !== undefined ? payload.isActive : (payload.active !== undefined ? payload.active : true)
+    };
+    const res = await dataService.updateBranch(gqlPayload);
+    await fetchBranches();
+    if (currentBranchContext?.id === id) {
+      setCurrentBranchContext((prev) => ({ ...prev, ...payload }));
+    }
+    return res;
+  }, [fetchBranches, currentBranchContext]);
+
+  const deleteBranch = useCallback(async (id) => {
+    try {
+      const branchInfo = await dataService.getBranchDetails(id);
+      if (branchInfo) {
+        await dataService.updateBranch({
+          branchId: id,
+          name: branchInfo.name,
+          address: branchInfo.address,
+          city: branchInfo.city || branchInfo.location,
+          state: branchInfo.state,
+          pincode: branchInfo.pincode,
+          phone: branchInfo.phone || branchInfo.contact,
+          email: branchInfo.email,
+          status: 'INACTIVE',
+          isActive: false
+        });
+      }
+      await fetchBranches();
+    } catch (err) {
+      console.error('[AppContext] deleteBranch failed:', err);
+    }
+  }, [fetchBranches]);
+
+  const addUser = useCallback(async ({ name, phone, email, role, branchId }) => {
+    const fullPhoneNumber = `+91${phone}`;
+    const pendingUid = `pending:${role.toLowerCase()}:${branchId || 'global'}:${phone}`;
+    try {
+      await dataService.createUser({
+        firebaseUID: pendingUid,
+        fullName: name,
+        countryCode: '+91',
+        phoneNumber: fullPhoneNumber,
+        role: role,
+        employeeId: `EMP-${Date.now().toString().slice(-4)}`,
+        staffType: 'TEACHER',
+        branchId: branchId || null
+      });
+      await fetchGlobalReportsAndFees();
+    } catch (err) {
+      console.error('[AppContext] addUser failed:', err);
+      throw err;
+    }
+  }, [fetchGlobalReportsAndFees]);
+
+  const changeUserRole = useCallback(async (phone, newRole) => {
+    try {
+      const fullPhone = phone.startsWith('+') ? phone : `+91${phone}`;
+      const userProfile = await dataService.getUserByPhone(fullPhone);
+      if (userProfile) {
+        await dataService.changeUserRole({
+          userId: userProfile.id,
+          oldRole: userProfile.role,
+          newRole: newRole
+        });
+        await fetchGlobalReportsAndFees();
+      } else {
+        throw new Error('User not found in system.');
+      }
+    } catch (err) {
+      console.error('[AppContext] changeUserRole failed:', err.message);
+      throw err;
+    }
+  }, [fetchGlobalReportsAndFees]);
+
+  const addNotification = useCallback(async ({ title, message, targetRole }) => {
+    const branchId = currentBranchContext?.id || user?.branchId;
+    if (!branchId) {
+      console.warn('[AppContext] Cannot post notice without active branch context.');
+      return;
+    }
+    try {
+      await dataService.createNotice({
+        branchId,
+        authorId: user.id,
+        title,
+        body: message,
+        category: targetRole || 'ACADEMIC',
+        pinned: title.startsWith('📌'),
+        date: new Date().toISOString().slice(0, 10)
+      });
+      console.log('[AppContext] Notice created successfully.');
+    } catch (err) {
+      console.error('[AppContext] Failed to post notice:', err);
+    }
+  }, [currentBranchContext, user]);
+
+  const addLog = useCallback((action) => {
+    console.log('[Audit Log]', action);
+  }, []);
+
+  // ─── Context Value ─────────────────────────────────────────────────────────
+  const value = {
+    // Auth
+    user,
+    activeRole,
+    isBootstrapping,
+    isSwitchingUser,
+    authLoading,
+    authError,
+    verificationId,
+    pendingPhone,
+    sendOtp,
+    verifyOtp,
+    clearAuthError,
+    logout,
+    switchUser,
+    switchRole,
+    roleSelectionPending,
+    setRoleSelectionPending,
+
+    // Branch context
+    currentBranchContext,
+    setCurrentBranchContext: enterBranchContext,
+    leaveBranchContext,
+
+    // Data
+    branches,
+    branchesLoading,
+    fetchBranches,
+    addBranch,
+    updateBranch,
+    deleteBranch,
+    users,
+    fees,
+    auditLogs,
+    addUser,
+    changeUserRole,
+    addNotification,
+    addLog,
+
+    // Expose dataService so pages can use it without extra imports
+    dataService,
   };
 
-  return (
-    <AppContext.Provider value={{
-      user,
-      branches,
-      users,
-      fees,
-      auditLogs,
-      notifications,
-      currentBranchContext,
-      activeRole,
-      login,
-      logout,
-      switchRole,
-      setCurrentBranchContext,
-      addBranch,
-      updateBranch,
-      deleteBranch,
-      addUser,
-      changeUserRole,
-      addNotification,
-      clearNotifications,
-      updateProfile,
-      updateFees,
-      addLog
-    }}>
-      {children}
-    </AppContext.Provider>
-  );
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
 export const useApp = () => {
   const context = useContext(AppContext);
-  if (!context) {
-    throw new Error('useApp must be used within an AppProvider');
-  }
+  if (!context) throw new Error('useApp must be used within an AppProvider');
   return context;
 };

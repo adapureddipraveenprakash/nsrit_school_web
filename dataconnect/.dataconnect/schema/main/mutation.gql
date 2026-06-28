@@ -1,0 +1,5706 @@
+extend type Mutation {
+  """
+  ✨ Insert a single `AcademicClass` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  academicClass_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: AcademicClass_Data!
+  ): AcademicClass_KeyOutput! @fdc_generated(from: "AcademicClass", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `AcademicYear` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  academicYear_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: AcademicYear_Data!
+  ): AcademicYear_KeyOutput! @fdc_generated(from: "AcademicYear", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `AcademicYearFeeTemplate` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  academicYearFeeTemplate_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: AcademicYearFeeTemplate_Data!
+  ): AcademicYearFeeTemplate_KeyOutput! @fdc_generated(from: "AcademicYearFeeTemplate", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `Accountant` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  accountant_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: Accountant_Data!
+  ): Accountant_KeyOutput! @fdc_generated(from: "Accountant", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `Attendance` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  attendance_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: Attendance_Data!
+  ): Attendance_KeyOutput! @fdc_generated(from: "Attendance", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `AttendanceAlertLog` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  attendanceAlertLog_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: AttendanceAlertLog_Data!
+  ): AttendanceAlertLog_KeyOutput! @fdc_generated(from: "AttendanceAlertLog", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `AttendanceAuditLog` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  attendanceAuditLog_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: AttendanceAuditLog_Data!
+  ): AttendanceAuditLog_KeyOutput! @fdc_generated(from: "AttendanceAuditLog", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `AttendanceSummary` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  attendanceSummary_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: AttendanceSummary_Data!
+  ): AttendanceSummary_KeyOutput! @fdc_generated(from: "AttendanceSummary", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `AuditLog` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  auditLog_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: AuditLog_Data!
+  ): AuditLog_KeyOutput! @fdc_generated(from: "AuditLog", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `Branch` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  branch_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: Branch_Data!
+  ): Branch_KeyOutput! @fdc_generated(from: "Branch", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `Coordinator` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  coordinator_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: Coordinator_Data!
+  ): Coordinator_KeyOutput! @fdc_generated(from: "Coordinator", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `DueTracking` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  dueTracking_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: DueTracking_Data!
+  ): DueTracking_KeyOutput! @fdc_generated(from: "DueTracking", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `EmployeeSequence` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  employeeSequence_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: EmployeeSequence_Data!
+  ): EmployeeSequence_KeyOutput! @fdc_generated(from: "EmployeeSequence", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `Exam` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  exam_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: Exam_Data!
+  ): Exam_KeyOutput! @fdc_generated(from: "Exam", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `ExamSection` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  examSection_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: ExamSection_Data!
+  ): ExamSection_KeyOutput! @fdc_generated(from: "ExamSection", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `ExamSubjectConfig` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  examSubjectConfig_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: ExamSubjectConfig_Data!
+  ): ExamSubjectConfig_KeyOutput! @fdc_generated(from: "ExamSubjectConfig", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `FeeAuditLog` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  feeAuditLog_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: FeeAuditLog_Data!
+  ): FeeAuditLog_KeyOutput! @fdc_generated(from: "FeeAuditLog", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `FeeCategory` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  feeCategory_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: FeeCategory_Data!
+  ): FeeCategory_KeyOutput! @fdc_generated(from: "FeeCategory", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `FeePayment` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  feePayment_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: FeePayment_Data!
+  ): FeePayment_KeyOutput! @fdc_generated(from: "FeePayment", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `FeeStructure` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  feeStructure_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: FeeStructure_Data!
+  ): FeeStructure_KeyOutput! @fdc_generated(from: "FeeStructure", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `Holiday` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  holiday_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: Holiday_Data!
+  ): Holiday_KeyOutput! @fdc_generated(from: "Holiday", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `MarksAuditLog` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  marksAuditLog_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: MarksAuditLog_Data!
+  ): MarksAuditLog_KeyOutput! @fdc_generated(from: "MarksAuditLog", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `Notice` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  notice_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: Notice_Data!
+  ): Notice_KeyOutput! @fdc_generated(from: "Notice", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `Notification` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  notification_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: Notification_Data!
+  ): Notification_KeyOutput! @fdc_generated(from: "Notification", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `Parent` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  parent_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: Parent_Data!
+  ): Parent_KeyOutput! @fdc_generated(from: "Parent", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `Payment` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  payment_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: Payment_Data!
+  ): Payment_KeyOutput! @fdc_generated(from: "Payment", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `ReceiptSequence` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  receiptSequence_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: ReceiptSequence_Data!
+  ): ReceiptSequence_KeyOutput! @fdc_generated(from: "ReceiptSequence", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `Section` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  section_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: Section_Data!
+  ): Section_KeyOutput! @fdc_generated(from: "Section", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `StaffIdSequence` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  staffIdSequence_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: StaffIdSequence_Data!
+  ): StaffIdSequence_KeyOutput! @fdc_generated(from: "StaffIdSequence", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `Student` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  student_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: Student_Data!
+  ): Student_KeyOutput! @fdc_generated(from: "Student", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `StudentAcademicHistory` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  studentAcademicHistory_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: StudentAcademicHistory_Data!
+  ): StudentAcademicHistory_KeyOutput! @fdc_generated(from: "StudentAcademicHistory", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `StudentFee` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  studentFee_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: StudentFee_Data!
+  ): StudentFee_KeyOutput! @fdc_generated(from: "StudentFee", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `StudentFeeItem` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  studentFeeItem_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: StudentFeeItem_Data!
+  ): StudentFeeItem_KeyOutput! @fdc_generated(from: "StudentFeeItem", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `StudentFeePlan` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  studentFeePlan_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: StudentFeePlan_Data!
+  ): StudentFeePlan_KeyOutput! @fdc_generated(from: "StudentFeePlan", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `StudentIdSequence` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  studentIdSequence_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: StudentIdSequence_Data!
+  ): StudentIdSequence_KeyOutput! @fdc_generated(from: "StudentIdSequence", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `StudentMark` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  studentMark_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: StudentMark_Data!
+  ): StudentMark_KeyOutput! @fdc_generated(from: "StudentMark", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `StudentParent` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  studentParent_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: StudentParent_Data!
+  ): StudentParent_KeyOutput! @fdc_generated(from: "StudentParent", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `StudentPromotionHistory` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  studentPromotionHistory_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: StudentPromotionHistory_Data!
+  ): StudentPromotionHistory_KeyOutput! @fdc_generated(from: "StudentPromotionHistory", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `StudentSectionHistory` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  studentSectionHistory_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: StudentSectionHistory_Data!
+  ): StudentSectionHistory_KeyOutput! @fdc_generated(from: "StudentSectionHistory", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `StudentSequence` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  studentSequence_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: StudentSequence_Data!
+  ): StudentSequence_KeyOutput! @fdc_generated(from: "StudentSequence", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `Subject` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  subject_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: Subject_Data!
+  ): Subject_KeyOutput! @fdc_generated(from: "Subject", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `Suggestion` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  suggestion_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: Suggestion_Data!
+  ): Suggestion_KeyOutput! @fdc_generated(from: "Suggestion", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `Teacher` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  teacher_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: Teacher_Data!
+  ): Teacher_KeyOutput! @fdc_generated(from: "Teacher", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `TeacherAssignment` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  teacherAssignment_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: TeacherAssignment_Data!
+  ): TeacherAssignment_KeyOutput! @fdc_generated(from: "TeacherAssignment", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `TeacherSectionAssignment` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  teacherSectionAssignment_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: TeacherSectionAssignment_Data!
+  ): TeacherSectionAssignment_KeyOutput! @fdc_generated(from: "TeacherSectionAssignment", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `TeacherSubject` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  teacherSubject_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: TeacherSubject_Data!
+  ): TeacherSubject_KeyOutput! @fdc_generated(from: "TeacherSubject", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `TeacherTransferHistory` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  teacherTransferHistory_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: TeacherTransferHistory_Data!
+  ): TeacherTransferHistory_KeyOutput! @fdc_generated(from: "TeacherTransferHistory", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `TimetableArchive` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  timetableArchive_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: TimetableArchive_Data!
+  ): TimetableArchive_KeyOutput! @fdc_generated(from: "TimetableArchive", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `TimetablePeriod` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  timetablePeriod_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: TimetablePeriod_Data!
+  ): TimetablePeriod_KeyOutput! @fdc_generated(from: "TimetablePeriod", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `User` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  user_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: User_Data!
+  ): User_KeyOutput! @fdc_generated(from: "User", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `UserRole` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  userRole_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: UserRole_Data!
+  ): UserRole_KeyOutput! @fdc_generated(from: "UserRole", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `Wing` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  wing_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: Wing_Data!
+  ): Wing_KeyOutput! @fdc_generated(from: "Wing", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert `AcademicClass` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  academicClass_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [AcademicClass_Data!]!
+  ): [AcademicClass_KeyOutput!]! @fdc_generated(from: "AcademicClass", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `AcademicYear` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  academicYear_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [AcademicYear_Data!]!
+  ): [AcademicYear_KeyOutput!]! @fdc_generated(from: "AcademicYear", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `AcademicYearFeeTemplate` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  academicYearFeeTemplate_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [AcademicYearFeeTemplate_Data!]!
+  ): [AcademicYearFeeTemplate_KeyOutput!]! @fdc_generated(from: "AcademicYearFeeTemplate", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `Accountant` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  accountant_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [Accountant_Data!]!
+  ): [Accountant_KeyOutput!]! @fdc_generated(from: "Accountant", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `Attendance` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  attendance_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [Attendance_Data!]!
+  ): [Attendance_KeyOutput!]! @fdc_generated(from: "Attendance", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `AttendanceAlertLog` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  attendanceAlertLog_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [AttendanceAlertLog_Data!]!
+  ): [AttendanceAlertLog_KeyOutput!]! @fdc_generated(from: "AttendanceAlertLog", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `AttendanceAuditLog` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  attendanceAuditLog_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [AttendanceAuditLog_Data!]!
+  ): [AttendanceAuditLog_KeyOutput!]! @fdc_generated(from: "AttendanceAuditLog", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `AttendanceSummary` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  attendanceSummary_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [AttendanceSummary_Data!]!
+  ): [AttendanceSummary_KeyOutput!]! @fdc_generated(from: "AttendanceSummary", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `AuditLog` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  auditLog_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [AuditLog_Data!]!
+  ): [AuditLog_KeyOutput!]! @fdc_generated(from: "AuditLog", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `Branch` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  branch_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [Branch_Data!]!
+  ): [Branch_KeyOutput!]! @fdc_generated(from: "Branch", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `Coordinator` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  coordinator_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [Coordinator_Data!]!
+  ): [Coordinator_KeyOutput!]! @fdc_generated(from: "Coordinator", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `DueTracking` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  dueTracking_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [DueTracking_Data!]!
+  ): [DueTracking_KeyOutput!]! @fdc_generated(from: "DueTracking", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `EmployeeSequence` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  employeeSequence_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [EmployeeSequence_Data!]!
+  ): [EmployeeSequence_KeyOutput!]! @fdc_generated(from: "EmployeeSequence", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `Exam` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  exam_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [Exam_Data!]!
+  ): [Exam_KeyOutput!]! @fdc_generated(from: "Exam", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `ExamSection` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  examSection_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [ExamSection_Data!]!
+  ): [ExamSection_KeyOutput!]! @fdc_generated(from: "ExamSection", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `ExamSubjectConfig` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  examSubjectConfig_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [ExamSubjectConfig_Data!]!
+  ): [ExamSubjectConfig_KeyOutput!]! @fdc_generated(from: "ExamSubjectConfig", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `FeeAuditLog` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  feeAuditLog_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [FeeAuditLog_Data!]!
+  ): [FeeAuditLog_KeyOutput!]! @fdc_generated(from: "FeeAuditLog", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `FeeCategory` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  feeCategory_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [FeeCategory_Data!]!
+  ): [FeeCategory_KeyOutput!]! @fdc_generated(from: "FeeCategory", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `FeePayment` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  feePayment_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [FeePayment_Data!]!
+  ): [FeePayment_KeyOutput!]! @fdc_generated(from: "FeePayment", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `FeeStructure` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  feeStructure_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [FeeStructure_Data!]!
+  ): [FeeStructure_KeyOutput!]! @fdc_generated(from: "FeeStructure", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `Holiday` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  holiday_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [Holiday_Data!]!
+  ): [Holiday_KeyOutput!]! @fdc_generated(from: "Holiday", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `MarksAuditLog` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  marksAuditLog_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [MarksAuditLog_Data!]!
+  ): [MarksAuditLog_KeyOutput!]! @fdc_generated(from: "MarksAuditLog", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `Notice` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  notice_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [Notice_Data!]!
+  ): [Notice_KeyOutput!]! @fdc_generated(from: "Notice", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `Notification` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  notification_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [Notification_Data!]!
+  ): [Notification_KeyOutput!]! @fdc_generated(from: "Notification", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `Parent` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  parent_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [Parent_Data!]!
+  ): [Parent_KeyOutput!]! @fdc_generated(from: "Parent", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `Payment` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  payment_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [Payment_Data!]!
+  ): [Payment_KeyOutput!]! @fdc_generated(from: "Payment", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `ReceiptSequence` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  receiptSequence_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [ReceiptSequence_Data!]!
+  ): [ReceiptSequence_KeyOutput!]! @fdc_generated(from: "ReceiptSequence", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `Section` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  section_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [Section_Data!]!
+  ): [Section_KeyOutput!]! @fdc_generated(from: "Section", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `StaffIdSequence` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  staffIdSequence_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [StaffIdSequence_Data!]!
+  ): [StaffIdSequence_KeyOutput!]! @fdc_generated(from: "StaffIdSequence", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `Student` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  student_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [Student_Data!]!
+  ): [Student_KeyOutput!]! @fdc_generated(from: "Student", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `StudentAcademicHistory` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  studentAcademicHistory_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [StudentAcademicHistory_Data!]!
+  ): [StudentAcademicHistory_KeyOutput!]! @fdc_generated(from: "StudentAcademicHistory", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `StudentFee` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  studentFee_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [StudentFee_Data!]!
+  ): [StudentFee_KeyOutput!]! @fdc_generated(from: "StudentFee", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `StudentFeeItem` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  studentFeeItem_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [StudentFeeItem_Data!]!
+  ): [StudentFeeItem_KeyOutput!]! @fdc_generated(from: "StudentFeeItem", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `StudentFeePlan` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  studentFeePlan_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [StudentFeePlan_Data!]!
+  ): [StudentFeePlan_KeyOutput!]! @fdc_generated(from: "StudentFeePlan", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `StudentIdSequence` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  studentIdSequence_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [StudentIdSequence_Data!]!
+  ): [StudentIdSequence_KeyOutput!]! @fdc_generated(from: "StudentIdSequence", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `StudentMark` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  studentMark_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [StudentMark_Data!]!
+  ): [StudentMark_KeyOutput!]! @fdc_generated(from: "StudentMark", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `StudentParent` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  studentParent_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [StudentParent_Data!]!
+  ): [StudentParent_KeyOutput!]! @fdc_generated(from: "StudentParent", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `StudentPromotionHistory` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  studentPromotionHistory_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [StudentPromotionHistory_Data!]!
+  ): [StudentPromotionHistory_KeyOutput!]! @fdc_generated(from: "StudentPromotionHistory", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `StudentSectionHistory` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  studentSectionHistory_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [StudentSectionHistory_Data!]!
+  ): [StudentSectionHistory_KeyOutput!]! @fdc_generated(from: "StudentSectionHistory", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `StudentSequence` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  studentSequence_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [StudentSequence_Data!]!
+  ): [StudentSequence_KeyOutput!]! @fdc_generated(from: "StudentSequence", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `Subject` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  subject_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [Subject_Data!]!
+  ): [Subject_KeyOutput!]! @fdc_generated(from: "Subject", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `Suggestion` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  suggestion_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [Suggestion_Data!]!
+  ): [Suggestion_KeyOutput!]! @fdc_generated(from: "Suggestion", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `Teacher` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  teacher_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [Teacher_Data!]!
+  ): [Teacher_KeyOutput!]! @fdc_generated(from: "Teacher", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `TeacherAssignment` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  teacherAssignment_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [TeacherAssignment_Data!]!
+  ): [TeacherAssignment_KeyOutput!]! @fdc_generated(from: "TeacherAssignment", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `TeacherSectionAssignment` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  teacherSectionAssignment_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [TeacherSectionAssignment_Data!]!
+  ): [TeacherSectionAssignment_KeyOutput!]! @fdc_generated(from: "TeacherSectionAssignment", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `TeacherSubject` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  teacherSubject_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [TeacherSubject_Data!]!
+  ): [TeacherSubject_KeyOutput!]! @fdc_generated(from: "TeacherSubject", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `TeacherTransferHistory` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  teacherTransferHistory_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [TeacherTransferHistory_Data!]!
+  ): [TeacherTransferHistory_KeyOutput!]! @fdc_generated(from: "TeacherTransferHistory", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `TimetableArchive` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  timetableArchive_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [TimetableArchive_Data!]!
+  ): [TimetableArchive_KeyOutput!]! @fdc_generated(from: "TimetableArchive", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `TimetablePeriod` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  timetablePeriod_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [TimetablePeriod_Data!]!
+  ): [TimetablePeriod_KeyOutput!]! @fdc_generated(from: "TimetablePeriod", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `User` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  user_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [User_Data!]!
+  ): [User_KeyOutput!]! @fdc_generated(from: "User", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `UserRole` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  userRole_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [UserRole_Data!]!
+  ): [UserRole_KeyOutput!]! @fdc_generated(from: "UserRole", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `Wing` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  wing_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [Wing_Data!]!
+  ): [Wing_KeyOutput!]! @fdc_generated(from: "Wing", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert or update a single `AcademicClass` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `AcademicClass`.
+  """
+  academicClass_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: AcademicClass_Data!
+  ): AcademicClass_KeyOutput! @fdc_generated(from: "AcademicClass", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `AcademicYear` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `AcademicYear`.
+  """
+  academicYear_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: AcademicYear_Data!
+  ): AcademicYear_KeyOutput! @fdc_generated(from: "AcademicYear", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `AcademicYearFeeTemplate` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `AcademicYearFeeTemplate`.
+  """
+  academicYearFeeTemplate_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: AcademicYearFeeTemplate_Data!
+  ): AcademicYearFeeTemplate_KeyOutput! @fdc_generated(from: "AcademicYearFeeTemplate", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `Accountant` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Accountant`.
+  """
+  accountant_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: Accountant_Data!
+  ): Accountant_KeyOutput! @fdc_generated(from: "Accountant", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `Attendance` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Attendance`.
+  """
+  attendance_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: Attendance_Data!
+  ): Attendance_KeyOutput! @fdc_generated(from: "Attendance", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `AttendanceAlertLog` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `AttendanceAlertLog`.
+  """
+  attendanceAlertLog_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: AttendanceAlertLog_Data!
+  ): AttendanceAlertLog_KeyOutput! @fdc_generated(from: "AttendanceAlertLog", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `AttendanceAuditLog` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `AttendanceAuditLog`.
+  """
+  attendanceAuditLog_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: AttendanceAuditLog_Data!
+  ): AttendanceAuditLog_KeyOutput! @fdc_generated(from: "AttendanceAuditLog", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `AttendanceSummary` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `AttendanceSummary`.
+  """
+  attendanceSummary_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: AttendanceSummary_Data!
+  ): AttendanceSummary_KeyOutput! @fdc_generated(from: "AttendanceSummary", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `AuditLog` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `AuditLog`.
+  """
+  auditLog_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: AuditLog_Data!
+  ): AuditLog_KeyOutput! @fdc_generated(from: "AuditLog", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `Branch` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Branch`.
+  """
+  branch_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: Branch_Data!
+  ): Branch_KeyOutput! @fdc_generated(from: "Branch", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `Coordinator` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Coordinator`.
+  """
+  coordinator_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: Coordinator_Data!
+  ): Coordinator_KeyOutput! @fdc_generated(from: "Coordinator", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `DueTracking` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `DueTracking`.
+  """
+  dueTracking_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: DueTracking_Data!
+  ): DueTracking_KeyOutput! @fdc_generated(from: "DueTracking", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `EmployeeSequence` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `EmployeeSequence`.
+  """
+  employeeSequence_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: EmployeeSequence_Data!
+  ): EmployeeSequence_KeyOutput! @fdc_generated(from: "EmployeeSequence", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `Exam` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Exam`.
+  """
+  exam_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: Exam_Data!
+  ): Exam_KeyOutput! @fdc_generated(from: "Exam", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `ExamSection` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `ExamSection`.
+  """
+  examSection_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: ExamSection_Data!
+  ): ExamSection_KeyOutput! @fdc_generated(from: "ExamSection", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `ExamSubjectConfig` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `ExamSubjectConfig`.
+  """
+  examSubjectConfig_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: ExamSubjectConfig_Data!
+  ): ExamSubjectConfig_KeyOutput! @fdc_generated(from: "ExamSubjectConfig", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `FeeAuditLog` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `FeeAuditLog`.
+  """
+  feeAuditLog_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: FeeAuditLog_Data!
+  ): FeeAuditLog_KeyOutput! @fdc_generated(from: "FeeAuditLog", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `FeeCategory` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `FeeCategory`.
+  """
+  feeCategory_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: FeeCategory_Data!
+  ): FeeCategory_KeyOutput! @fdc_generated(from: "FeeCategory", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `FeePayment` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `FeePayment`.
+  """
+  feePayment_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: FeePayment_Data!
+  ): FeePayment_KeyOutput! @fdc_generated(from: "FeePayment", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `FeeStructure` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `FeeStructure`.
+  """
+  feeStructure_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: FeeStructure_Data!
+  ): FeeStructure_KeyOutput! @fdc_generated(from: "FeeStructure", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `Holiday` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Holiday`.
+  """
+  holiday_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: Holiday_Data!
+  ): Holiday_KeyOutput! @fdc_generated(from: "Holiday", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `MarksAuditLog` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `MarksAuditLog`.
+  """
+  marksAuditLog_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: MarksAuditLog_Data!
+  ): MarksAuditLog_KeyOutput! @fdc_generated(from: "MarksAuditLog", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `Notice` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Notice`.
+  """
+  notice_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: Notice_Data!
+  ): Notice_KeyOutput! @fdc_generated(from: "Notice", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `Notification` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Notification`.
+  """
+  notification_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: Notification_Data!
+  ): Notification_KeyOutput! @fdc_generated(from: "Notification", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `Parent` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Parent`.
+  """
+  parent_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: Parent_Data!
+  ): Parent_KeyOutput! @fdc_generated(from: "Parent", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `Payment` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Payment`.
+  """
+  payment_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: Payment_Data!
+  ): Payment_KeyOutput! @fdc_generated(from: "Payment", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `ReceiptSequence` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `ReceiptSequence`.
+  """
+  receiptSequence_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: ReceiptSequence_Data!
+  ): ReceiptSequence_KeyOutput! @fdc_generated(from: "ReceiptSequence", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `Section` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Section`.
+  """
+  section_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: Section_Data!
+  ): Section_KeyOutput! @fdc_generated(from: "Section", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `StaffIdSequence` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `StaffIdSequence`.
+  """
+  staffIdSequence_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: StaffIdSequence_Data!
+  ): StaffIdSequence_KeyOutput! @fdc_generated(from: "StaffIdSequence", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `Student` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Student`.
+  """
+  student_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: Student_Data!
+  ): Student_KeyOutput! @fdc_generated(from: "Student", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `StudentAcademicHistory` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `StudentAcademicHistory`.
+  """
+  studentAcademicHistory_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: StudentAcademicHistory_Data!
+  ): StudentAcademicHistory_KeyOutput! @fdc_generated(from: "StudentAcademicHistory", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `StudentFee` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `StudentFee`.
+  """
+  studentFee_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: StudentFee_Data!
+  ): StudentFee_KeyOutput! @fdc_generated(from: "StudentFee", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `StudentFeeItem` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `StudentFeeItem`.
+  """
+  studentFeeItem_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: StudentFeeItem_Data!
+  ): StudentFeeItem_KeyOutput! @fdc_generated(from: "StudentFeeItem", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `StudentFeePlan` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `StudentFeePlan`.
+  """
+  studentFeePlan_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: StudentFeePlan_Data!
+  ): StudentFeePlan_KeyOutput! @fdc_generated(from: "StudentFeePlan", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `StudentIdSequence` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `StudentIdSequence`.
+  """
+  studentIdSequence_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: StudentIdSequence_Data!
+  ): StudentIdSequence_KeyOutput! @fdc_generated(from: "StudentIdSequence", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `StudentMark` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `StudentMark`.
+  """
+  studentMark_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: StudentMark_Data!
+  ): StudentMark_KeyOutput! @fdc_generated(from: "StudentMark", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `StudentParent` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `StudentParent`.
+  """
+  studentParent_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: StudentParent_Data!
+  ): StudentParent_KeyOutput! @fdc_generated(from: "StudentParent", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `StudentPromotionHistory` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `StudentPromotionHistory`.
+  """
+  studentPromotionHistory_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: StudentPromotionHistory_Data!
+  ): StudentPromotionHistory_KeyOutput! @fdc_generated(from: "StudentPromotionHistory", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `StudentSectionHistory` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `StudentSectionHistory`.
+  """
+  studentSectionHistory_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: StudentSectionHistory_Data!
+  ): StudentSectionHistory_KeyOutput! @fdc_generated(from: "StudentSectionHistory", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `StudentSequence` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `StudentSequence`.
+  """
+  studentSequence_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: StudentSequence_Data!
+  ): StudentSequence_KeyOutput! @fdc_generated(from: "StudentSequence", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `Subject` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Subject`.
+  """
+  subject_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: Subject_Data!
+  ): Subject_KeyOutput! @fdc_generated(from: "Subject", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `Suggestion` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Suggestion`.
+  """
+  suggestion_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: Suggestion_Data!
+  ): Suggestion_KeyOutput! @fdc_generated(from: "Suggestion", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `Teacher` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Teacher`.
+  """
+  teacher_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: Teacher_Data!
+  ): Teacher_KeyOutput! @fdc_generated(from: "Teacher", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `TeacherAssignment` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `TeacherAssignment`.
+  """
+  teacherAssignment_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: TeacherAssignment_Data!
+  ): TeacherAssignment_KeyOutput! @fdc_generated(from: "TeacherAssignment", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `TeacherSectionAssignment` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `TeacherSectionAssignment`.
+  """
+  teacherSectionAssignment_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: TeacherSectionAssignment_Data!
+  ): TeacherSectionAssignment_KeyOutput! @fdc_generated(from: "TeacherSectionAssignment", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `TeacherSubject` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `TeacherSubject`.
+  """
+  teacherSubject_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: TeacherSubject_Data!
+  ): TeacherSubject_KeyOutput! @fdc_generated(from: "TeacherSubject", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `TeacherTransferHistory` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `TeacherTransferHistory`.
+  """
+  teacherTransferHistory_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: TeacherTransferHistory_Data!
+  ): TeacherTransferHistory_KeyOutput! @fdc_generated(from: "TeacherTransferHistory", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `TimetableArchive` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `TimetableArchive`.
+  """
+  timetableArchive_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: TimetableArchive_Data!
+  ): TimetableArchive_KeyOutput! @fdc_generated(from: "TimetableArchive", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `TimetablePeriod` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `TimetablePeriod`.
+  """
+  timetablePeriod_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: TimetablePeriod_Data!
+  ): TimetablePeriod_KeyOutput! @fdc_generated(from: "TimetablePeriod", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `User` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `User`.
+  """
+  user_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: User_Data!
+  ): User_KeyOutput! @fdc_generated(from: "User", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `UserRole` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `UserRole`.
+  """
+  userRole_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: UserRole_Data!
+  ): UserRole_KeyOutput! @fdc_generated(from: "UserRole", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `Wing` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Wing`.
+  """
+  wing_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: Wing_Data!
+  ): Wing_KeyOutput! @fdc_generated(from: "Wing", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update `AcademicClass` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `AcademicClass`.
+  """
+  academicClass_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [AcademicClass_Data!]!
+  ): [AcademicClass_KeyOutput!]! @fdc_generated(from: "AcademicClass", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `AcademicYear` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `AcademicYear`.
+  """
+  academicYear_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [AcademicYear_Data!]!
+  ): [AcademicYear_KeyOutput!]! @fdc_generated(from: "AcademicYear", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `AcademicYearFeeTemplate` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `AcademicYearFeeTemplate`.
+  """
+  academicYearFeeTemplate_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [AcademicYearFeeTemplate_Data!]!
+  ): [AcademicYearFeeTemplate_KeyOutput!]! @fdc_generated(from: "AcademicYearFeeTemplate", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `Accountant` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Accountant`.
+  """
+  accountant_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [Accountant_Data!]!
+  ): [Accountant_KeyOutput!]! @fdc_generated(from: "Accountant", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `Attendance` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Attendance`.
+  """
+  attendance_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [Attendance_Data!]!
+  ): [Attendance_KeyOutput!]! @fdc_generated(from: "Attendance", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `AttendanceAlertLog` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `AttendanceAlertLog`.
+  """
+  attendanceAlertLog_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [AttendanceAlertLog_Data!]!
+  ): [AttendanceAlertLog_KeyOutput!]! @fdc_generated(from: "AttendanceAlertLog", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `AttendanceAuditLog` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `AttendanceAuditLog`.
+  """
+  attendanceAuditLog_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [AttendanceAuditLog_Data!]!
+  ): [AttendanceAuditLog_KeyOutput!]! @fdc_generated(from: "AttendanceAuditLog", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `AttendanceSummary` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `AttendanceSummary`.
+  """
+  attendanceSummary_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [AttendanceSummary_Data!]!
+  ): [AttendanceSummary_KeyOutput!]! @fdc_generated(from: "AttendanceSummary", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `AuditLog` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `AuditLog`.
+  """
+  auditLog_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [AuditLog_Data!]!
+  ): [AuditLog_KeyOutput!]! @fdc_generated(from: "AuditLog", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `Branch` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Branch`.
+  """
+  branch_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [Branch_Data!]!
+  ): [Branch_KeyOutput!]! @fdc_generated(from: "Branch", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `Coordinator` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Coordinator`.
+  """
+  coordinator_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [Coordinator_Data!]!
+  ): [Coordinator_KeyOutput!]! @fdc_generated(from: "Coordinator", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `DueTracking` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `DueTracking`.
+  """
+  dueTracking_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [DueTracking_Data!]!
+  ): [DueTracking_KeyOutput!]! @fdc_generated(from: "DueTracking", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `EmployeeSequence` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `EmployeeSequence`.
+  """
+  employeeSequence_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [EmployeeSequence_Data!]!
+  ): [EmployeeSequence_KeyOutput!]! @fdc_generated(from: "EmployeeSequence", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `Exam` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Exam`.
+  """
+  exam_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [Exam_Data!]!
+  ): [Exam_KeyOutput!]! @fdc_generated(from: "Exam", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `ExamSection` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `ExamSection`.
+  """
+  examSection_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [ExamSection_Data!]!
+  ): [ExamSection_KeyOutput!]! @fdc_generated(from: "ExamSection", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `ExamSubjectConfig` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `ExamSubjectConfig`.
+  """
+  examSubjectConfig_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [ExamSubjectConfig_Data!]!
+  ): [ExamSubjectConfig_KeyOutput!]! @fdc_generated(from: "ExamSubjectConfig", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `FeeAuditLog` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `FeeAuditLog`.
+  """
+  feeAuditLog_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [FeeAuditLog_Data!]!
+  ): [FeeAuditLog_KeyOutput!]! @fdc_generated(from: "FeeAuditLog", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `FeeCategory` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `FeeCategory`.
+  """
+  feeCategory_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [FeeCategory_Data!]!
+  ): [FeeCategory_KeyOutput!]! @fdc_generated(from: "FeeCategory", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `FeePayment` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `FeePayment`.
+  """
+  feePayment_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [FeePayment_Data!]!
+  ): [FeePayment_KeyOutput!]! @fdc_generated(from: "FeePayment", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `FeeStructure` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `FeeStructure`.
+  """
+  feeStructure_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [FeeStructure_Data!]!
+  ): [FeeStructure_KeyOutput!]! @fdc_generated(from: "FeeStructure", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `Holiday` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Holiday`.
+  """
+  holiday_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [Holiday_Data!]!
+  ): [Holiday_KeyOutput!]! @fdc_generated(from: "Holiday", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `MarksAuditLog` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `MarksAuditLog`.
+  """
+  marksAuditLog_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [MarksAuditLog_Data!]!
+  ): [MarksAuditLog_KeyOutput!]! @fdc_generated(from: "MarksAuditLog", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `Notice` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Notice`.
+  """
+  notice_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [Notice_Data!]!
+  ): [Notice_KeyOutput!]! @fdc_generated(from: "Notice", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `Notification` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Notification`.
+  """
+  notification_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [Notification_Data!]!
+  ): [Notification_KeyOutput!]! @fdc_generated(from: "Notification", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `Parent` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Parent`.
+  """
+  parent_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [Parent_Data!]!
+  ): [Parent_KeyOutput!]! @fdc_generated(from: "Parent", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `Payment` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Payment`.
+  """
+  payment_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [Payment_Data!]!
+  ): [Payment_KeyOutput!]! @fdc_generated(from: "Payment", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `ReceiptSequence` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `ReceiptSequence`.
+  """
+  receiptSequence_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [ReceiptSequence_Data!]!
+  ): [ReceiptSequence_KeyOutput!]! @fdc_generated(from: "ReceiptSequence", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `Section` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Section`.
+  """
+  section_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [Section_Data!]!
+  ): [Section_KeyOutput!]! @fdc_generated(from: "Section", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `StaffIdSequence` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `StaffIdSequence`.
+  """
+  staffIdSequence_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [StaffIdSequence_Data!]!
+  ): [StaffIdSequence_KeyOutput!]! @fdc_generated(from: "StaffIdSequence", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `Student` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Student`.
+  """
+  student_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [Student_Data!]!
+  ): [Student_KeyOutput!]! @fdc_generated(from: "Student", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `StudentAcademicHistory` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `StudentAcademicHistory`.
+  """
+  studentAcademicHistory_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [StudentAcademicHistory_Data!]!
+  ): [StudentAcademicHistory_KeyOutput!]! @fdc_generated(from: "StudentAcademicHistory", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `StudentFee` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `StudentFee`.
+  """
+  studentFee_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [StudentFee_Data!]!
+  ): [StudentFee_KeyOutput!]! @fdc_generated(from: "StudentFee", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `StudentFeeItem` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `StudentFeeItem`.
+  """
+  studentFeeItem_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [StudentFeeItem_Data!]!
+  ): [StudentFeeItem_KeyOutput!]! @fdc_generated(from: "StudentFeeItem", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `StudentFeePlan` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `StudentFeePlan`.
+  """
+  studentFeePlan_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [StudentFeePlan_Data!]!
+  ): [StudentFeePlan_KeyOutput!]! @fdc_generated(from: "StudentFeePlan", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `StudentIdSequence` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `StudentIdSequence`.
+  """
+  studentIdSequence_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [StudentIdSequence_Data!]!
+  ): [StudentIdSequence_KeyOutput!]! @fdc_generated(from: "StudentIdSequence", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `StudentMark` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `StudentMark`.
+  """
+  studentMark_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [StudentMark_Data!]!
+  ): [StudentMark_KeyOutput!]! @fdc_generated(from: "StudentMark", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `StudentParent` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `StudentParent`.
+  """
+  studentParent_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [StudentParent_Data!]!
+  ): [StudentParent_KeyOutput!]! @fdc_generated(from: "StudentParent", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `StudentPromotionHistory` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `StudentPromotionHistory`.
+  """
+  studentPromotionHistory_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [StudentPromotionHistory_Data!]!
+  ): [StudentPromotionHistory_KeyOutput!]! @fdc_generated(from: "StudentPromotionHistory", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `StudentSectionHistory` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `StudentSectionHistory`.
+  """
+  studentSectionHistory_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [StudentSectionHistory_Data!]!
+  ): [StudentSectionHistory_KeyOutput!]! @fdc_generated(from: "StudentSectionHistory", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `StudentSequence` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `StudentSequence`.
+  """
+  studentSequence_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [StudentSequence_Data!]!
+  ): [StudentSequence_KeyOutput!]! @fdc_generated(from: "StudentSequence", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `Subject` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Subject`.
+  """
+  subject_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [Subject_Data!]!
+  ): [Subject_KeyOutput!]! @fdc_generated(from: "Subject", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `Suggestion` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Suggestion`.
+  """
+  suggestion_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [Suggestion_Data!]!
+  ): [Suggestion_KeyOutput!]! @fdc_generated(from: "Suggestion", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `Teacher` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Teacher`.
+  """
+  teacher_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [Teacher_Data!]!
+  ): [Teacher_KeyOutput!]! @fdc_generated(from: "Teacher", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `TeacherAssignment` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `TeacherAssignment`.
+  """
+  teacherAssignment_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [TeacherAssignment_Data!]!
+  ): [TeacherAssignment_KeyOutput!]! @fdc_generated(from: "TeacherAssignment", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `TeacherSectionAssignment` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `TeacherSectionAssignment`.
+  """
+  teacherSectionAssignment_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [TeacherSectionAssignment_Data!]!
+  ): [TeacherSectionAssignment_KeyOutput!]! @fdc_generated(from: "TeacherSectionAssignment", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `TeacherSubject` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `TeacherSubject`.
+  """
+  teacherSubject_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [TeacherSubject_Data!]!
+  ): [TeacherSubject_KeyOutput!]! @fdc_generated(from: "TeacherSubject", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `TeacherTransferHistory` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `TeacherTransferHistory`.
+  """
+  teacherTransferHistory_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [TeacherTransferHistory_Data!]!
+  ): [TeacherTransferHistory_KeyOutput!]! @fdc_generated(from: "TeacherTransferHistory", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `TimetableArchive` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `TimetableArchive`.
+  """
+  timetableArchive_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [TimetableArchive_Data!]!
+  ): [TimetableArchive_KeyOutput!]! @fdc_generated(from: "TimetableArchive", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `TimetablePeriod` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `TimetablePeriod`.
+  """
+  timetablePeriod_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [TimetablePeriod_Data!]!
+  ): [TimetablePeriod_KeyOutput!]! @fdc_generated(from: "TimetablePeriod", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `User` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `User`.
+  """
+  user_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [User_Data!]!
+  ): [User_KeyOutput!]! @fdc_generated(from: "User", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `UserRole` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `UserRole`.
+  """
+  userRole_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [UserRole_Data!]!
+  ): [UserRole_KeyOutput!]! @fdc_generated(from: "UserRole", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `Wing` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Wing`.
+  """
+  wing_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [Wing_Data!]!
+  ): [Wing_KeyOutput!]! @fdc_generated(from: "Wing", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Update a single `AcademicClass` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `AcademicClass` or `null` if not found.
+  """
+  academicClass_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: AcademicClass_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: AcademicClass_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: AcademicClass_Data!
+  ): AcademicClass_KeyOutput @fdc_generated(from: "AcademicClass", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `AcademicYear` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `AcademicYear` or `null` if not found.
+  """
+  academicYear_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: AcademicYear_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: AcademicYear_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: AcademicYear_Data!
+  ): AcademicYear_KeyOutput @fdc_generated(from: "AcademicYear", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `AcademicYearFeeTemplate` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `AcademicYearFeeTemplate` or `null` if not found.
+  """
+  academicYearFeeTemplate_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: AcademicYearFeeTemplate_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: AcademicYearFeeTemplate_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: AcademicYearFeeTemplate_Data!
+  ): AcademicYearFeeTemplate_KeyOutput @fdc_generated(from: "AcademicYearFeeTemplate", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `Accountant` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `Accountant` or `null` if not found.
+  """
+  accountant_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Accountant_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Accountant_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: Accountant_Data!
+  ): Accountant_KeyOutput @fdc_generated(from: "Accountant", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `Attendance` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `Attendance` or `null` if not found.
+  """
+  attendance_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Attendance_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Attendance_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: Attendance_Data!
+  ): Attendance_KeyOutput @fdc_generated(from: "Attendance", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `AttendanceAlertLog` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `AttendanceAlertLog` or `null` if not found.
+  """
+  attendanceAlertLog_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: AttendanceAlertLog_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: AttendanceAlertLog_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: AttendanceAlertLog_Data!
+  ): AttendanceAlertLog_KeyOutput @fdc_generated(from: "AttendanceAlertLog", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `AttendanceAuditLog` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `AttendanceAuditLog` or `null` if not found.
+  """
+  attendanceAuditLog_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: AttendanceAuditLog_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: AttendanceAuditLog_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: AttendanceAuditLog_Data!
+  ): AttendanceAuditLog_KeyOutput @fdc_generated(from: "AttendanceAuditLog", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `AttendanceSummary` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `AttendanceSummary` or `null` if not found.
+  """
+  attendanceSummary_update(
+    """
+    The key used to identify the object.
+    """
+    key: AttendanceSummary_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: AttendanceSummary_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: AttendanceSummary_Data!
+  ): AttendanceSummary_KeyOutput @fdc_generated(from: "AttendanceSummary", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `AuditLog` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `AuditLog` or `null` if not found.
+  """
+  auditLog_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: AuditLog_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: AuditLog_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: AuditLog_Data!
+  ): AuditLog_KeyOutput @fdc_generated(from: "AuditLog", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `Branch` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `Branch` or `null` if not found.
+  """
+  branch_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Branch_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Branch_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: Branch_Data!
+  ): Branch_KeyOutput @fdc_generated(from: "Branch", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `Coordinator` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `Coordinator` or `null` if not found.
+  """
+  coordinator_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Coordinator_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Coordinator_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: Coordinator_Data!
+  ): Coordinator_KeyOutput @fdc_generated(from: "Coordinator", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `DueTracking` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `DueTracking` or `null` if not found.
+  """
+  dueTracking_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: DueTracking_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: DueTracking_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: DueTracking_Data!
+  ): DueTracking_KeyOutput @fdc_generated(from: "DueTracking", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `EmployeeSequence` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `EmployeeSequence` or `null` if not found.
+  """
+  employeeSequence_update(
+    """
+    The key used to identify the object.
+    """
+    key: EmployeeSequence_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: EmployeeSequence_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: EmployeeSequence_Data!
+  ): EmployeeSequence_KeyOutput @fdc_generated(from: "EmployeeSequence", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `Exam` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `Exam` or `null` if not found.
+  """
+  exam_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Exam_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Exam_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: Exam_Data!
+  ): Exam_KeyOutput @fdc_generated(from: "Exam", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `ExamSection` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `ExamSection` or `null` if not found.
+  """
+  examSection_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: ExamSection_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: ExamSection_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: ExamSection_Data!
+  ): ExamSection_KeyOutput @fdc_generated(from: "ExamSection", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `ExamSubjectConfig` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `ExamSubjectConfig` or `null` if not found.
+  """
+  examSubjectConfig_update(
+    """
+    The key used to identify the object.
+    """
+    key: ExamSubjectConfig_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: ExamSubjectConfig_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: ExamSubjectConfig_Data!
+  ): ExamSubjectConfig_KeyOutput @fdc_generated(from: "ExamSubjectConfig", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `FeeAuditLog` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `FeeAuditLog` or `null` if not found.
+  """
+  feeAuditLog_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: FeeAuditLog_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: FeeAuditLog_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: FeeAuditLog_Data!
+  ): FeeAuditLog_KeyOutput @fdc_generated(from: "FeeAuditLog", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `FeeCategory` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `FeeCategory` or `null` if not found.
+  """
+  feeCategory_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: FeeCategory_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: FeeCategory_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: FeeCategory_Data!
+  ): FeeCategory_KeyOutput @fdc_generated(from: "FeeCategory", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `FeePayment` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `FeePayment` or `null` if not found.
+  """
+  feePayment_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: FeePayment_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: FeePayment_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: FeePayment_Data!
+  ): FeePayment_KeyOutput @fdc_generated(from: "FeePayment", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `FeeStructure` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `FeeStructure` or `null` if not found.
+  """
+  feeStructure_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: FeeStructure_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: FeeStructure_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: FeeStructure_Data!
+  ): FeeStructure_KeyOutput @fdc_generated(from: "FeeStructure", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `Holiday` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `Holiday` or `null` if not found.
+  """
+  holiday_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Holiday_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Holiday_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: Holiday_Data!
+  ): Holiday_KeyOutput @fdc_generated(from: "Holiday", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `MarksAuditLog` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `MarksAuditLog` or `null` if not found.
+  """
+  marksAuditLog_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: MarksAuditLog_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: MarksAuditLog_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: MarksAuditLog_Data!
+  ): MarksAuditLog_KeyOutput @fdc_generated(from: "MarksAuditLog", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `Notice` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `Notice` or `null` if not found.
+  """
+  notice_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Notice_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Notice_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: Notice_Data!
+  ): Notice_KeyOutput @fdc_generated(from: "Notice", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `Notification` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `Notification` or `null` if not found.
+  """
+  notification_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Notification_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Notification_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: Notification_Data!
+  ): Notification_KeyOutput @fdc_generated(from: "Notification", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `Parent` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `Parent` or `null` if not found.
+  """
+  parent_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Parent_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Parent_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: Parent_Data!
+  ): Parent_KeyOutput @fdc_generated(from: "Parent", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `Payment` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `Payment` or `null` if not found.
+  """
+  payment_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Payment_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Payment_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: Payment_Data!
+  ): Payment_KeyOutput @fdc_generated(from: "Payment", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `ReceiptSequence` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `ReceiptSequence` or `null` if not found.
+  """
+  receiptSequence_update(
+    """
+    The key used to identify the object.
+    """
+    key: ReceiptSequence_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: ReceiptSequence_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: ReceiptSequence_Data!
+  ): ReceiptSequence_KeyOutput @fdc_generated(from: "ReceiptSequence", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `Section` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `Section` or `null` if not found.
+  """
+  section_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Section_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Section_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: Section_Data!
+  ): Section_KeyOutput @fdc_generated(from: "Section", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `StaffIdSequence` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `StaffIdSequence` or `null` if not found.
+  """
+  staffIdSequence_update(
+    """
+    The key used to identify the object.
+    """
+    key: StaffIdSequence_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: StaffIdSequence_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: StaffIdSequence_Data!
+  ): StaffIdSequence_KeyOutput @fdc_generated(from: "StaffIdSequence", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `Student` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `Student` or `null` if not found.
+  """
+  student_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Student_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Student_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: Student_Data!
+  ): Student_KeyOutput @fdc_generated(from: "Student", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `StudentAcademicHistory` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `StudentAcademicHistory` or `null` if not found.
+  """
+  studentAcademicHistory_update(
+    """
+    The key used to identify the object.
+    """
+    key: StudentAcademicHistory_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: StudentAcademicHistory_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: StudentAcademicHistory_Data!
+  ): StudentAcademicHistory_KeyOutput @fdc_generated(from: "StudentAcademicHistory", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `StudentFee` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `StudentFee` or `null` if not found.
+  """
+  studentFee_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: StudentFee_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: StudentFee_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: StudentFee_Data!
+  ): StudentFee_KeyOutput @fdc_generated(from: "StudentFee", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `StudentFeeItem` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `StudentFeeItem` or `null` if not found.
+  """
+  studentFeeItem_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: StudentFeeItem_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: StudentFeeItem_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: StudentFeeItem_Data!
+  ): StudentFeeItem_KeyOutput @fdc_generated(from: "StudentFeeItem", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `StudentFeePlan` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `StudentFeePlan` or `null` if not found.
+  """
+  studentFeePlan_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: StudentFeePlan_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: StudentFeePlan_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: StudentFeePlan_Data!
+  ): StudentFeePlan_KeyOutput @fdc_generated(from: "StudentFeePlan", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `StudentIdSequence` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `StudentIdSequence` or `null` if not found.
+  """
+  studentIdSequence_update(
+    """
+    The key used to identify the object.
+    """
+    key: StudentIdSequence_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: StudentIdSequence_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: StudentIdSequence_Data!
+  ): StudentIdSequence_KeyOutput @fdc_generated(from: "StudentIdSequence", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `StudentMark` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `StudentMark` or `null` if not found.
+  """
+  studentMark_update(
+    """
+    The key used to identify the object.
+    """
+    key: StudentMark_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: StudentMark_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: StudentMark_Data!
+  ): StudentMark_KeyOutput @fdc_generated(from: "StudentMark", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `StudentParent` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `StudentParent` or `null` if not found.
+  """
+  studentParent_update(
+    """
+    The key used to identify the object.
+    """
+    key: StudentParent_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: StudentParent_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: StudentParent_Data!
+  ): StudentParent_KeyOutput @fdc_generated(from: "StudentParent", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `StudentPromotionHistory` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `StudentPromotionHistory` or `null` if not found.
+  """
+  studentPromotionHistory_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: StudentPromotionHistory_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: StudentPromotionHistory_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: StudentPromotionHistory_Data!
+  ): StudentPromotionHistory_KeyOutput @fdc_generated(from: "StudentPromotionHistory", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `StudentSectionHistory` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `StudentSectionHistory` or `null` if not found.
+  """
+  studentSectionHistory_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: StudentSectionHistory_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: StudentSectionHistory_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: StudentSectionHistory_Data!
+  ): StudentSectionHistory_KeyOutput @fdc_generated(from: "StudentSectionHistory", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `StudentSequence` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `StudentSequence` or `null` if not found.
+  """
+  studentSequence_update(
+    """
+    The key used to identify the object.
+    """
+    key: StudentSequence_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: StudentSequence_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: StudentSequence_Data!
+  ): StudentSequence_KeyOutput @fdc_generated(from: "StudentSequence", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `Subject` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `Subject` or `null` if not found.
+  """
+  subject_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Subject_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Subject_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: Subject_Data!
+  ): Subject_KeyOutput @fdc_generated(from: "Subject", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `Suggestion` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `Suggestion` or `null` if not found.
+  """
+  suggestion_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Suggestion_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Suggestion_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: Suggestion_Data!
+  ): Suggestion_KeyOutput @fdc_generated(from: "Suggestion", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `Teacher` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `Teacher` or `null` if not found.
+  """
+  teacher_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Teacher_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Teacher_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: Teacher_Data!
+  ): Teacher_KeyOutput @fdc_generated(from: "Teacher", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `TeacherAssignment` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `TeacherAssignment` or `null` if not found.
+  """
+  teacherAssignment_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: TeacherAssignment_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: TeacherAssignment_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: TeacherAssignment_Data!
+  ): TeacherAssignment_KeyOutput @fdc_generated(from: "TeacherAssignment", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `TeacherSectionAssignment` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `TeacherSectionAssignment` or `null` if not found.
+  """
+  teacherSectionAssignment_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: TeacherSectionAssignment_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: TeacherSectionAssignment_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: TeacherSectionAssignment_Data!
+  ): TeacherSectionAssignment_KeyOutput @fdc_generated(from: "TeacherSectionAssignment", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `TeacherSubject` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `TeacherSubject` or `null` if not found.
+  """
+  teacherSubject_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: TeacherSubject_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: TeacherSubject_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: TeacherSubject_Data!
+  ): TeacherSubject_KeyOutput @fdc_generated(from: "TeacherSubject", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `TeacherTransferHistory` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `TeacherTransferHistory` or `null` if not found.
+  """
+  teacherTransferHistory_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: TeacherTransferHistory_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: TeacherTransferHistory_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: TeacherTransferHistory_Data!
+  ): TeacherTransferHistory_KeyOutput @fdc_generated(from: "TeacherTransferHistory", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `TimetableArchive` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `TimetableArchive` or `null` if not found.
+  """
+  timetableArchive_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: TimetableArchive_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: TimetableArchive_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: TimetableArchive_Data!
+  ): TimetableArchive_KeyOutput @fdc_generated(from: "TimetableArchive", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `TimetablePeriod` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `TimetablePeriod` or `null` if not found.
+  """
+  timetablePeriod_update(
+    """
+    The key used to identify the object.
+    """
+    key: TimetablePeriod_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: TimetablePeriod_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: TimetablePeriod_Data!
+  ): TimetablePeriod_KeyOutput @fdc_generated(from: "TimetablePeriod", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `User` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `User` or `null` if not found.
+  """
+  user_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: User_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: User_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: User_Data!
+  ): User_KeyOutput @fdc_generated(from: "User", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `UserRole` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `UserRole` or `null` if not found.
+  """
+  userRole_update(
+    """
+    The key used to identify the object.
+    """
+    key: UserRole_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: UserRole_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: UserRole_Data!
+  ): UserRole_KeyOutput @fdc_generated(from: "UserRole", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `Wing` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `Wing` or `null` if not found.
+  """
+  wing_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Wing_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Wing_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: Wing_Data!
+  ): Wing_KeyOutput @fdc_generated(from: "Wing", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update `AcademicClass` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  academicClass_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: AcademicClass_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: AcademicClass_Data!
+  ): Int! @fdc_generated(from: "AcademicClass", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `AcademicYear` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  academicYear_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: AcademicYear_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: AcademicYear_Data!
+  ): Int! @fdc_generated(from: "AcademicYear", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `AcademicYearFeeTemplate` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  academicYearFeeTemplate_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: AcademicYearFeeTemplate_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: AcademicYearFeeTemplate_Data!
+  ): Int! @fdc_generated(from: "AcademicYearFeeTemplate", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `Accountant` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  accountant_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: Accountant_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: Accountant_Data!
+  ): Int! @fdc_generated(from: "Accountant", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `Attendance` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  attendance_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: Attendance_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: Attendance_Data!
+  ): Int! @fdc_generated(from: "Attendance", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `AttendanceAlertLog` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  attendanceAlertLog_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: AttendanceAlertLog_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: AttendanceAlertLog_Data!
+  ): Int! @fdc_generated(from: "AttendanceAlertLog", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `AttendanceAuditLog` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  attendanceAuditLog_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: AttendanceAuditLog_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: AttendanceAuditLog_Data!
+  ): Int! @fdc_generated(from: "AttendanceAuditLog", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `AttendanceSummary` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  attendanceSummary_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: AttendanceSummary_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: AttendanceSummary_Data!
+  ): Int! @fdc_generated(from: "AttendanceSummary", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `AuditLog` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  auditLog_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: AuditLog_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: AuditLog_Data!
+  ): Int! @fdc_generated(from: "AuditLog", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `Branch` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  branch_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: Branch_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: Branch_Data!
+  ): Int! @fdc_generated(from: "Branch", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `Coordinator` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  coordinator_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: Coordinator_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: Coordinator_Data!
+  ): Int! @fdc_generated(from: "Coordinator", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `DueTracking` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  dueTracking_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: DueTracking_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: DueTracking_Data!
+  ): Int! @fdc_generated(from: "DueTracking", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `EmployeeSequence` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  employeeSequence_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: EmployeeSequence_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: EmployeeSequence_Data!
+  ): Int! @fdc_generated(from: "EmployeeSequence", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `Exam` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  exam_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: Exam_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: Exam_Data!
+  ): Int! @fdc_generated(from: "Exam", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `ExamSection` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  examSection_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: ExamSection_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: ExamSection_Data!
+  ): Int! @fdc_generated(from: "ExamSection", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `ExamSubjectConfig` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  examSubjectConfig_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: ExamSubjectConfig_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: ExamSubjectConfig_Data!
+  ): Int! @fdc_generated(from: "ExamSubjectConfig", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `FeeAuditLog` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  feeAuditLog_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: FeeAuditLog_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: FeeAuditLog_Data!
+  ): Int! @fdc_generated(from: "FeeAuditLog", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `FeeCategory` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  feeCategory_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: FeeCategory_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: FeeCategory_Data!
+  ): Int! @fdc_generated(from: "FeeCategory", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `FeePayment` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  feePayment_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: FeePayment_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: FeePayment_Data!
+  ): Int! @fdc_generated(from: "FeePayment", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `FeeStructure` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  feeStructure_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: FeeStructure_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: FeeStructure_Data!
+  ): Int! @fdc_generated(from: "FeeStructure", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `Holiday` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  holiday_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: Holiday_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: Holiday_Data!
+  ): Int! @fdc_generated(from: "Holiday", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `MarksAuditLog` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  marksAuditLog_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: MarksAuditLog_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: MarksAuditLog_Data!
+  ): Int! @fdc_generated(from: "MarksAuditLog", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `Notice` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  notice_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: Notice_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: Notice_Data!
+  ): Int! @fdc_generated(from: "Notice", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `Notification` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  notification_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: Notification_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: Notification_Data!
+  ): Int! @fdc_generated(from: "Notification", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `Parent` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  parent_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: Parent_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: Parent_Data!
+  ): Int! @fdc_generated(from: "Parent", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `Payment` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  payment_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: Payment_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: Payment_Data!
+  ): Int! @fdc_generated(from: "Payment", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `ReceiptSequence` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  receiptSequence_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: ReceiptSequence_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: ReceiptSequence_Data!
+  ): Int! @fdc_generated(from: "ReceiptSequence", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `Section` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  section_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: Section_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: Section_Data!
+  ): Int! @fdc_generated(from: "Section", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `StaffIdSequence` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  staffIdSequence_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: StaffIdSequence_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: StaffIdSequence_Data!
+  ): Int! @fdc_generated(from: "StaffIdSequence", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `Student` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  student_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: Student_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: Student_Data!
+  ): Int! @fdc_generated(from: "Student", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `StudentAcademicHistory` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  studentAcademicHistory_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: StudentAcademicHistory_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: StudentAcademicHistory_Data!
+  ): Int! @fdc_generated(from: "StudentAcademicHistory", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `StudentFee` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  studentFee_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: StudentFee_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: StudentFee_Data!
+  ): Int! @fdc_generated(from: "StudentFee", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `StudentFeeItem` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  studentFeeItem_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: StudentFeeItem_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: StudentFeeItem_Data!
+  ): Int! @fdc_generated(from: "StudentFeeItem", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `StudentFeePlan` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  studentFeePlan_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: StudentFeePlan_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: StudentFeePlan_Data!
+  ): Int! @fdc_generated(from: "StudentFeePlan", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `StudentIdSequence` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  studentIdSequence_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: StudentIdSequence_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: StudentIdSequence_Data!
+  ): Int! @fdc_generated(from: "StudentIdSequence", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `StudentMark` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  studentMark_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: StudentMark_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: StudentMark_Data!
+  ): Int! @fdc_generated(from: "StudentMark", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `StudentParent` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  studentParent_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: StudentParent_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: StudentParent_Data!
+  ): Int! @fdc_generated(from: "StudentParent", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `StudentPromotionHistory` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  studentPromotionHistory_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: StudentPromotionHistory_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: StudentPromotionHistory_Data!
+  ): Int! @fdc_generated(from: "StudentPromotionHistory", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `StudentSectionHistory` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  studentSectionHistory_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: StudentSectionHistory_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: StudentSectionHistory_Data!
+  ): Int! @fdc_generated(from: "StudentSectionHistory", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `StudentSequence` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  studentSequence_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: StudentSequence_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: StudentSequence_Data!
+  ): Int! @fdc_generated(from: "StudentSequence", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `Subject` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  subject_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: Subject_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: Subject_Data!
+  ): Int! @fdc_generated(from: "Subject", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `Suggestion` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  suggestion_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: Suggestion_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: Suggestion_Data!
+  ): Int! @fdc_generated(from: "Suggestion", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `Teacher` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  teacher_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: Teacher_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: Teacher_Data!
+  ): Int! @fdc_generated(from: "Teacher", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `TeacherAssignment` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  teacherAssignment_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: TeacherAssignment_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: TeacherAssignment_Data!
+  ): Int! @fdc_generated(from: "TeacherAssignment", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `TeacherSectionAssignment` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  teacherSectionAssignment_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: TeacherSectionAssignment_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: TeacherSectionAssignment_Data!
+  ): Int! @fdc_generated(from: "TeacherSectionAssignment", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `TeacherSubject` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  teacherSubject_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: TeacherSubject_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: TeacherSubject_Data!
+  ): Int! @fdc_generated(from: "TeacherSubject", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `TeacherTransferHistory` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  teacherTransferHistory_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: TeacherTransferHistory_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: TeacherTransferHistory_Data!
+  ): Int! @fdc_generated(from: "TeacherTransferHistory", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `TimetableArchive` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  timetableArchive_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: TimetableArchive_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: TimetableArchive_Data!
+  ): Int! @fdc_generated(from: "TimetableArchive", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `TimetablePeriod` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  timetablePeriod_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: TimetablePeriod_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: TimetablePeriod_Data!
+  ): Int! @fdc_generated(from: "TimetablePeriod", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `User` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  user_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: User_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: User_Data!
+  ): Int! @fdc_generated(from: "User", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `UserRole` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  userRole_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: UserRole_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: UserRole_Data!
+  ): Int! @fdc_generated(from: "UserRole", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `Wing` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  wing_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: Wing_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: Wing_Data!
+  ): Int! @fdc_generated(from: "Wing", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Delete a single `AcademicClass` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  academicClass_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: AcademicClass_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: AcademicClass_FirstRow
+  ): AcademicClass_KeyOutput @fdc_generated(from: "AcademicClass", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `AcademicYear` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  academicYear_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: AcademicYear_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: AcademicYear_FirstRow
+  ): AcademicYear_KeyOutput @fdc_generated(from: "AcademicYear", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `AcademicYearFeeTemplate` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  academicYearFeeTemplate_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: AcademicYearFeeTemplate_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: AcademicYearFeeTemplate_FirstRow
+  ): AcademicYearFeeTemplate_KeyOutput @fdc_generated(from: "AcademicYearFeeTemplate", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `Accountant` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  accountant_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Accountant_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Accountant_FirstRow
+  ): Accountant_KeyOutput @fdc_generated(from: "Accountant", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `Attendance` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  attendance_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Attendance_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Attendance_FirstRow
+  ): Attendance_KeyOutput @fdc_generated(from: "Attendance", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `AttendanceAlertLog` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  attendanceAlertLog_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: AttendanceAlertLog_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: AttendanceAlertLog_FirstRow
+  ): AttendanceAlertLog_KeyOutput @fdc_generated(from: "AttendanceAlertLog", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `AttendanceAuditLog` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  attendanceAuditLog_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: AttendanceAuditLog_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: AttendanceAuditLog_FirstRow
+  ): AttendanceAuditLog_KeyOutput @fdc_generated(from: "AttendanceAuditLog", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `AttendanceSummary` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  attendanceSummary_delete(
+    """
+    The key used to identify the object.
+    """
+    key: AttendanceSummary_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: AttendanceSummary_FirstRow
+  ): AttendanceSummary_KeyOutput @fdc_generated(from: "AttendanceSummary", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `AuditLog` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  auditLog_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: AuditLog_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: AuditLog_FirstRow
+  ): AuditLog_KeyOutput @fdc_generated(from: "AuditLog", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `Branch` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  branch_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Branch_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Branch_FirstRow
+  ): Branch_KeyOutput @fdc_generated(from: "Branch", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `Coordinator` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  coordinator_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Coordinator_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Coordinator_FirstRow
+  ): Coordinator_KeyOutput @fdc_generated(from: "Coordinator", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `DueTracking` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  dueTracking_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: DueTracking_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: DueTracking_FirstRow
+  ): DueTracking_KeyOutput @fdc_generated(from: "DueTracking", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `EmployeeSequence` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  employeeSequence_delete(
+    """
+    The key used to identify the object.
+    """
+    key: EmployeeSequence_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: EmployeeSequence_FirstRow
+  ): EmployeeSequence_KeyOutput @fdc_generated(from: "EmployeeSequence", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `Exam` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  exam_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Exam_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Exam_FirstRow
+  ): Exam_KeyOutput @fdc_generated(from: "Exam", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `ExamSection` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  examSection_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: ExamSection_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: ExamSection_FirstRow
+  ): ExamSection_KeyOutput @fdc_generated(from: "ExamSection", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `ExamSubjectConfig` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  examSubjectConfig_delete(
+    """
+    The key used to identify the object.
+    """
+    key: ExamSubjectConfig_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: ExamSubjectConfig_FirstRow
+  ): ExamSubjectConfig_KeyOutput @fdc_generated(from: "ExamSubjectConfig", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `FeeAuditLog` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  feeAuditLog_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: FeeAuditLog_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: FeeAuditLog_FirstRow
+  ): FeeAuditLog_KeyOutput @fdc_generated(from: "FeeAuditLog", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `FeeCategory` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  feeCategory_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: FeeCategory_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: FeeCategory_FirstRow
+  ): FeeCategory_KeyOutput @fdc_generated(from: "FeeCategory", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `FeePayment` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  feePayment_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: FeePayment_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: FeePayment_FirstRow
+  ): FeePayment_KeyOutput @fdc_generated(from: "FeePayment", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `FeeStructure` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  feeStructure_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: FeeStructure_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: FeeStructure_FirstRow
+  ): FeeStructure_KeyOutput @fdc_generated(from: "FeeStructure", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `Holiday` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  holiday_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Holiday_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Holiday_FirstRow
+  ): Holiday_KeyOutput @fdc_generated(from: "Holiday", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `MarksAuditLog` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  marksAuditLog_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: MarksAuditLog_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: MarksAuditLog_FirstRow
+  ): MarksAuditLog_KeyOutput @fdc_generated(from: "MarksAuditLog", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `Notice` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  notice_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Notice_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Notice_FirstRow
+  ): Notice_KeyOutput @fdc_generated(from: "Notice", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `Notification` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  notification_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Notification_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Notification_FirstRow
+  ): Notification_KeyOutput @fdc_generated(from: "Notification", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `Parent` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  parent_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Parent_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Parent_FirstRow
+  ): Parent_KeyOutput @fdc_generated(from: "Parent", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `Payment` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  payment_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Payment_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Payment_FirstRow
+  ): Payment_KeyOutput @fdc_generated(from: "Payment", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `ReceiptSequence` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  receiptSequence_delete(
+    """
+    The key used to identify the object.
+    """
+    key: ReceiptSequence_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: ReceiptSequence_FirstRow
+  ): ReceiptSequence_KeyOutput @fdc_generated(from: "ReceiptSequence", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `Section` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  section_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Section_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Section_FirstRow
+  ): Section_KeyOutput @fdc_generated(from: "Section", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `StaffIdSequence` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  staffIdSequence_delete(
+    """
+    The key used to identify the object.
+    """
+    key: StaffIdSequence_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: StaffIdSequence_FirstRow
+  ): StaffIdSequence_KeyOutput @fdc_generated(from: "StaffIdSequence", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `Student` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  student_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Student_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Student_FirstRow
+  ): Student_KeyOutput @fdc_generated(from: "Student", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `StudentAcademicHistory` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  studentAcademicHistory_delete(
+    """
+    The key used to identify the object.
+    """
+    key: StudentAcademicHistory_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: StudentAcademicHistory_FirstRow
+  ): StudentAcademicHistory_KeyOutput @fdc_generated(from: "StudentAcademicHistory", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `StudentFee` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  studentFee_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: StudentFee_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: StudentFee_FirstRow
+  ): StudentFee_KeyOutput @fdc_generated(from: "StudentFee", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `StudentFeeItem` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  studentFeeItem_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: StudentFeeItem_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: StudentFeeItem_FirstRow
+  ): StudentFeeItem_KeyOutput @fdc_generated(from: "StudentFeeItem", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `StudentFeePlan` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  studentFeePlan_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: StudentFeePlan_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: StudentFeePlan_FirstRow
+  ): StudentFeePlan_KeyOutput @fdc_generated(from: "StudentFeePlan", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `StudentIdSequence` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  studentIdSequence_delete(
+    """
+    The key used to identify the object.
+    """
+    key: StudentIdSequence_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: StudentIdSequence_FirstRow
+  ): StudentIdSequence_KeyOutput @fdc_generated(from: "StudentIdSequence", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `StudentMark` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  studentMark_delete(
+    """
+    The key used to identify the object.
+    """
+    key: StudentMark_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: StudentMark_FirstRow
+  ): StudentMark_KeyOutput @fdc_generated(from: "StudentMark", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `StudentParent` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  studentParent_delete(
+    """
+    The key used to identify the object.
+    """
+    key: StudentParent_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: StudentParent_FirstRow
+  ): StudentParent_KeyOutput @fdc_generated(from: "StudentParent", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `StudentPromotionHistory` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  studentPromotionHistory_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: StudentPromotionHistory_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: StudentPromotionHistory_FirstRow
+  ): StudentPromotionHistory_KeyOutput @fdc_generated(from: "StudentPromotionHistory", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `StudentSectionHistory` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  studentSectionHistory_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: StudentSectionHistory_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: StudentSectionHistory_FirstRow
+  ): StudentSectionHistory_KeyOutput @fdc_generated(from: "StudentSectionHistory", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `StudentSequence` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  studentSequence_delete(
+    """
+    The key used to identify the object.
+    """
+    key: StudentSequence_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: StudentSequence_FirstRow
+  ): StudentSequence_KeyOutput @fdc_generated(from: "StudentSequence", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `Subject` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  subject_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Subject_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Subject_FirstRow
+  ): Subject_KeyOutput @fdc_generated(from: "Subject", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `Suggestion` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  suggestion_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Suggestion_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Suggestion_FirstRow
+  ): Suggestion_KeyOutput @fdc_generated(from: "Suggestion", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `Teacher` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  teacher_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Teacher_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Teacher_FirstRow
+  ): Teacher_KeyOutput @fdc_generated(from: "Teacher", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `TeacherAssignment` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  teacherAssignment_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: TeacherAssignment_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: TeacherAssignment_FirstRow
+  ): TeacherAssignment_KeyOutput @fdc_generated(from: "TeacherAssignment", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `TeacherSectionAssignment` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  teacherSectionAssignment_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: TeacherSectionAssignment_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: TeacherSectionAssignment_FirstRow
+  ): TeacherSectionAssignment_KeyOutput @fdc_generated(from: "TeacherSectionAssignment", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `TeacherSubject` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  teacherSubject_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: TeacherSubject_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: TeacherSubject_FirstRow
+  ): TeacherSubject_KeyOutput @fdc_generated(from: "TeacherSubject", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `TeacherTransferHistory` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  teacherTransferHistory_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: TeacherTransferHistory_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: TeacherTransferHistory_FirstRow
+  ): TeacherTransferHistory_KeyOutput @fdc_generated(from: "TeacherTransferHistory", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `TimetableArchive` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  timetableArchive_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: TimetableArchive_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: TimetableArchive_FirstRow
+  ): TimetableArchive_KeyOutput @fdc_generated(from: "TimetableArchive", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `TimetablePeriod` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  timetablePeriod_delete(
+    """
+    The key used to identify the object.
+    """
+    key: TimetablePeriod_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: TimetablePeriod_FirstRow
+  ): TimetablePeriod_KeyOutput @fdc_generated(from: "TimetablePeriod", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `User` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  user_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: User_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: User_FirstRow
+  ): User_KeyOutput @fdc_generated(from: "User", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `UserRole` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  userRole_delete(
+    """
+    The key used to identify the object.
+    """
+    key: UserRole_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: UserRole_FirstRow
+  ): UserRole_KeyOutput @fdc_generated(from: "UserRole", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `Wing` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  wing_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Wing_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Wing_FirstRow
+  ): Wing_KeyOutput @fdc_generated(from: "Wing", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete `AcademicClass` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  academicClass_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: AcademicClass_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "AcademicClass", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `AcademicYear` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  academicYear_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: AcademicYear_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "AcademicYear", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `AcademicYearFeeTemplate` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  academicYearFeeTemplate_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: AcademicYearFeeTemplate_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "AcademicYearFeeTemplate", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `Accountant` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  accountant_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: Accountant_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "Accountant", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `Attendance` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  attendance_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: Attendance_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "Attendance", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `AttendanceAlertLog` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  attendanceAlertLog_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: AttendanceAlertLog_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "AttendanceAlertLog", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `AttendanceAuditLog` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  attendanceAuditLog_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: AttendanceAuditLog_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "AttendanceAuditLog", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `AttendanceSummary` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  attendanceSummary_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: AttendanceSummary_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "AttendanceSummary", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `AuditLog` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  auditLog_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: AuditLog_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "AuditLog", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `Branch` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  branch_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: Branch_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "Branch", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `Coordinator` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  coordinator_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: Coordinator_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "Coordinator", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `DueTracking` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  dueTracking_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: DueTracking_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "DueTracking", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `EmployeeSequence` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  employeeSequence_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: EmployeeSequence_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "EmployeeSequence", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `Exam` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  exam_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: Exam_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "Exam", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `ExamSection` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  examSection_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: ExamSection_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "ExamSection", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `ExamSubjectConfig` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  examSubjectConfig_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: ExamSubjectConfig_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "ExamSubjectConfig", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `FeeAuditLog` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  feeAuditLog_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: FeeAuditLog_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "FeeAuditLog", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `FeeCategory` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  feeCategory_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: FeeCategory_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "FeeCategory", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `FeePayment` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  feePayment_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: FeePayment_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "FeePayment", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `FeeStructure` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  feeStructure_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: FeeStructure_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "FeeStructure", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `Holiday` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  holiday_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: Holiday_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "Holiday", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `MarksAuditLog` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  marksAuditLog_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: MarksAuditLog_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "MarksAuditLog", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `Notice` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  notice_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: Notice_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "Notice", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `Notification` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  notification_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: Notification_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "Notification", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `Parent` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  parent_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: Parent_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "Parent", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `Payment` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  payment_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: Payment_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "Payment", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `ReceiptSequence` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  receiptSequence_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: ReceiptSequence_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "ReceiptSequence", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `Section` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  section_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: Section_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "Section", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `StaffIdSequence` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  staffIdSequence_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: StaffIdSequence_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "StaffIdSequence", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `Student` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  student_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: Student_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "Student", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `StudentAcademicHistory` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  studentAcademicHistory_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: StudentAcademicHistory_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "StudentAcademicHistory", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `StudentFee` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  studentFee_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: StudentFee_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "StudentFee", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `StudentFeeItem` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  studentFeeItem_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: StudentFeeItem_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "StudentFeeItem", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `StudentFeePlan` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  studentFeePlan_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: StudentFeePlan_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "StudentFeePlan", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `StudentIdSequence` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  studentIdSequence_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: StudentIdSequence_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "StudentIdSequence", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `StudentMark` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  studentMark_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: StudentMark_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "StudentMark", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `StudentParent` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  studentParent_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: StudentParent_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "StudentParent", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `StudentPromotionHistory` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  studentPromotionHistory_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: StudentPromotionHistory_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "StudentPromotionHistory", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `StudentSectionHistory` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  studentSectionHistory_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: StudentSectionHistory_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "StudentSectionHistory", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `StudentSequence` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  studentSequence_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: StudentSequence_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "StudentSequence", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `Subject` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  subject_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: Subject_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "Subject", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `Suggestion` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  suggestion_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: Suggestion_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "Suggestion", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `Teacher` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  teacher_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: Teacher_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "Teacher", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `TeacherAssignment` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  teacherAssignment_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: TeacherAssignment_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "TeacherAssignment", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `TeacherSectionAssignment` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  teacherSectionAssignment_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: TeacherSectionAssignment_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "TeacherSectionAssignment", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `TeacherSubject` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  teacherSubject_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: TeacherSubject_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "TeacherSubject", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `TeacherTransferHistory` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  teacherTransferHistory_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: TeacherTransferHistory_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "TeacherTransferHistory", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `TimetableArchive` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  timetableArchive_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: TimetableArchive_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "TimetableArchive", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `TimetablePeriod` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  timetablePeriod_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: TimetablePeriod_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "TimetablePeriod", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `User` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  user_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: User_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "User", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `UserRole` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  userRole_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: UserRole_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "UserRole", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `Wing` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  wing_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: Wing_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "Wing", purpose: DELETE_MULTIPLE)
+}

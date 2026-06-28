@@ -1,8 +1,19 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiX, FiUser, FiBell, FiSend, FiSettings, FiLogOut, FiUsers, FiHome, FiCalendar } from 'react-icons/fi';
+import { FiX, FiUser, FiBell, FiSend, FiSettings, FiLogOut, FiUsers, FiHome, FiCalendar, FiBriefcase, FiDollarSign } from 'react-icons/fi';
 import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
+
+const ROLE_META = {
+  MAIN_ADMIN:    { label: 'Main Admin',    bg: 'bg-[#EEF5FB]', text: 'text-brand-blue', desc: 'Full system management and branch oversight', icon: 'MA' },
+  BRANCH_ADMIN:  { label: 'Branch Admin',  bg: 'bg-[#F0F4FF]', text: 'text-indigo-600', desc: 'Manage a single school branch', icon: 'BA' },
+  PRINCIPAL:     { label: 'Principal',     bg: 'bg-[#E8F8F0]', text: 'text-accent-green', desc: 'Academic and staff management', icon: 'PR' },
+  COORDINATOR:   { label: 'Coordinator',   bg: 'bg-[#FFF8EE]', text: 'text-accent-orange', desc: 'Manage academic operations and wings', icon: <FiUsers className="w-4 h-4" /> },
+  TEACHER:       { label: 'Teacher',       bg: 'bg-[#EBFDF5]', text: 'text-[#23C16B]', desc: 'Mark attendance and manage classes', icon: <FiBriefcase className="w-4 h-4" /> },
+  CLASS_TEACHER: { label: 'Class Teacher', bg: 'bg-[#EBFDF5]', text: 'text-[#23C16B]',  desc: 'Class teacher duties and section management', icon: <span className="text-xs font-black font-sans">?</span> },
+  PARENT:        { label: 'Parent',        bg: 'bg-[#EEF5FB]', text: 'text-brand-blue', desc: 'View child attendance, fees and homework', icon: <FiUser className="w-4 h-4" /> },
+  ACCOUNTANT:    { label: 'Accountant',    bg: 'bg-[#FFF3E0]', text: 'text-accent-orange', desc: 'Fee collection and financial records', icon: <FiDollarSign className="w-4 h-4" /> },
+};
 import SwitchUserModal from './SwitchUserModal';
 
 const Drawer = ({ isOpen, onClose, position = 'left' }) => {
@@ -168,57 +179,55 @@ const Drawer = ({ isOpen, onClose, position = 'left' }) => {
                   </div>
 
                   {/* Switch Active Role Section */}
-                  <div>
-                    <p className="text-[10px] font-bold text-secondaryText uppercase tracking-wider mb-3 px-2">Switch Active Role</p>
-                    <div className="space-y-1">
-                      {/* Teacher/Class Teacher Option */}
-                      <button
-                        onClick={() => {
-                          switchRole('CLASS_TEACHER');
-                          onClose();
-                          navigate('/dashboard');
-                        }}
-                        className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-[#EEF5FB] transition-all text-left text-dark group cursor-pointer"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center font-bold border border-transparent shrink-0">
-                            <span className="text-xs font-black">?</span>
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold">Class Teacher</p>
-                          </div>
-                        </div>
-                        <span className="text-secondaryText text-sm group-hover:translate-x-0.5 transition-transform">&gt;</span>
-                      </button>
-
-                      {/* Coordinator Option (Active) */}
-                      <button
-                        onClick={() => {
-                          switchRole('COORDINATOR');
-                          onClose();
-                          navigate('/dashboard');
-                        }}
-                        className="w-full flex items-center justify-between p-3 rounded-xl bg-blue-50 transition-all text-left text-dark group cursor-pointer"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-blue-50 text-brand-blue flex items-center justify-center font-semibold border border-transparent shrink-0">
-                            <FiUsers className="w-4 h-4" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold text-brand-blue">Coordinator</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span className="px-1.5 py-0.5 bg-blue-100 text-brand-blue text-[8px] font-extrabold rounded-md uppercase tracking-wider">
-                            ACTIVE
-                          </span>
-                          <div className="w-5 h-5 rounded-full bg-brand-blue flex items-center justify-center text-white text-xs font-bold shadow-sm">
-                            ✓
-                          </div>
-                        </div>
-                      </button>
+                  {user?.roles && user.roles.length > 1 && (
+                    <div>
+                      <p className="text-[10px] font-bold text-secondaryText uppercase tracking-wider mb-3 px-2">Switch Active Role</p>
+                      <div className="space-y-1">
+                        {user.roles.map((role) => {
+                          const meta = ROLE_META[role] || { label: role, bg: 'bg-slate-50', text: 'text-slate-500', icon: null };
+                          const isActive = role === activeRole;
+                          return (
+                            <button
+                              key={role}
+                              onClick={() => {
+                                if (!isActive) {
+                                  switchRole(role);
+                                  onClose();
+                                  navigate('/dashboard');
+                                }
+                              }}
+                              className={`w-full flex items-center justify-between p-3 rounded-xl transition-all text-left text-dark group cursor-pointer ${
+                                isActive ? 'bg-blue-50' : 'hover:bg-[#EEF5FB]'
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold border border-transparent shrink-0 ${
+                                  isActive ? 'bg-blue-100 text-brand-blue' : `${meta.bg} ${meta.text}`
+                                }`}>
+                                  {typeof meta.icon === 'string' ? <span className="text-xs font-black">{meta.icon}</span> : meta.icon || role.slice(0, 2)}
+                                </div>
+                                <div>
+                                  <p className={`text-sm font-bold ${isActive ? 'text-brand-blue' : ''}`}>{meta.label}</p>
+                                </div>
+                              </div>
+                              {isActive ? (
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <span className="px-1.5 py-0.5 bg-blue-100 text-brand-blue text-[8px] font-extrabold rounded-md uppercase tracking-wider">
+                                    ACTIVE
+                                  </span>
+                                  <div className="w-5 h-5 rounded-full bg-brand-blue flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                                    ✓
+                                  </div>
+                                </div>
+                              ) : (
+                                <span className="text-secondaryText text-sm group-hover:translate-x-0.5 transition-transform">&gt;</span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Session Section */}
                   <div>
@@ -371,84 +380,55 @@ const Drawer = ({ isOpen, onClose, position = 'left' }) => {
                   </div>
 
                   {/* Switch Active Role Section */}
-                  <div>
-                    <p className="text-[10px] font-bold text-secondaryText uppercase tracking-wider mb-3 px-2">Switch Active Role</p>
-                    <div className="space-y-1">
-                      {/* Class Teacher Option */}
-                      <button
-                        onClick={() => {
-                          if (activeRole !== 'CLASS_TEACHER') {
-                            switchRole('CLASS_TEACHER');
-                            onClose();
-                            navigate('/dashboard');
-                          }
-                        }}
-                        className={`w-full flex items-center justify-between p-3 rounded-xl transition-all text-left text-dark group cursor-pointer ${
-                          activeRole === 'CLASS_TEACHER' ? 'bg-blue-50' : 'hover:bg-[#EEF5FB]'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold border border-transparent shrink-0 ${
-                            activeRole === 'CLASS_TEACHER' ? 'bg-blue-100 text-brand-blue' : 'bg-slate-50 text-slate-500'
-                          }`}>
-                            <span className="text-xs font-black">?</span>
-                          </div>
-                          <div>
-                            <p className={`text-sm font-bold ${activeRole === 'CLASS_TEACHER' ? 'text-brand-blue' : ''}`}>Class Teacher</p>
-                          </div>
-                        </div>
-                        {activeRole === 'CLASS_TEACHER' ? (
-                          <div className="flex items-center gap-2 shrink-0">
-                            <span className="px-1.5 py-0.5 bg-blue-100 text-brand-blue text-[8px] font-extrabold rounded-md uppercase tracking-wider">
-                              ACTIVE
-                            </span>
-                            <div className="w-5 h-5 rounded-full bg-brand-blue flex items-center justify-center text-white text-xs font-bold shadow-sm">
-                              ✓
-                            </div>
-                          </div>
-                        ) : (
-                          <span className="text-secondaryText text-sm group-hover:translate-x-0.5 transition-transform">&gt;</span>
-                        )}
-                      </button>
-
-                      {/* Teacher Option */}
-                      <button
-                        onClick={() => {
-                          if (activeRole !== 'TEACHER') {
-                            switchRole('TEACHER');
-                            onClose();
-                            navigate('/dashboard');
-                          }
-                        }}
-                        className={`w-full flex items-center justify-between p-3 rounded-xl transition-all text-left text-dark group cursor-pointer ${
-                          activeRole === 'TEACHER' ? 'bg-blue-50' : 'hover:bg-[#EEF5FB]'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold border border-transparent shrink-0 ${
-                            activeRole === 'TEACHER' ? 'bg-blue-100 text-brand-blue' : 'bg-slate-50 text-slate-500'
-                          }`}>
-                            <span className="text-xs font-black">?</span>
-                          </div>
-                          <div>
-                            <p className={`text-sm font-bold ${activeRole === 'TEACHER' ? 'text-brand-blue' : ''}`}>Teacher</p>
-                          </div>
-                        </div>
-                        {activeRole === 'TEACHER' ? (
-                          <div className="flex items-center gap-2 shrink-0">
-                            <span className="px-1.5 py-0.5 bg-blue-100 text-brand-blue text-[8px] font-extrabold rounded-md uppercase tracking-wider">
-                              ACTIVE
-                            </span>
-                            <div className="w-5 h-5 rounded-full bg-brand-blue flex items-center justify-center text-white text-xs font-bold shadow-sm">
-                              ✓
-                            </div>
-                          </div>
-                        ) : (
-                          <span className="text-secondaryText text-sm group-hover:translate-x-0.5 transition-transform">&gt;</span>
-                        )}
-                      </button>
+                  {user?.roles && user.roles.length > 1 && (
+                    <div>
+                      <p className="text-[10px] font-bold text-secondaryText uppercase tracking-wider mb-3 px-2">Switch Active Role</p>
+                      <div className="space-y-1">
+                        {user.roles.map((role) => {
+                          const meta = ROLE_META[role] || { label: role, bg: 'bg-slate-50', text: 'text-slate-500', icon: null };
+                          const isActive = role === activeRole;
+                          return (
+                            <button
+                              key={role}
+                              onClick={() => {
+                                if (!isActive) {
+                                  switchRole(role);
+                                  onClose();
+                                  navigate('/dashboard');
+                                }
+                              }}
+                              className={`w-full flex items-center justify-between p-3 rounded-xl transition-all text-left text-dark group cursor-pointer ${
+                                isActive ? 'bg-blue-50' : 'hover:bg-[#EEF5FB]'
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold border border-transparent shrink-0 ${
+                                  isActive ? 'bg-blue-100 text-brand-blue' : `${meta.bg} ${meta.text}`
+                                }`}>
+                                  {typeof meta.icon === 'string' ? <span className="text-xs font-black">{meta.icon}</span> : meta.icon || role.slice(0, 2)}
+                                </div>
+                                <div>
+                                  <p className={`text-sm font-bold ${isActive ? 'text-brand-blue' : ''}`}>{meta.label}</p>
+                                </div>
+                              </div>
+                              {isActive ? (
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <span className="px-1.5 py-0.5 bg-blue-100 text-brand-blue text-[8px] font-extrabold rounded-md uppercase tracking-wider">
+                                    ACTIVE
+                                  </span>
+                                  <div className="w-5 h-5 rounded-full bg-brand-blue flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                                    ✓
+                                  </div>
+                                </div>
+                              ) : (
+                                <span className="text-secondaryText text-sm group-hover:translate-x-0.5 transition-transform">&gt;</span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Session Section */}
                   <div>
@@ -724,70 +704,53 @@ const Drawer = ({ isOpen, onClose, position = 'left' }) => {
                     </div>
                   )}
 
-                  {/* Switch Active Role Section for Patsamatla Padma Manjula */}
-                  {user?.phone === '9951335377' && (
+                  {/* Switch Active Role Section */}
+                  {user?.roles && user.roles.length > 1 && (
                     <div>
                       <p className="text-[11px] font-bold text-secondaryText uppercase tracking-wider mb-3 px-2">Switch Active Role</p>
                       <div className="space-y-1">
-                        {/* Parent Option */}
-                        <button
-                          onClick={() => {
-                            if (activeRole !== 'PARENT') {
-                              switchRole('PARENT');
-                              onClose();
-                            }
-                          }}
-                          className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-[#EEF5FB] transition-all text-left text-dark group"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-[#EEF5FB] text-brand-blue flex items-center justify-center font-semibold border border-transparent transition-colors">
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                              </svg>
-                            </div>
-                            <div>
-                              <p className="text-sm font-semibold">Parent</p>
-                              <p className="text-[10px] text-secondaryText">View child attendance, fees and homework</p>
-                            </div>
-                          </div>
-                          {activeRole === 'PARENT' ? (
-                            <div className="w-5 h-5 rounded-full bg-brand-blue flex items-center justify-center text-white text-xs font-bold shadow-sm">
-                              ✓
-                            </div>
-                          ) : (
-                            <span className="text-secondaryText text-sm group-hover:translate-x-0.5 transition-transform">&gt;</span>
-                          )}
-                        </button>
-
-                        {/* Accountant Option */}
-                        <button
-                          onClick={() => {
-                            if (activeRole !== 'ACCOUNTANT') {
-                              switchRole('ACCOUNTANT');
-                              onClose();
-                            }
-                          }}
-                          className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-[#EEF5FB] transition-all text-left text-dark group"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-[#FFF3E0] text-accent-orange flex items-center justify-center font-semibold border border-transparent transition-colors">
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                              </svg>
-                            </div>
-                            <div>
-                              <p className="text-sm font-semibold">Accountant</p>
-                              <p className="text-[10px] text-secondaryText">Fee collection and financial records</p>
-                            </div>
-                          </div>
-                          {activeRole === 'ACCOUNTANT' ? (
-                            <div className="w-5 h-5 rounded-full bg-brand-blue flex items-center justify-center text-white text-xs font-bold shadow-sm">
-                              ✓
-                            </div>
-                          ) : (
-                            <span className="text-secondaryText text-sm group-hover:translate-x-0.5 transition-transform">&gt;</span>
-                          )}
-                        </button>
+                        {user.roles.map((role) => {
+                          const meta = ROLE_META[role] || { label: role, bg: 'bg-slate-50', text: 'text-slate-500', icon: null };
+                          const isActive = role === activeRole;
+                          return (
+                            <button
+                              key={role}
+                              onClick={() => {
+                                if (!isActive) {
+                                  switchRole(role);
+                                  onClose();
+                                  navigate('/dashboard');
+                                }
+                              }}
+                              className={`w-full flex items-center justify-between p-3 rounded-xl transition-all text-left text-dark group cursor-pointer ${
+                                isActive ? 'bg-blue-50' : 'hover:bg-[#EEF5FB]'
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold border border-transparent shrink-0 ${
+                                  isActive ? 'bg-blue-100 text-brand-blue' : `${meta.bg} ${meta.text}`
+                                }`}>
+                                  {typeof meta.icon === 'string' ? <span className="text-xs font-black">{meta.icon}</span> : meta.icon || role.slice(0, 2)}
+                                </div>
+                                <div>
+                                  <p className={`text-sm font-bold ${isActive ? 'text-brand-blue' : ''}`}>{meta.label}</p>
+                                </div>
+                              </div>
+                              {isActive ? (
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <span className="px-1.5 py-0.5 bg-blue-100 text-brand-blue text-[8px] font-extrabold rounded-md uppercase tracking-wider">
+                                    ACTIVE
+                                  </span>
+                                  <div className="w-5 h-5 rounded-full bg-brand-blue flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                                    ✓
+                                  </div>
+                                </div>
+                              ) : (
+                                <span className="text-secondaryText text-sm group-hover:translate-x-0.5 transition-transform">&gt;</span>
+                              )}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
