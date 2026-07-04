@@ -714,6 +714,7 @@ export const broadcastNotification = async ({ branchId, title, message, target =
   const failed = results.length - sent;
   console.log(`[Notifications] Broadcast sent ${sent}/${userIds.size}, failed ${failed}`);
   return { sent, failed };
+};
 
 // ─── Holidays ─────────────────────────────────────────────────────────────────
 export const getHolidaysByBranch = async ({ branchId, fromDate, toDate }) => {
