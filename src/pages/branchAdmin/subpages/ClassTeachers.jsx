@@ -1,8 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { FiArrowLeft, FiSearch, FiEdit2, FiTrash2, FiUser, FiInfo, FiLayers, FiInbox, FiFilter, FiCheck } from 'react-icons/fi';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FiArrowLeft, FiSearch, FiEdit2, FiTrash2, FiUser, FiInfo, FiLayers, FiInbox, FiFilter, FiCheck, FiX, FiChevronDown, FiBookOpen, FiSliders } from 'react-icons/fi';
 import { useApp } from '../../../context/AppContext';
+import { useDataFetch } from '../../../hooks/useDataFetch';
+import {
+  getClassTeacherAssignments,
+  getTeachers,
+  assignClassTeacher,
+  removeClassTeacherAssignment
+} from '../../../services/dataService';
 
 const COORDINATOR_TEACHERS = [
   { id: '26SOTS003', name: 'Raghupatruni Roopakala', role: 'Coordinator', phone: '+918297191669' },
@@ -169,16 +176,36 @@ const ClassTeachers = () => {
   const navigate = useNavigate();
   const { activeRole } = useApp();
   
+  const { currentBranchContext, user } = useApp();
+  const branchId = user?.branchId || currentBranchContext?.id || null;
+  const isCoordinator = activeRole === 'COORDINATOR';
+
+  // 1. Fetch Class Teacher Assignments (sections + assignments)
+  const { data: assignmentData, loading: assignmentsLoading, refetch: refetchAssignments } = useDataFetch(
+    isCoordinator && branchId ? () => getClassTeacherAssignments({ branchId, academicYear: 2026 }) : null,
+    [branchId, isCoordinator],
+    { defaultValue: { sections: [], teacherSectionAssignments: [] }, skip: !isCoordinator || !branchId }
+  );
+
+  const sections = assignmentData?.sections || [];
+  const teacherSectionAssignments = assignmentData?.teacherSectionAssignments || [];
+
+  // 2. Fetch Teachers in the branch
+  const { data: dbTeachers = [], loading: teachersLoading } = useDataFetch(
+    isCoordinator && branchId ? () => getTeachers({ branchId, limit: 500 }) : null,
+    [branchId, isCoordinator],
+    { defaultValue: [], skip: !isCoordinator || !branchId }
+  );
+
   // Coordinator specific state
-  const [coSelectedSection, setCoSelectedSection] = useState('Choose a section...');
+  const [coSelectedSectionId, setCoSelectedSectionId] = useState('');
   const [coSearch, setCoSearch] = useState('');
-  const [coAssignments, setCoAssignments] = useState({
-    '1-A': '',
-    '2-A': '',
-    '3-A': '',
-    '4-A': '',
-    '5-A': ''
-  });
+  const [coFilter, setCoFilter] = useState('All'); // 'All' | 'Available' | 'Assigned'
+  const [showSectionDropdown, setShowSectionDropdown] = useState(false);
+  const [showAssignConfirmModal, setShowAssignConfirmModal] = useState(false);
+  const [selectedTeacherToAssign, setSelectedTeacherToAssign] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
   const [assignments, setAssignments] = useState(MOCK_ASSIGNMENTS);
   const [search, setSearch] = useState('');
@@ -194,19 +221,85 @@ const ClassTeachers = () => {
   const [sectionFilter, setSectionFilter] = useState('All Sections');
   const [teacherFilter, setTeacherFilter] = useState('All Teachers / Coordinators');
 
-  if (activeRole === 'COORDINATOR') {
-    const coSections = ['1-A', '2-A', '3-A', '4-A', '5-A'];
-    const isSectionSelected = coSelectedSection !== 'Choose a section...';
-    
-    const filteredTeachers = isSectionSelected 
-      ? COORDINATOR_TEACHERS.filter(t => t.name.toLowerCase().includes(coSearch.toLowerCase()))
-      : [];
+  const selectedSectionObj = useMemo(() => {
+    return sections.find(s => s.id === coSelectedSectionId) || null;
+  }, [sections, coSelectedSectionId]);
 
-    const handleCoAssign = (teacherId) => {
-      setCoAssignments(prev => ({
-        ...prev,
-        [coSelectedSection]: teacherId
-      }));
+  const alreadyAssignedCount = selectedSectionObj?.classTeacher ? 1 : 0;
+
+  const filteredTeachers = useMemo(() => {
+    if (!isCoordinator) return [];
+    
+    // Normalize teachers
+    const teachersList = dbTeachers.map(teacher => {
+      const teacherUserId = teacher.userId || teacher.user?.id;
+      const assignedSectionObj = teacherUserId 
+        ? sections.find(s => s.classTeacherId === teacherUserId) 
+        : null;
+      const isAssignedToThis = coSelectedSectionId && assignedSectionObj?.id === coSelectedSectionId;
+
+      return {
+        ...teacher,
+        isAssignedToThis,
+        assignedSectionObj
+      };
+    });
+
+    // Apply search filter
+    let result = teachersList.filter(t => {
+      const name = t.user?.fullName || '';
+      return name.toLowerCase().includes(coSearch.toLowerCase());
+    });
+
+    // Apply dropdown filters ('All' | 'Available' | 'Assigned')
+    if (coFilter === 'Available') {
+      result = result.filter(t => !t.assignedSectionObj);
+    } else if (coFilter === 'Assigned') {
+      result = result.filter(t => t.assignedSectionObj);
+    }
+
+    return result;
+  }, [dbTeachers, sections, coSelectedSectionId, coSearch, coFilter, isCoordinator]);
+
+  if (activeRole === 'COORDINATOR') {
+    const isSectionSelected = coSelectedSectionId !== '';
+
+    const handleCoAssign = async () => {
+      if (!selectedTeacherToAssign || !selectedSectionObj) return;
+      setActionLoading(true);
+      try {
+        const currentAssignment = teacherSectionAssignments.find(
+          a => a.sectionId === selectedSectionObj.id
+        );
+
+        if (currentAssignment) {
+          await removeClassTeacherAssignment({
+            assignmentId: currentAssignment.id,
+            sectionId: selectedSectionObj.id,
+            teacherId: currentAssignment.teacherId,
+            branchId,
+            sectionAuditId: `sec-rm-${Date.now()}`,
+            teacherAuditId: `teach-rm-${Date.now()}`
+          });
+        }
+
+        await assignClassTeacher({
+          sectionId: selectedSectionObj.id,
+          teacherId: selectedTeacherToAssign.id,
+          teacherUserId: selectedTeacherToAssign.userId,
+          branchId,
+          sectionAuditId: `sec-add-${Date.now()}`,
+          teacherAuditId: `teach-add-${Date.now()}`
+        });
+
+        await refetchAssignments();
+        setShowAssignConfirmModal(false);
+        setSelectedTeacherToAssign(null);
+      } catch (err) {
+        console.error('Error assigning class teacher:', err);
+      } finally {
+        setActionLoading(false);
+      }
     };
 
     return (
@@ -215,7 +308,7 @@ const ClassTeachers = () => {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -15 }}
         transition={{ duration: 0.3 }}
-        className="p-4 md:p-8 space-y-6 pb-24 md:pb-8 max-w-[640px] mx-auto animate-fade-in relative select-none"
+        className="p-4 md:p-8 space-y-6 pb-24 md:pb-8 max-w-[640px] mx-auto animate-fade-in relative select-none animate-fade-in-long"
       >
         {/* Top Header Bar */}
         <header className="flex items-center justify-between py-2 border-b border-[#e2e8f0]/40 shrink-0">
@@ -244,20 +337,32 @@ const ClassTeachers = () => {
         </div>
 
         {/* Select Section block */}
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <label className="text-[10.5px] font-black text-[#0F172A] uppercase tracking-wide block">
             Select Section
           </label>
-          <select
-            value={coSelectedSection}
-            onChange={(e) => setCoSelectedSection(e.target.value)}
-            className="w-full px-4 py-3.5 bg-white border border-[#e2e8f0] rounded-[20px] text-xs font-semibold text-dark focus:outline-none focus:border-brand-blue"
-          >
-            <option>Choose a section...</option>
-            {coSections.map(sec => (
-              <option key={sec} value={sec}>{sec}</option>
-            ))}
-          </select>
+          <div className="relative">
+            <button
+              onClick={() => setShowSectionDropdown(true)}
+              className="w-full px-4 py-3.5 bg-white border border-[#e2e8f0] rounded-[20px] text-xs font-semibold text-dark flex items-center justify-between focus:outline-none focus:border-brand-blue"
+            >
+              <span>
+                {selectedSectionObj
+                  ? `${selectedSectionObj.academicClass?.name} - ${selectedSectionObj.name} (${selectedSectionObj.academicClass?.wing?.code || 'N/A'})`
+                  : 'Choose a section...'}
+              </span>
+              <FiChevronDown className="w-4 h-4 text-[#A0AEC0]" />
+            </button>
+          </div>
+          
+          {selectedSectionObj && (
+            <div className="flex items-center gap-2 mt-2 px-4 py-2.5 bg-[#F8FAFC] border border-[#e2e8f0]/45 rounded-2xl text-[9px] font-black text-secondaryText uppercase tracking-wide select-none">
+              <FiBookOpen className="w-3.5 h-3.5 text-[#1E56EC]" />
+              <span>
+                Wing: {selectedSectionObj.academicClass?.wing?.name || 'N/A'} · Class Teacher: {selectedSectionObj.classTeacher?.fullName || 'Not Assigned'}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Search bar + filter button */}
@@ -273,56 +378,98 @@ const ClassTeachers = () => {
             <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0AEC0]" />
           </div>
 
-          <button className="flex items-center gap-1.5 px-5 py-3.5 border border-[#1597E5] text-[#1597E5] rounded-[20px] text-xs font-bold bg-[#EEF5FB]/30 hover:bg-[#EEF5FB]/70 transition-all select-none">
-            <FiFilter className="w-3.5 h-3.5" />
-            <span>All</span>
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+              className="flex items-center gap-1.5 px-5 py-3.5 border border-[#1597E5] text-[#1597E5] rounded-[20px] text-xs font-bold bg-[#EEF5FB]/30 hover:bg-[#EEF5FB]/70 transition-all select-none cursor-pointer"
+            >
+              <FiSliders className="w-3.5 h-3.5" />
+              <span>{coFilter}</span>
+            </button>
+            
+            {showFilterDropdown && (
+              <div className="absolute right-0 mt-2 w-36 bg-white border border-[#e2e8f0] rounded-2xl shadow-lg py-2 z-30">
+                {['All', 'Available', 'Assigned'].map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => {
+                      setCoFilter(f);
+                      setShowFilterDropdown(false);
+                    }}
+                    className={`w-full text-left px-4 py-2 text-xs font-bold transition-all ${
+                      coFilter === f ? 'text-brand-blue bg-[#EEF5FB]' : 'text-dark hover:bg-slate-50'
+                    }`}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* List Header */}
-        <div className="px-1 text-[9px] font-extrabold text-secondaryText tracking-widest uppercase">
-          {filteredTeachers.length} teachers
+        <div className="flex justify-between px-1 text-[9px] font-extrabold text-secondaryText tracking-widest uppercase">
+          <span>{filteredTeachers.length} teachers</span>
+          {isSectionSelected && (
+            <span className="text-[#D97706]">
+              {alreadyAssignedCount} already assigned to this section
+            </span>
+          )}
         </div>
 
         {/* Teachers list or Empty State */}
-        {filteredTeachers.length > 0 ? (
+        {assignmentsLoading || teachersLoading ? (
+          <div className="text-center py-12 text-xs font-bold text-secondaryText">Loading...</div>
+        ) : filteredTeachers.length > 0 ? (
           <div className="space-y-3">
             {filteredTeachers.map((teacher) => {
-              const isAssignedToThis = coAssignments[coSelectedSection] === teacher.id;
-              const assignedSec = Object.keys(coAssignments).find(key => coAssignments[key] === teacher.id);
+              const teacherName = teacher.user?.fullName || 'Unnamed Teacher';
+              const namesList = teacherName.split(' ');
+              const initials = namesList.length > 1 ? `${namesList[0][0]}${namesList[1][0]}` : teacherName.charAt(0);
               
               return (
                 <div
                   key={teacher.id}
-                  onClick={() => handleCoAssign(teacher.id)}
-                  className={`bg-white rounded-[24px] border p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/20 transition-all cursor-pointer group active:scale-[0.99] ${
-                    isAssignedToThis ? 'border-[#23C16B] border-2' : 'border-[#e2e8f0]/45'
+                  className={`bg-white rounded-[24px] border p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/20 transition-all group ${
+                    teacher.isAssignedToThis ? 'border-[#23C16B]/50' : 'border-[#e2e8f0]/45'
                   }`}
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-11 h-11 rounded-full bg-[#EEF5FB] text-brand-blue border border-brand-blue/5 flex items-center justify-center font-bold text-xs select-none">
-                      {teacher.name.split(' ').map(n => n[0]).join('')}
+                      {initials}
                     </div>
                     <div>
                       <h3 className="text-xs font-extrabold text-dark leading-tight group-hover:text-brand-blue transition-colors">
-                        {teacher.name}
+                        {teacherName}
                       </h3>
-                      <p className="text-[9px] text-[#A0AEC0] font-bold mt-1">
-                        {teacher.role} · {teacher.id}
+                      <p className="text-[9px] text-[#A0AEC0] font-bold mt-1 uppercase">
+                        {teacher.designation || 'Teacher'} · #{teacher.employeeId || teacher.id.slice(0, 8)}
                       </p>
                     </div>
                   </div>
 
-                  {isAssignedToThis ? (
+                  {teacher.isAssignedToThis ? (
                     <span className="px-2.5 py-1 bg-[#E8F8F0] text-[#23C16B] text-[8px] font-extrabold rounded-lg uppercase tracking-wider flex items-center gap-1">
                       <FiCheck className="w-3 h-3" /> Assigned
                     </span>
-                  ) : assignedSec ? (
+                  ) : teacher.assignedSectionObj ? (
                     <span className="px-2.5 py-1 bg-amber-50 text-amber-500 text-[8px] font-extrabold rounded-lg uppercase tracking-wider">
-                      Assigned to {assignedSec}
+                      Assigned to {teacher.assignedSectionObj.academicClass?.name}-{teacher.assignedSectionObj.name} ({teacher.assignedSectionObj.academicClass?.wing?.code || 'N/A'})
                     </span>
                   ) : (
-                    <button className="px-3.5 py-1.5 bg-[#EEF5FB] hover:bg-brand-blue hover:text-white text-brand-blue text-[10px] font-extrabold rounded-full transition-all">
+                    <button
+                      disabled={!isSectionSelected}
+                      onClick={() => {
+                        setSelectedTeacherToAssign(teacher);
+                        setShowAssignConfirmModal(true);
+                      }}
+                      className={`px-3.5 py-1.5 text-[10px] font-extrabold rounded-full transition-all ${
+                        isSectionSelected
+                          ? 'bg-[#EEF5FB] hover:bg-brand-blue hover:text-white text-brand-blue cursor-pointer'
+                          : 'bg-[#EEF5FB]/50 text-brand-blue/40 cursor-not-allowed'
+                      }`}
+                    >
                       Assign
                     </button>
                   )}
@@ -331,7 +478,7 @@ const ClassTeachers = () => {
             })}
           </div>
         ) : (
-          <div className="bg-white rounded-[28px] border border-[#e2e8f0]/40 p-12 card-shadow text-center flex flex-col items-center justify-center space-y-4 min-h-[260px] select-none">
+          <div className="bg-white rounded-[28px] border border-[#e2e8f0]/40 p-12 card-shadow text-center flex flex-col items-center justify-center space-y-4 min-h-[260px] select-none animate-fade-in">
             <div className="w-18 h-18 rounded-full bg-[#EEF5FB] flex items-center justify-center text-[#1597E5] border border-brand-blue/10">
               <FiInbox className="w-8 h-8" />
             </div>
@@ -346,6 +493,95 @@ const ClassTeachers = () => {
             </div>
           </div>
         )}
+
+        {/* Bottom Sheet Dropdown Overlay for Target Sections */}
+        <AnimatePresence>
+          {showSectionDropdown && (
+            <div className="fixed inset-0 bg-[#0F172A]/20 z-[100] flex flex-col justify-end animate-fade-in">
+              <div className="absolute inset-0" onClick={() => setShowSectionDropdown(false)} />
+              <motion.div
+                initial={{ y: '100%' }}
+                animate={{ y: 0 }}
+                exit={{ y: '100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 250 }}
+                className="bg-white rounded-t-[32px] p-6 max-h-[70vh] overflow-y-auto space-y-4 relative z-10"
+              >
+                <div className="flex items-center justify-between border-b border-[#e2e8f0]/45 pb-3">
+                  <h4 className="text-sm font-extrabold text-dark">Select Section</h4>
+                  <button onClick={() => setShowSectionDropdown(false)} className="p-1 hover:bg-[#EEF5FB] rounded-full text-secondaryText transition-all">
+                    <FiX className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  <div
+                    onClick={() => {
+                      setCoSelectedSectionId('');
+                      setShowSectionDropdown(false);
+                    }}
+                    className="py-3 px-4 hover:bg-[#EEF5FB] text-xs font-semibold text-dark rounded-xl cursor-pointer transition-all flex items-center justify-between"
+                  >
+                    <span className={coSelectedSectionId === '' ? 'text-[#1597E5]' : 'text-dark'}>Choose a section...</span>
+                    {coSelectedSectionId === '' && <FiCheck className="w-4 h-4 text-[#1597E5]" />}
+                  </div>
+                  {sections.map((sec) => {
+                    const secLabel = `${sec.academicClass?.name} - ${sec.name} (${sec.academicClass?.wing?.code || 'N/A'})`;
+                    return (
+                      <div
+                        key={sec.id}
+                        onClick={() => {
+                          setCoSelectedSectionId(sec.id);
+                          setShowSectionDropdown(false);
+                        }}
+                        className="py-3 px-4 hover:bg-[#EEF5FB] text-xs font-semibold text-dark rounded-xl cursor-pointer transition-all flex items-center justify-between"
+                      >
+                        <span className={coSelectedSectionId === sec.id ? 'text-[#1597E5]' : 'text-dark'}>{secLabel}</span>
+                        {coSelectedSectionId === sec.id && <FiCheck className="w-4 h-4 text-[#1597E5]" />}
+                      </div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Modal: Confirm Assign Class Teacher */}
+        <AnimatePresence>
+          {showAssignConfirmModal && (
+            <div className="fixed inset-0 bg-[#0F172A]/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="bg-white rounded-[32px] p-6 max-w-sm w-full card-shadow space-y-4 relative"
+              >
+                <h3 className="text-sm font-extrabold text-dark">Assign Class Teacher</h3>
+                <p className="text-xs text-secondaryText leading-relaxed">
+                  Are you sure you want to assign <strong>{selectedTeacherToAssign?.user?.fullName}</strong> as the Class Teacher for <strong>{selectedSectionObj?.academicClass?.name} - {selectedSectionObj?.name}</strong>?
+                </p>
+                <div className="flex gap-3 justify-end pt-2">
+                  <button
+                    disabled={actionLoading}
+                    onClick={() => {
+                      setShowAssignConfirmModal(false);
+                      setSelectedTeacherToAssign(null);
+                    }}
+                    className="px-4 py-2 border rounded-full text-xs font-bold text-secondaryText hover:bg-slate-50 transition-all cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    disabled={actionLoading}
+                    onClick={handleCoAssign}
+                    className="px-5 py-2 bg-brand-blue text-white rounded-full text-xs font-bold shadow-md hover:bg-brand-blue/90 transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    {actionLoading ? 'Assigning...' : 'Confirm'}
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </motion.div>
     );
   }

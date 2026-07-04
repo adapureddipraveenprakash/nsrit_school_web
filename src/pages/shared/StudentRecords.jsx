@@ -1,11 +1,25 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { FiArrowLeft, FiSearch, FiInbox, FiChevronRight, FiUserPlus, FiFileText, FiRepeat, FiPlus, FiRefreshCw } from 'react-icons/fi';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  FiArrowLeft, FiSearch, FiInbox, FiChevronRight, FiUserPlus, FiFileText,
+  FiRepeat, FiPlus, FiRefreshCw, FiCheck, FiX, FiChevronDown, FiUserCheck,
+  FiGrid, FiCalendar, FiPhone, FiMapPin, FiUser, FiTrendingUp, FiDollarSign,
+  FiFilter, FiActivity
+} from 'react-icons/fi';
 import { BiTransfer } from 'react-icons/bi';
 import { useApp } from '../../context/AppContext';
 import { useDataFetch } from '../../hooks/useDataFetch';
-import { getStudents, getFeeRecordsByBranch } from '../../services/dataService';
+import {
+  getStudents,
+  getStudentDetails,
+  getFeeRecordsByBranch,
+  getCoordinatorStudentsByWing,
+  getAcademicClasses,
+  getSectionsByClass,
+  updateStudentStatus,
+  bulkAssignStudents
+} from '../../services/dataService';
 
 // Normalize a student record from Data Connect into a display-friendly shape
 const normalizeStudent = (s) => ({
@@ -24,25 +38,286 @@ const StudentRecords = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All'); // 'All' | 'Active' | 'Inactive'
-  const [selectedClass, setSelectedClass] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('All');
+  // Multi-view states for Student Management
+  const [currentView, setCurrentView] = useState('classList'); // 'classList' | 'classStudents' | 'advancedSearch' | 'studentDetails'
+  const [selectedClassId, setSelectedClassId] = useState(null);
+  const [selectedStudentId, setSelectedStudentId] = useState(null);
+  const [dbClasses, setDbClasses] = useState([]);
+  const [studentDetails, setStudentDetails] = useState(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [prevView, setPrevView] = useState('classList');
+
+  // Advanced Search filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchClassId, setSearchClassId] = useState('All');
+  const [searchSectionId, setSearchSectionId] = useState('All');
+  const [searchStatus, setSearchStatus] = useState('All');
+
+  // Coordinator specific states
+  const [selectedStudentIds, setSelectedStudentIds] = useState([]);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [selectedSectionOption, setSelectedSectionOption] = useState(null);
+  const [selectedStatusOption, setSelectedStatusOption] = useState('ACTIVE');
+  const [targetSections, setTargetSections] = useState([]);
+  const [showSectionDropdown, setShowSectionDropdown] = useState(false);
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
 
   // Determine which branch to fetch students for
   const branchId = user?.branchId || currentBranchContext?.id || null;
+  const isCoordinator = activeRole === 'COORDINATOR';
+  const wingName = user?.wing || 'PRIMARY';
 
   // Fetch real students from Firebase Data Connect
   const { data: rawStudents, loading: studentsLoading, error: studentsError, refetch } = useDataFetch(
-    () => getStudents({ branchId, limit: 500 }),
-    [branchId],
+    isCoordinator
+      ? () => getCoordinatorStudentsByWing({ branchId, wing: wingName })
+      : () => getStudents({ branchId, limit: 500 }),
+    [branchId, isCoordinator, wingName],
     { defaultValue: [], pollInterval: 30000 }
   );
 
   const INITIAL_STUDENTS = useMemo(() => (rawStudents || []).map(normalizeStudent), [rawStudents]);
 
+  // Load active academic classes for the current branch
+  useEffect(() => {
+    if (!branchId) return;
+    getAcademicClasses()
+      .then(list => {
+        let branchClasses = list.filter(c => c.branchId === branchId);
+        // Filter by coordinator's wing
+        if (isCoordinator && wingName) {
+          branchClasses = branchClasses.filter(c => c.wing?.code?.toUpperCase() === wingName.toUpperCase());
+        }
+        setDbClasses(branchClasses);
+      })
+      .catch(err => console.error('Error fetching academic classes:', err));
+  }, [branchId, isCoordinator, wingName]);
+
+  // Load detailed student info when selectedStudentId is set
+  useEffect(() => {
+    if (!selectedStudentId) {
+      setStudentDetails(null);
+      return;
+    }
+    const loadDetails = async () => {
+      setDetailsLoading(true);
+      try {
+        const details = await getStudentDetails(selectedStudentId);
+        setStudentDetails(details);
+      } catch (err) {
+        console.error('Error loading student details:', err);
+      } finally {
+        setDetailsLoading(false);
+      }
+    };
+    loadDetails();
+  }, [selectedStudentId]);
+
+  // Load target sections dynamically for bulk assignment dropdown
+  useEffect(() => {
+    if (isCoordinator && branchId && targetSections.length === 0) {
+      const loadBranchSections = async () => {
+        try {
+          const classes = await getAcademicClasses();
+          let branchClasses = classes.filter(c => c.branchId === branchId);
+          if (wingName) {
+            branchClasses = branchClasses.filter(c => c.wing?.code?.toUpperCase() === wingName.toUpperCase());
+          }
+          
+          const allSections = [];
+          await Promise.all(
+            branchClasses.map(async (cls) => {
+              const classSections = await getSectionsByClass(cls.id);
+              classSections.forEach(sec => {
+                allSections.push({
+                  id: sec.id,
+                  name: `${cls.name}-${sec.name}`,
+                  classId: cls.id
+                });
+              });
+            })
+          );
+          allSections.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+          setTargetSections(allSections);
+        } catch (err) {
+          console.error('Error fetching target sections:', err);
+        }
+      };
+      loadBranchSections();
+    }
+  }, [isCoordinator, branchId, targetSections.length, wingName]);
+
+  // --- Summary calculations for Student Management view states ---
+
+  // Compute Class Summary with student counts and sections list
+  const classSummaryList = useMemo(() => {
+    return dbClasses.map(cls => {
+      // Find students in this class
+      const classStudents = (rawStudents || []).filter(s => s.academicClassId === cls.id);
+      const sections = new Set();
+      classStudents.forEach(s => {
+        if (s.section?.name) sections.add(s.section.name);
+      });
+      return {
+        id: cls.id,
+        name: cls.name,
+        sortOrder: cls.sortOrder || 0,
+        sections: Array.from(sections).sort().join(', ') || 'A', // default section label A if empty
+        studentsCount: classStudents.length
+      };
+    }).sort((a, b) => a.sortOrder - b.sortOrder);
+  }, [dbClasses, rawStudents]);
+
+  // Compute roster for the currently selected class
+  const classStudentsList = useMemo(() => {
+    if (!selectedClassId) return [];
+    
+    let list = (rawStudents || []).filter(s => s.academicClassId === selectedClassId);
+
+    // Apply search filter
+    if (search.trim()) {
+      const lower = search.toLowerCase();
+      list = list.filter(s => 
+        (s.fullName || '').toLowerCase().includes(lower) || 
+        (s.studentId || '').toLowerCase().includes(lower)
+      );
+    }
+
+    // Apply status filter
+    if (statusFilter === 'Active') {
+      list = list.filter(s => s.isActive !== false && s.status !== 'INACTIVE');
+    } else if (statusFilter === 'Inactive') {
+      list = list.filter(s => s.isActive === false || s.status === 'INACTIVE');
+    }
+
+    return list;
+  }, [rawStudents, selectedClassId, search, statusFilter]);
+
+  // Group class students by section
+  const studentsBySection = useMemo(() => {
+    const map = {};
+    classStudentsList.forEach(s => {
+      const secName = s.section?.name || 'A'; // fallback to A
+      if (!map[secName]) map[secName] = [];
+      map[secName].push(s);
+    });
+    return Object.keys(map).sort().map(key => ({
+      sectionName: key,
+      items: map[key]
+    }));
+  }, [classStudentsList]);
+
+  // Advanced Search results
+  const searchResults = useMemo(() => {
+    if (currentView !== 'advancedSearch') return [];
+    
+    let list = rawStudents || [];
+    
+    if (searchQuery.trim()) {
+      const lower = searchQuery.toLowerCase();
+      list = list.filter(s => 
+        (s.fullName || '').toLowerCase().includes(lower) ||
+        (s.studentId || '').toLowerCase().includes(lower) ||
+        (s.parent?.fullName || '').toLowerCase().includes(lower) ||
+        (s.parent?.phoneNumber || '').toLowerCase().includes(lower)
+      );
+    }
+    
+    if (searchClassId && searchClassId !== 'All') {
+      list = list.filter(s => s.academicClassId === searchClassId);
+    }
+    
+    if (searchSectionId && searchSectionId !== 'All') {
+      list = list.filter(s => s.sectionId === searchSectionId);
+    }
+    
+    if (searchStatus && searchStatus !== 'All') {
+      const isActive = searchStatus === 'ACTIVE';
+      list = list.filter(s => (s.isActive !== false && s.status !== 'INACTIVE') === isActive);
+    }
+    
+    return list;
+  }, [rawStudents, searchQuery, searchClassId, searchSectionId, searchStatus, currentView]);
+
+  // Individual student fee summary
+  const feeSummary = useMemo(() => {
+    if (!studentDetails?.studentFees) return { total: 0, paid: 0, pending: 0 };
+    let total = 0;
+    let paid = 0;
+    let pending = 0;
+    studentDetails.studentFees.forEach(f => {
+      total += f.totalFee || 0;
+      paid += f.paidAmount || 0;
+      pending += f.remainingAmount || 0;
+    });
+    return { total, paid, pending };
+  }, [studentDetails]);
+
+  // Individual student attendance summary
+  const attendanceSummary = useMemo(() => {
+    if (!studentDetails?.attendances) return { percentage: 0, present: 0, absent: 0 };
+    const list = studentDetails.attendances;
+    const total = list.length;
+    const present = list.filter(a => a.status === 'PRESENT').length;
+    const absent = list.filter(a => a.status === 'ABSENT').length;
+    const percentage = total > 0 ? Math.round((present / total) * 100) : 0;
+    return { percentage, present, absent };
+  }, [studentDetails]);
+
+  const toggleStudentSelection = (studentId) => {
+    setSelectedStudentIds(prev =>
+      prev.includes(studentId)
+        ? prev.filter(id => id !== studentId)
+        : [...prev, studentId]
+    );
+  };
+
+  const handleAssignSection = async () => {
+    if (!selectedSectionOption || selectedStudentIds.length === 0) return;
+    setActionLoading(true);
+    try {
+      await bulkAssignStudents({
+        studentIds: selectedStudentIds,
+        classId: selectedSectionOption.classId,
+        sectionId: selectedSectionOption.id
+      });
+      setShowAssignModal(false);
+      setSelectedStudentIds([]);
+      setSelectedSectionOption(null);
+      refetch();
+    } catch (err) {
+      console.error('Error assigning sections:', err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleUpdateStatus = async () => {
+    if (selectedStudentIds.length === 0) return;
+    setActionLoading(true);
+    try {
+      await Promise.all(
+        selectedStudentIds.map(studentId =>
+          updateStudentStatus({ studentId, status: selectedStatusOption })
+        )
+      );
+      setShowStatusModal(false);
+      setSelectedStudentIds([]);
+      refetch();
+    } catch (err) {
+      console.error('Error updating status:', err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const { data: rawFees, loading: feesLoading } = useDataFetch(
     activeRole === 'ACCOUNTANT' ? () => getFeeRecordsByBranch({ branchId }) : null,
     [branchId, activeRole],
-    { defaultValue: null, pollInterval: 15000 }
+    { defaultValue: null, pollInterval: 15000, skip: activeRole !== 'ACCOUNTANT' }
   );
 
   const studentFees = rawFees?.studentFees || [];
@@ -67,432 +342,14 @@ const StudentRecords = () => {
     );
   }, [dueStudents, search]);
 
-  const mockStudentsByClass = {
-    'LKG': [
-      { id: 'lkg1', name: 'KORADA BHARGAVSAI', class: 'LKG', section: 'A', admissionNo: '26SO0002', status: 'Active', gender: 'Male' },
-      { id: 'lkg2', name: 'GANDARDDI MANJUSHA', class: 'LKG', section: 'A', admissionNo: '26SO0003', status: 'Active', gender: 'Female' },
-      { id: 'lkg3', name: 'GONTHINA POORVESH', class: 'LKG', section: 'A', admissionNo: '26SO0004', status: 'Active', gender: 'Male' },
-    ],
-    'UKG': [
-      { id: 'ukg1', name: 'AKKIREDDY SADHVIK', class: 'UKG', section: 'A', admissionNo: '26SO0006', status: 'Active', gender: 'Male' },
-      { id: 'ukg2', name: 'KORADA CHERVIK', class: 'UKG', section: 'A', admissionNo: '26SO0007', status: 'Active', gender: 'Male' },
-    ],
-    '1': [
-      { id: '1-1', name: 'GOLAGANA HANSHITH', class: '1', section: 'A', admissionNo: '26SO0017', status: 'Active', gender: 'Male' },
-      { id: '1-2', name: 'GOLAJANA GNANESWARI', class: '1', section: 'A', admissionNo: '26SO0019', status: 'Active', gender: 'Female' },
-    ]
-  };
-
-  const classGroups = useMemo(() => {
-    const groups = {};
-    (rawStudents || []).forEach(s => {
-      const className = s.academicClass?.name || 'Unassigned';
-      if (!groups[className]) {
-        groups[className] = {
-          name: className,
-          students: [],
-          sections: new Set()
-        };
-      }
-      groups[className].students.push(s);
-      if (s.section?.name) {
-        groups[className].sections.add(s.section.name);
-      }
-    });
-
-    const classNamesOrder = ['LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', 'Nursery'];
-    const mockStudentCounts = {
-      'LKG': 19,
-      'UKG': 12,
-      '1': 14,
-      '2': 15,
-      '3': 14,
-      '4': 10,
-      '5': 5,
-      '6': 7,
-      '7': 2,
-      'Nursery': 9
-    };
-
-    const finalGroups = [];
-    classNamesOrder.forEach(name => {
-      if (groups[name]) {
-        finalGroups.push({
-          name,
-          sectionsStr: Array.from(groups[name].sections).join(', ') || 'A',
-          studentCount: groups[name].students.length,
-          students: groups[name].students
-        });
-      } else {
-        finalGroups.push({
-          name,
-          sectionsStr: 'A',
-          studentCount: mockStudentCounts[name] || 0,
-          students: []
-        });
-      }
-    });
-
-    return finalGroups;
-  }, [rawStudents]);
-
-  const totalStudentsCount = useMemo(() => {
-    if (rawStudents && rawStudents.length > 0) {
-      return rawStudents.length;
-    }
-    return 107; // Mock fallback
-  }, [rawStudents]);
-
-  const totalClassesCount = useMemo(() => {
-    const uniqueClasses = new Set((rawStudents || []).map(s => s.academicClass?.name).filter(Boolean));
-    return uniqueClasses.size > 0 ? uniqueClasses.size : 10; // Mock fallback
-  }, [rawStudents]);
-
-  const classStudents = useMemo(() => {
-    if (!selectedClass) return [];
-    const actual = (rawStudents || []).filter(s => s.academicClass?.name?.toUpperCase() === selectedClass.toUpperCase());
-    if (actual.length > 0) {
-      return actual.map(normalizeStudent);
-    }
-    return mockStudentsByClass[selectedClass] || [
-      { id: 'gen1', name: `Student One (${selectedClass})`, class: selectedClass, section: 'A', admissionNo: '26SO0101', status: 'Active', gender: 'Male' },
-      { id: 'gen2', name: `Student Two (${selectedClass})`, class: selectedClass, section: 'A', admissionNo: '26SO0102', status: 'Active', gender: 'Female' },
-    ];
-  }, [selectedClass, rawStudents]);
-
-  const filteredClassStudents = useMemo(() => {
-    return classStudents.filter(student => {
-      const matchesSearch = student.name.toLowerCase().includes(search.toLowerCase()) || 
-                            student.admissionNo.toLowerCase().includes(search.toLowerCase());
-      
-      let matchesStatus = true;
-      if (statusFilter === 'Active') matchesStatus = student.status === 'Active';
-      else if (statusFilter === 'Inactive') matchesStatus = student.status === 'Inactive';
-
-      return matchesSearch && matchesStatus;
-    });
-  }, [classStudents, search, statusFilter]);
-
-  const classColorMap = {
-    'LKG': { bg: 'bg-[#EEF5FB]', text: 'text-[#1597E5]', circle: 'bg-blue-100' },
-    'UKG': { bg: 'bg-[#FAF5FF]', text: 'text-[#805AD5]', circle: 'bg-purple-100' },
-    '1': { bg: 'bg-[#F0FDF4]', text: 'text-[#22C55E]', circle: 'bg-green-100' },
-    '2': { bg: 'bg-[#FFF7ED]', text: 'text-[#EA580C]', circle: 'bg-orange-100' },
-    '3': { bg: 'bg-[#FEF2F2]', text: 'text-[#EF4444]', circle: 'bg-red-100' },
-    '4': { bg: 'bg-[#EEF5FB]', text: 'text-[#1597E5]', circle: 'bg-blue-100' },
-    '5': { bg: 'bg-[#FAF5FF]', text: 'text-[#805AD5]', circle: 'bg-purple-100' },
-    '6': { bg: 'bg-[#F0FDF4]', text: 'text-[#22C55E]', circle: 'bg-green-100' },
-    '7': { bg: 'bg-[#FFF7ED]', text: 'text-[#EA580C]', circle: 'bg-orange-100' },
-    'Nursery': { bg: 'bg-[#EEF5FB]', text: 'text-[#1597E5]', circle: 'bg-blue-100' }
-  };
-
-  if (activeRole === 'PRINCIPAL' || activeRole === 'BRANCH_ADMIN') {
-    if (selectedClass) {
-      return (
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -15 }}
-          transition={{ duration: 0.3 }}
-          className="p-4 md:p-8 space-y-6 pb-28 md:pb-24 max-w-[640px] mx-auto animate-fade-in relative select-none"
-        >
-          <header className="flex items-center justify-between py-2 border-b border-[#e2e8f0]/40 shrink-0">
-            <button
-              onClick={() => setSelectedClass(null)}
-              className="p-1.5 hover:bg-[#EEF5FB] rounded-full text-dark transition-colors cursor-pointer"
-            >
-              <FiArrowLeft className="w-5 h-5" />
-            </button>
-            <h1 className="text-sm font-bold text-dark pr-8 mx-auto font-sans">Class {selectedClass}</h1>
-          </header>
-
-          <div className="relative rounded-[32px] bg-gradient-to-br from-[#1597E5] to-[#00A1FF] p-6 text-white card-shadow overflow-hidden">
-            <div className="absolute top-[-30px] right-[-30px] w-36 h-36 rounded-full bg-white/10" />
-            <div className="mb-1 relative z-10">
-              <span className="text-[10px] text-white/70 font-semibold tracking-wider uppercase">CLASS STUDENTS</span>
-            </div>
-            <h2 className="text-xl font-bold relative z-10 font-sans">Class {selectedClass}</h2>
-            <p className="text-xs text-white/85 mt-1 relative z-10 font-sans">
-              View student list and profiles for this grade.
-            </p>
-          </div>
-
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search students or admission no"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-3.5 bg-white border border-[#e2e8f0] rounded-[20px] card-shadow-inset focus:outline-none focus:border-brand-blue/60 text-xs font-semibold text-dark placeholder:text-[#A0AEC0]"
-            />
-            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0AEC0]" />
-          </div>
-
-          <div className="flex gap-2 select-none pb-1">
-            {['All', 'Active', 'Inactive'].map((status) => (
-              <button
-                key={status}
-                onClick={() => setStatusFilter(status)}
-                className={`px-5 py-2 rounded-full text-[10px] font-extrabold border transition-all cursor-pointer whitespace-nowrap ${
-                  statusFilter === status
-                    ? 'bg-[#1597E5] border-[#1597E5] text-white shadow-md shadow-brand-blue/20'
-                    : 'bg-white border-[#e2e8f0] text-secondaryText hover:bg-slate-50'
-                }`}
-              >
-                {status}
-              </button>
-            ))}
-          </div>
-
-          <div className="space-y-3 pt-1">
-            {filteredClassStudents.length > 0 ? (
-              filteredClassStudents.map((student) => {
-                const initials = student.name.charAt(0);
-                const isMale = student.gender === 'Male';
-                const isInactive = student.status === 'Inactive';
-                return (
-                  <div
-                    key={student.id}
-                    className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/20 transition-all cursor-pointer group active:scale-[0.99]"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className={`w-11 h-11 rounded-full flex items-center justify-center font-bold text-xs select-none ${
-                        isMale ? 'bg-[#EEF5FB] text-brand-blue' : 'bg-pink-50 text-pink-500'
-                      }`}>
-                        {initials}
-                      </div>
-                      <div>
-                        <h3 className="text-xs font-extrabold text-dark leading-tight group-hover:text-brand-blue transition-colors">
-                          {student.name}
-                        </h3>
-                        <p className="text-[9px] text-[#A0AEC0] font-bold mt-1">
-                          {student.class} - {student.section} · {student.admissionNo}
-                        </p>
-                      </div>
-                    </div>
-                    <span className={`px-2.5 py-1 rounded-lg text-[8px] font-extrabold tracking-wider ${
-                      isInactive ? 'bg-red-50 text-[#E53E3E]' : 'bg-[#E8F8F0] text-[#23C16B]'
-                    }`}>
-                      {student.status.toUpperCase()}
-                    </span>
-                  </div>
-                );
-              })
-            ) : (
-              <div className="bg-white rounded-[32px] border border-[#e2e8f0]/40 p-12 card-shadow text-center flex flex-col items-center justify-center space-y-4 min-h-[260px]">
-                <FiInbox className="w-8 h-8 text-secondaryText" />
-                <h4 className="text-xs font-extrabold text-dark">No students found</h4>
-              </div>
-            )}
-          </div>
-        </motion.div>
-      );
-    }
-
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -15 }}
-        transition={{ duration: 0.3 }}
-        className="p-4 md:p-8 space-y-6 pb-28 md:pb-24 max-w-[640px] mx-auto animate-fade-in relative select-none"
-      >
-        <header className="flex items-center justify-between py-2 border-b border-[#e2e8f0]/40 shrink-0">
-          <button
-            onClick={() => navigate(-1)}
-            className="p-1.5 hover:bg-[#EEF5FB] rounded-full text-dark transition-colors cursor-pointer"
-          >
-            <FiArrowLeft className="w-5 h-5" />
-          </button>
-          <h1 className="text-sm font-bold text-dark pr-8 mx-auto font-sans">Students</h1>
-        </header>
-
-        <div className="relative rounded-[32px] bg-gradient-to-br from-[#1597E5] to-[#00A1FF] p-6 text-white card-shadow overflow-hidden">
-          <div className="absolute top-[-30px] right-[-30px] w-36 h-36 rounded-full bg-white/10" />
-          <div className="absolute bottom-[-40px] left-[10%] w-48 h-48 rounded-full bg-white/5" />
-
-          <div className="mb-2 relative z-10">
-            <span className="text-[10px] text-white/70 font-semibold tracking-wider uppercase">MANAGEMENT</span>
-          </div>
-
-          <div className="flex items-center justify-between mb-1 relative z-10">
-            <h2 className="text-xl font-bold font-sans">Students</h2>
-            <button
-              onClick={() => navigate('/settings/create-student')}
-              className="bg-white hover:bg-slate-50 text-[#1597E5] px-4 py-2 rounded-full text-[10px] font-black shadow-sm cursor-pointer transition-all active:scale-95 flex items-center gap-1.5"
-            >
-              <FiUserPlus className="w-3.5 h-3.5" />
-              <span>Add Student</span>
-            </button>
-          </div>
-
-          <p className="text-xs text-white/85 font-medium mt-1.5 relative z-10 font-sans">
-            Admissions, profiles, status, and section transfers.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-5 card-shadow flex flex-col items-center justify-center text-center">
-            <p className="text-lg font-black text-[#1597E5]">{totalClassesCount}</p>
-            <p className="text-[9px] text-[#A0AEC0] font-black uppercase mt-1 tracking-wider leading-none">Classes</p>
-          </div>
-          <div className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-5 card-shadow flex flex-col items-center justify-center text-center">
-            <p className="text-lg font-black text-[#1597E5]">{totalStudentsCount}</p>
-            <p className="text-[9px] text-[#A0AEC0] font-black uppercase mt-1 tracking-wider leading-none">Total Students</p>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <h3 className="text-[10px] font-extrabold text-[#718096] uppercase tracking-widest px-1 font-sans">
-            Select a Class
-          </h3>
-
-          <div className="space-y-3">
-            {classGroups.map((group) => {
-              const style = classColorMap[group.name] || { bg: 'bg-[#EEF5FB]', text: 'text-[#1597E5]', circle: 'bg-blue-100' };
-              return (
-                <div
-                  key={group.name}
-                  onClick={() => setSelectedClass(group.name)}
-                  className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/20 transition-all cursor-pointer group active:scale-[0.99]"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className={`w-11 h-11 rounded-full flex items-center justify-center font-black text-[10px] ${style.bg} ${style.text}`}>
-                      {group.name}
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-black text-dark leading-tight group-hover:text-brand-blue transition-colors font-sans">
-                        Class {group.name}
-                      </h4>
-                      <p className="text-[9px] text-[#A0AEC0] font-bold mt-1 font-sans">
-                        Sections: {group.sectionsStr}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-black text-dark">
-                      {group.studentCount}
-                    </span>
-                    <span className="text-[8.5px] text-[#A0AEC0] font-bold uppercase mr-1 font-sans">students</span>
-                    <FiChevronRight className="w-4 h-4 text-[#A0AEC0] group-hover:translate-x-0.5 transition-transform" />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          <h3 className="text-[10px] font-extrabold text-[#718096] uppercase tracking-widest px-1 font-sans">
-            More Actions
-          </h3>
-
-          <div className="space-y-3">
-            <div
-              onClick={() => navigate('/settings/search-students')}
-              className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/20 transition-all cursor-pointer group active:scale-[0.99]"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-[#EEF5FB] flex items-center justify-center border border-brand-blue/5">
-                  <FiSearch className="w-4 h-4 text-[#1597E5]" />
-                </div>
-                <div>
-                  <h3 className="text-xs font-extrabold text-dark group-hover:text-brand-blue transition-colors font-sans">
-                    Advanced Search
-                  </h3>
-                  <p className="text-[9px] text-[#A0AEC0] font-semibold mt-0.5 font-sans">
-                    Find by class, section, status
-                  </p>
-                </div>
-              </div>
-              <FiChevronRight className="w-4 h-4 text-[#A0AEC0] group-hover:translate-x-0.5 transition-transform" />
-            </div>
-
-            <div
-              onClick={() => navigate('/settings/bulk-upload')}
-              className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/20 transition-all cursor-pointer group active:scale-[0.99]"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-[#EEF5FB] flex items-center justify-center border border-brand-blue/5">
-                  <FiFileText className="w-4 h-4 text-[#1597E5]" />
-                </div>
-                <div>
-                  <h3 className="text-xs font-extrabold text-dark group-hover:text-brand-blue transition-colors font-sans">
-                    Bulk Import
-                  </h3>
-                  <p className="text-[9px] text-[#A0AEC0] font-semibold mt-0.5 font-sans">
-                    Upload students via CSV
-                  </p>
-                </div>
-              </div>
-              <FiChevronRight className="w-4 h-4 text-[#A0AEC0] group-hover:translate-x-0.5 transition-transform" />
-            </div>
-
-            <div
-              onClick={() => navigate('/settings/transfer-student')}
-              className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/20 transition-all cursor-pointer group active:scale-[0.99]"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-[#EEF5FB] flex items-center justify-center border border-brand-blue/5">
-                  <FiRepeat className="w-4 h-4 text-[#1597E5]" />
-                </div>
-                <div>
-                  <h3 className="text-xs font-extrabold text-dark group-hover:text-brand-blue transition-colors font-sans">
-                    Transfer Student
-                  </h3>
-                  <p className="text-[9px] text-[#A0AEC0] font-semibold mt-0.5 font-sans">
-                    Move between sections
-                  </p>
-                </div>
-              </div>
-              <FiChevronRight className="w-4 h-4 text-[#A0AEC0] group-hover:translate-x-0.5 transition-transform" />
-            </div>
-          </div>
-        </div>
-      </motion.div>
-    );
-  }
-
   if (activeRole === 'COORDINATOR') {
     const isStudentManagement = location.pathname === '/settings/student-management';
 
-    const coordinatorStudents = [
-      { name: 'KORADA BHARGAVSAI', class: '5-A', admissionNo: isStudentManagement ? '26SO0002' : '#26SO0002', status: 'Active' },
-      { name: 'GANDARDDI MANJUSHA', class: '4-A', admissionNo: isStudentManagement ? '26SO0003' : '#26SO0003', status: 'Active' },
-      { name: 'GONTHINA POORVESH', class: '4-A', admissionNo: isStudentManagement ? '26SO0004' : '#26SO0004', status: 'Active' },
-      { name: 'AKKIREDDY SADHVIK', class: '4-A', admissionNo: isStudentManagement ? '26SO0006' : '#26SO0006', status: 'Active' },
-      { name: 'KORADA CHERVIK', class: '3-A', admissionNo: isStudentManagement ? '26SO0007' : '#26SO0007', status: 'Active' },
-      { name: 'BOGADHI HETVIK', class: '2-A', admissionNo: isStudentManagement ? '26SO0008' : '#26SO0008', status: 'Active' },
-      { name: 'BOOSA MANOJ', class: '4-A', admissionNo: isStudentManagement ? '26SO0011' : '#26SO0011', status: 'Active' },
-      { name: 'GNANA ABHINAVA RAM KORADA', class: '3-A', admissionNo: isStudentManagement ? '26SO0014' : '#26SO0014', status: 'Active' },
-      { name: 'GOLAGANA HANSHITH', class: '1-A', admissionNo: isStudentManagement ? '26SO0017' : '#26SO0017', status: 'Active' },
-      { name: 'GOLAJANA GNANESWARI', class: '1-A', admissionNo: isStudentManagement ? '26SO0019' : '#26SO0019', status: 'Active' },
-      { name: 'KORUKONDA NISSY SWAASTHYA', class: '1-A', admissionNo: isStudentManagement ? '26SO0021' : '#26SO0021', status: 'Active' },
-      { name: 'RAMINA PARDHU', class: '2-A', admissionNo: isStudentManagement ? '26SO0022' : '#26SO0022', status: 'Active' },
-      { name: 'RAMINA TEJASREE PRANAV', class: '3-A', admissionNo: isStudentManagement ? '26SO0024' : '#26SO0024', status: 'Active' },
-      { name: 'M SRAVYA SRI', class: '2-A', admissionNo: isStudentManagement ? '26SO0025' : '#26SO0025', status: 'Active' },
-      { name: 'BODDAPU PRERANA LATHA', class: '3-A', admissionNo: isStudentManagement ? '26SO0027' : '#26SO0027', status: 'Active' },
-      { name: 'BALLIREDDY LOKSHITHA SRI', class: '2-A', admissionNo: isStudentManagement ? '26SO0031' : '#26SO0031', status: 'Active' },
-      { name: 'CHANDAPARAPU GNANWITH', class: '2-A', admissionNo: isStudentManagement ? '26SO0037' : '#26SO0037', status: 'Active' },
-      ...Array.from({ length: 33 }, (_, i) => {
-        const names = ['KORADA BHARGAVSAI', 'GANDARDDI MANJUSHA', 'GONTHINA POORVESH', 'AKKIREDDY SADHVIK', 'BOGADHI HETVIK', 'RAMINA PARDHU', 'M SRAVYA SRI'];
-        const classes = ['1-A', '2-A', '3-A', '4-A', '5-A'];
-        const baseName = names[i % names.length];
-        const admissionNum = 38 + i;
-        return {
-          name: `${baseName} JR ${i + 1}`,
-          class: classes[i % classes.length],
-          admissionNo: isStudentManagement ? `26SO${String(admissionNum).padStart(5, '0')}` : `#26SO${String(admissionNum).padStart(5, '0')}`,
-          status: i % 10 === 0 ? 'Inactive' : 'Active'
-        };
-      })
-    ];
-
-    const wingName = user?.wing || 'PRIMARY';
+    const coordinatorStudents = INITIAL_STUDENTS;
     const filteredCoStudents = coordinatorStudents.filter(student => {
       const matchesSearch = student.name.toLowerCase().includes(search.toLowerCase()) || 
                             student.class.toLowerCase().includes(search.toLowerCase()) ||
+                            student.section.toLowerCase().includes(search.toLowerCase()) ||
                             student.admissionNo.toLowerCase().includes(search.toLowerCase());
       
       if (!isStudentManagement) return matchesSearch;
@@ -505,6 +362,715 @@ const StudentRecords = () => {
     });
 
     if (isStudentManagement) {
+      // Helper function to format date
+      const formatDate = (dateStr) => {
+        if (!dateStr) return '–';
+        try {
+          const d = new Date(dateStr);
+          if (isNaN(d.getTime())) return dateStr;
+          const day = String(d.getDate()).padStart(2, '0');
+          const month = String(d.getMonth() + 1).padStart(2, '0');
+          const year = d.getFullYear();
+          return `${day}-${month}-${year}`;
+        } catch {
+          return dateStr;
+        }
+      };
+
+      // ─── VIEW 1: STUDENT DETAILS SCREEN ─────────────────────────────────────
+      if (currentView === 'studentDetails') {
+        const student = studentDetails?.student;
+        const initials = student?.fullName ? student.fullName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : 'ST';
+        const classSectionLabel = student ? `${student.academicClass?.name || ''}-${student.section?.name || ''}` : '';
+
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            className="p-4 md:p-8 space-y-6 pb-28 md:pb-24 max-w-[640px] mx-auto select-none"
+          >
+            {/* Header */}
+            <header className="flex items-center justify-between py-2 border-b border-[#e2e8f0]/40 shrink-0">
+              <button
+                onClick={() => setCurrentView(prevView)}
+                className="p-1.5 hover:bg-[#EEF5FB] rounded-full text-dark transition-colors cursor-pointer"
+              >
+                <FiArrowLeft className="w-5 h-5" />
+              </button>
+              <h1 className="text-sm font-extrabold text-dark mx-auto pr-8">Student Details</h1>
+            </header>
+
+            {detailsLoading || !student ? (
+              <div className="flex flex-col items-center justify-center py-32">
+                <div className="w-8 h-8 border-4 border-[#1597E5] border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Profile Card Banner */}
+                <div className="relative rounded-[32px] bg-gradient-to-br from-[#1597E5] via-[#2D9CDB] to-[#00A1FF] p-6 text-white card-shadow overflow-hidden">
+                  <div className="absolute top-[-30px] right-[-30px] w-36 h-36 rounded-full bg-white/10" />
+                  
+                  <div className="flex items-center gap-4 relative z-10">
+                    <div className="w-14 h-14 rounded-full bg-white/25 border border-white/20 flex items-center justify-center font-black text-sm select-none">
+                      {initials}
+                    </div>
+                    <div>
+                      <h2 className="text-base font-black tracking-tight leading-tight uppercase">
+                        {student.fullName}
+                      </h2>
+                      <p className="text-[10px] text-white/80 font-bold mt-1">
+                        #{student.studentId} · {classSectionLabel}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Three Mini Stats */}
+                  <div className="grid grid-cols-3 gap-2 border-t border-white/15 pt-4 mt-5 relative z-10 text-center">
+                    <div className="space-y-0.5">
+                      <span className="text-[14px] font-black block leading-none">{attendanceSummary.percentage}%</span>
+                      <span className="text-[8px] text-white/70 font-bold uppercase tracking-wider block">Attendance</span>
+                    </div>
+                    <div className="space-y-0.5 border-l border-white/15">
+                      <span className="text-[14px] font-black block leading-none">Rs {feeSummary.pending.toLocaleString()}</span>
+                      <span className="text-[8px] text-white/70 font-bold uppercase tracking-wider block">Fee Due</span>
+                    </div>
+                    <div className="space-y-0.5 border-l border-white/15">
+                      <span className="text-[14px] font-black block leading-none uppercase">{student.status || 'Active'}</span>
+                      <span className="text-[8px] text-white/70 font-bold uppercase tracking-wider block">Status</span>
+                    </div>
+                  </div>
+
+                  {/* Edit Student Button */}
+                  <div className="mt-5 relative z-10">
+                    <button
+                      onClick={() => navigate('/settings/create-student', { state: { editStudentId: student.id } })}
+                      className="bg-white hover:bg-slate-50 text-[#1597E5] px-4 py-2 rounded-full text-[10px] font-black shadow-sm cursor-pointer transition-all active:scale-95 flex items-center gap-1.5"
+                    >
+                      <FiUserCheck className="w-3.5 h-3.5" />
+                      <span>Edit Student</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 1. PERSONAL DETAILS */}
+                <div className="bg-white rounded-[28px] border border-[#e2e8f0]/40 p-5 card-shadow space-y-4">
+                  <h3 className="text-[10px] font-black text-secondaryText uppercase tracking-wider px-1">
+                    Personal Details
+                  </h3>
+                  <div className="divide-y divide-slate-100 text-xs">
+                    <div className="flex items-center gap-3.5 py-3">
+                      <div className="w-8 h-8 rounded-full bg-[#EEF5FB] flex items-center justify-center text-brand-blue shrink-0">
+                        <FiUser className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-[9px] text-[#A0AEC0] font-bold uppercase block">Gender</span>
+                        <span className="text-dark font-extrabold block mt-0.5 uppercase">
+                          {student.gender || '–'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3.5 py-3">
+                      <div className="w-8 h-8 rounded-full bg-[#EEF5FB] flex items-center justify-center text-brand-blue shrink-0">
+                        <FiCalendar className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-[9px] text-[#A0AEC0] font-bold uppercase block">Date of Birth</span>
+                        <span className="text-dark font-extrabold block mt-0.5">
+                          {formatDate(student.dateOfBirth)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3.5 py-3">
+                      <div className="w-8 h-8 rounded-full bg-[#EEF5FB] flex items-center justify-center text-brand-blue shrink-0">
+                        <FiActivity className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-[9px] text-[#A0AEC0] font-bold uppercase block">Blood Group</span>
+                        <span className="text-dark font-extrabold block mt-0.5 uppercase">
+                          {student.bloodGroup || '–'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3.5 py-3">
+                      <div className="w-8 h-8 rounded-full bg-[#EEF5FB] flex items-center justify-center text-brand-blue shrink-0">
+                        <FiMapPin className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-[9px] text-[#A0AEC0] font-bold uppercase block">Address</span>
+                        <span className="text-dark font-extrabold block mt-0.5 leading-relaxed">
+                          {student.address || '–'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. PARENT DETAILS */}
+                <div className="bg-white rounded-[28px] border border-[#e2e8f0]/40 p-5 card-shadow space-y-4">
+                  <h3 className="text-[10px] font-black text-secondaryText uppercase tracking-wider px-1">
+                    Parent Details
+                  </h3>
+                  <div className="divide-y divide-slate-100 text-xs">
+                    <div className="flex items-center gap-3.5 py-3">
+                      <div className="w-8 h-8 rounded-full bg-[#EEF5FB] flex items-center justify-center text-brand-blue shrink-0">
+                        <FiUser className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-[9px] text-[#A0AEC0] font-bold uppercase block">Father</span>
+                        <span className="text-dark font-extrabold block mt-0.5 uppercase">
+                          {student.parent?.fullName || student.parent?.fatherName || '–'} (PARENT)
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3.5 py-3">
+                      <div className="w-8 h-8 rounded-full bg-[#EEF5FB] flex items-center justify-center text-brand-blue shrink-0">
+                        <FiPhone className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-[9px] text-[#A0AEC0] font-bold uppercase block">Father Mobile</span>
+                        <span className="text-dark font-extrabold block mt-0.5">
+                          {student.parent?.phoneNumber || '–'}
+                        </span>
+                      </div>
+                    </div>
+                    {student.parent?.motherName && (
+                      <>
+                        <div className="flex items-center gap-3.5 py-3">
+                          <div className="w-8 h-8 rounded-full bg-[#EEF5FB] flex items-center justify-center text-brand-blue shrink-0">
+                            <FiUser className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <span className="text-[9px] text-[#A0AEC0] font-bold uppercase block">Mother</span>
+                            <span className="text-dark font-extrabold block mt-0.5 uppercase">
+                              {student.parent.motherName} (PARENT)
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3.5 py-3">
+                          <div className="w-8 h-8 rounded-full bg-[#EEF5FB] flex items-center justify-center text-brand-blue shrink-0">
+                            <FiPhone className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <span className="text-[9px] text-[#A0AEC0] font-bold uppercase block">Mother Mobile</span>
+                            <span className="text-dark font-extrabold block mt-0.5">
+                              {student.parent.phoneNumber || '–'}
+                            </span>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* 3. ACADEMIC DETAILS */}
+                <div className="bg-white rounded-[28px] border border-[#e2e8f0]/40 p-5 card-shadow space-y-4">
+                  <h3 className="text-[10px] font-black text-secondaryText uppercase tracking-wider px-1">
+                    Academic Details
+                  </h3>
+                  <div className="divide-y divide-slate-100 text-xs">
+                    <div className="flex items-center gap-3.5 py-3">
+                      <div className="w-8 h-8 rounded-full bg-[#EEF5FB] flex items-center justify-center text-brand-blue shrink-0">
+                        <FiGrid className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-[9px] text-[#A0AEC0] font-bold uppercase block">Class</span>
+                        <span className="text-dark font-extrabold block mt-0.5">
+                          {student.academicClass?.name || '–'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3.5 py-3">
+                      <div className="w-8 h-8 rounded-full bg-[#EEF5FB] flex items-center justify-center text-brand-blue shrink-0">
+                        <FiGrid className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-[9px] text-[#A0AEC0] font-bold uppercase block">Section</span>
+                        <span className="text-dark font-extrabold block mt-0.5 uppercase">
+                          {student.section?.name || '–'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3.5 py-3">
+                      <div className="w-8 h-8 rounded-full bg-[#EEF5FB] flex items-center justify-center text-brand-blue shrink-0">
+                        <FiUser className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-[9px] text-[#A0AEC0] font-bold uppercase block">Class Teacher</span>
+                        <span className="text-dark font-extrabold block mt-0.5">
+                          {student.section?.classTeacher?.fullName || 'Unassigned'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3.5 py-3">
+                      <div className="w-8 h-8 rounded-full bg-[#EEF5FB] flex items-center justify-center text-brand-blue shrink-0">
+                        <FiCalendar className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-[9px] text-[#A0AEC0] font-bold uppercase block">Admission Date</span>
+                        <span className="text-dark font-extrabold block mt-0.5">
+                          {formatDate(student.admissionDate)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 4. ATTENDANCE SUMMARY */}
+                <div className="bg-white rounded-[28px] border border-[#e2e8f0]/40 p-5 card-shadow space-y-4">
+                  <h3 className="text-[10px] font-black text-secondaryText uppercase tracking-wider px-1">
+                    Attendance Summary
+                  </h3>
+                  <div className="divide-y divide-slate-100 text-xs">
+                    <div className="flex items-center gap-3.5 py-3">
+                      <div className="w-8 h-8 rounded-full bg-[#EEF5FB] flex items-center justify-center text-brand-blue shrink-0">
+                        <FiTrendingUp className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-[9px] text-[#A0AEC0] font-bold uppercase block">Percentage</span>
+                        <span className="text-dark font-extrabold block mt-0.5">
+                          {attendanceSummary.percentage}%
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3.5 py-3">
+                      <div className="w-8 h-8 rounded-full bg-[#EEF5FB] flex items-center justify-center text-brand-blue shrink-0">
+                        <FiCheck className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-[9px] text-[#A0AEC0] font-bold uppercase block">Present</span>
+                        <span className="text-dark font-extrabold block mt-0.5">
+                          {attendanceSummary.present}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3.5 py-3">
+                      <div className="w-8 h-8 rounded-full bg-[#EEF5FB] flex items-center justify-center text-brand-blue shrink-0">
+                        <FiX className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-[9px] text-[#A0AEC0] font-bold uppercase block">Absent</span>
+                        <span className="text-dark font-extrabold block mt-0.5">
+                          {attendanceSummary.absent}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 5. FEE SUMMARY */}
+                <div className="bg-white rounded-[28px] border border-[#e2e8f0]/40 p-5 card-shadow space-y-4">
+                  <h3 className="text-[10px] font-black text-secondaryText uppercase tracking-wider px-1">
+                    Fee Summary
+                  </h3>
+                  <div className="divide-y divide-slate-100 text-xs">
+                    <div className="flex items-center gap-3.5 py-3">
+                      <div className="w-8 h-8 rounded-full bg-[#EEF5FB] flex items-center justify-center text-brand-blue shrink-0">
+                        <FiFileText className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-[9px] text-[#A0AEC0] font-bold uppercase block">Fee Plan</span>
+                        <span className="text-dark font-extrabold block mt-0.5">
+                          AY 2026
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3.5 py-3">
+                      <div className="w-8 h-8 rounded-full bg-[#EEF5FB] flex items-center justify-center text-brand-blue shrink-0">
+                        <FiDollarSign className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-[9px] text-[#A0AEC0] font-bold uppercase block">Total Fee</span>
+                        <span className="text-dark font-extrabold block mt-0.5">
+                          Rs {feeSummary.total.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3.5 py-3">
+                      <div className="w-8 h-8 rounded-full bg-[#EEF5FB] flex items-center justify-center text-brand-blue shrink-0">
+                        <FiDollarSign className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-[9px] text-[#A0AEC0] font-bold uppercase block">Paid Amount</span>
+                        <span className="text-dark font-extrabold block mt-0.5">
+                          Rs {feeSummary.paid.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3.5 py-3">
+                      <div className="w-8 h-8 rounded-full bg-[#EEF5FB] flex items-center justify-center text-brand-blue shrink-0">
+                        <FiDollarSign className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-[9px] text-[#A0AEC0] font-bold uppercase block">Pending Amount</span>
+                        <span className="text-dark font-extrabold block mt-0.5">
+                          Rs {feeSummary.pending.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 6. DOCUMENTS */}
+                <div className="bg-white rounded-[28px] border border-[#e2e8f0]/40 p-5 card-shadow space-y-4">
+                  <h3 className="text-[10px] font-black text-secondaryText uppercase tracking-wider px-1">
+                    Documents
+                  </h3>
+                  <div className="divide-y divide-slate-100 text-xs">
+                    <div className="flex items-center gap-3.5 py-3">
+                      <div className="w-8 h-8 rounded-full bg-[#EEF5FB] flex items-center justify-center text-brand-blue shrink-0">
+                        <FiFileText className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-[9px] text-[#A0AEC0] font-bold uppercase block">Aadhaar</span>
+                        <span className="text-dark font-extrabold block mt-0.5">
+                          {student.aadhaarNumber || 'Number not provided'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3.5 py-3">
+                      <div className="w-8 h-8 rounded-full bg-[#EEF5FB] flex items-center justify-center text-brand-blue shrink-0">
+                        <FiFileText className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-[9px] text-[#A0AEC0] font-bold uppercase block">APAAR ID</span>
+                        <span className="text-dark font-extrabold block mt-0.5">
+                          Not provided
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3.5 py-3">
+                      <div className="w-8 h-8 rounded-full bg-[#EEF5FB] flex items-center justify-center text-brand-blue shrink-0">
+                        <FiFileText className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-[9px] text-[#A0AEC0] font-bold uppercase block">Transfer Certificate</span>
+                        <span className="text-dark font-extrabold block mt-0.5">
+                          {student.transferCertificateUrl ? 'Uploaded' : 'Not uploaded'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3.5 py-3">
+                      <div className="w-8 h-8 rounded-full bg-[#EEF5FB] flex items-center justify-center text-brand-blue shrink-0">
+                        <FiFileText className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="text-[9px] text-[#A0AEC0] font-bold uppercase block">Birth Certificate</span>
+                        <span className="text-dark font-extrabold block mt-0.5">
+                          {student.birthCertificateUrl ? 'Uploaded' : 'Not uploaded'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        );
+      }
+
+      // ─── VIEW 2: CLASS STUDENTS LIST (ROSTER) SCREEN ───────────────────────
+      if (currentView === 'classStudents') {
+        const activeClassObj = dbClasses.find(c => c.id === selectedClassId);
+        
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            className="p-4 md:p-8 space-y-6 pb-28 md:pb-24 max-w-[640px] mx-auto select-none"
+          >
+            {/* Header */}
+            <header className="flex items-center justify-between py-2 border-b border-[#e2e8f0]/40 shrink-0">
+              <button
+                onClick={() => {
+                  setCurrentView('classList');
+                  setSelectedClassId(null);
+                }}
+                className="p-1.5 hover:bg-[#EEF5FB] rounded-full text-dark transition-colors cursor-pointer"
+              >
+                <FiArrowLeft className="w-5 h-5" />
+              </button>
+              <h1 className="text-sm font-extrabold text-dark mx-auto pr-8">Students</h1>
+            </header>
+
+            {/* Subheader breadcrumb */}
+            <button
+              onClick={() => {
+                setCurrentView('classList');
+                setSelectedClassId(null);
+              }}
+              className="flex items-center gap-1.5 text-brand-blue text-xs font-black cursor-pointer hover:underline"
+            >
+              <FiArrowLeft className="w-3.5 h-3.5" />
+              <span>All Classes</span>
+            </button>
+
+            {/* Banner card */}
+            <div className="relative rounded-[32px] bg-gradient-to-br from-[#1597E5] to-[#00A1FF] p-6 text-white card-shadow overflow-hidden">
+              <div className="absolute top-[-30px] right-[-30px] w-36 h-36 rounded-full bg-white/10" />
+              
+              <div className="flex items-center justify-between mb-1 relative z-10">
+                <span className="text-[10px] text-white/70 font-semibold tracking-wider uppercase">CLASS</span>
+              </div>
+              <div className="flex items-center justify-between mb-1 relative z-10">
+                <h2 className="text-xl font-black uppercase">
+                  {activeClassObj?.name || 'Class'}
+                </h2>
+                <button
+                  onClick={() => navigate('/settings/create-student')}
+                  className="bg-white hover:bg-slate-50 text-[#1597E5] px-3.5 py-1.5 rounded-full text-[10px] font-black shadow-sm cursor-pointer transition-all active:scale-95 flex items-center gap-1"
+                >
+                  <span>+ Add Student</span>
+                </button>
+              </div>
+              <p className="text-xs text-white/85 font-medium relative z-10">
+                {classStudentsList.length} students enrolled
+              </p>
+            </div>
+
+            {/* Search Bar */}
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search by name, admission no"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-3.5 bg-white border border-[#e2e8f0] rounded-[20px] card-shadow-inset focus:outline-none focus:border-brand-blue/60 text-xs font-semibold text-dark placeholder:text-[#A0AEC0]"
+              />
+              <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0AEC0]" />
+            </div>
+
+            {/* Status Pills */}
+            <div className="flex gap-2 select-none pb-1">
+              {['All', 'Active', 'Inactive'].map((status) => (
+                <button
+                  key={status}
+                  onClick={() => setStatusFilter(status)}
+                  className={`px-5 py-2 rounded-full text-[10px] font-black border transition-all cursor-pointer whitespace-nowrap ${
+                    statusFilter === status
+                      ? 'bg-brand-blue border-brand-blue text-white shadow-md shadow-brand-blue/20'
+                      : 'bg-white border-[#e2e8f0] text-[#A0AEC0] hover:bg-slate-50'
+                  }`}
+                >
+                  {status}
+                </button>
+              ))}
+            </div>
+
+            {/* Grouped list of students by section */}
+            <div className="space-y-6">
+              {classStudentsList.length === 0 ? (
+                <div className="bg-white rounded-[32px] border border-[#e2e8f0]/40 p-12 card-shadow text-center flex flex-col items-center justify-center space-y-4">
+                  <FiInbox className="w-8 h-8 text-secondaryText" />
+                  <h4 className="text-sm font-extrabold text-dark">No students found</h4>
+                </div>
+              ) : (
+                studentsBySection.map((sectionGroup) => (
+                  <div key={sectionGroup.sectionName} className="space-y-3">
+                    <div className="flex items-center gap-2 px-1 text-[10px] font-black text-secondaryText uppercase tracking-wider">
+                      <FiFileText className="w-3.5 h-3.5" />
+                      <span>
+                        Section {sectionGroup.sectionName} · {sectionGroup.items.length}
+                      </span>
+                    </div>
+
+                    <div className="space-y-3">
+                      {sectionGroup.items.map((s) => {
+                        const firstLetter = (s.fullName || 'ST').trim().charAt(0);
+                        const isInactive = s.isActive === false || s.status === 'INACTIVE';
+                        const displayStatus = isInactive ? 'Inactive' : 'Active';
+
+                        return (
+                          <div
+                            key={s.id}
+                            onClick={() => {
+                              setSelectedStudentId(s.id);
+                              setPrevView('classStudents');
+                              setCurrentView('studentDetails');
+                            }}
+                            className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/20 transition-all cursor-pointer relative group active:scale-[0.99]"
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 rounded-full bg-[#EEF5FB] text-brand-blue border border-brand-blue/5 flex items-center justify-center font-bold text-xs select-none">
+                                {firstLetter}
+                              </div>
+                              <div>
+                                <h3 className="text-xs font-extrabold text-dark leading-tight uppercase group-hover:text-brand-blue transition-colors">
+                                  {s.fullName}
+                                </h3>
+                                <p className="text-[9px] text-[#A0AEC0] font-bold mt-1">
+                                  #{s.studentId || 'N/A'}
+                                </p>
+                              </div>
+                            </div>
+
+                            <span className={`px-2.5 py-1 rounded-lg text-[8px] font-extrabold tracking-wider shrink-0 ${
+                              isInactive ? 'bg-red-50 text-[#E53E3E]' : 'bg-[#E8F8F0] text-[#23C16B]'
+                            }`}>
+                              {displayStatus.toUpperCase()}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </motion.div>
+        );
+      }
+
+      // ─── VIEW 3: ADVANCED SEARCH SCREEN ─────────────────────────────────────
+      if (currentView === 'advancedSearch') {
+        // Collect all sections in the selected search class (if any) or all branch sections
+        const searchSections = targetSections.filter(sec => {
+          if (searchClassId && searchClassId !== 'All') {
+            return sec.classId === searchClassId;
+          }
+          return true;
+        });
+
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            className="p-4 md:p-8 space-y-6 pb-28 md:pb-24 max-w-[640px] mx-auto select-none"
+          >
+            {/* Header */}
+            <header className="flex items-center justify-between py-2 border-b border-[#e2e8f0]/40 shrink-0">
+              <button
+                onClick={() => setCurrentView('classList')}
+                className="p-1.5 hover:bg-[#EEF5FB] rounded-full text-dark transition-colors cursor-pointer"
+              >
+                <FiArrowLeft className="w-5 h-5" />
+              </button>
+              <h1 className="text-sm font-extrabold text-dark mx-auto pr-8">Search Students</h1>
+            </header>
+
+            {/* Inputs Box */}
+            <div className="bg-white rounded-[28px] border border-[#e2e8f0]/40 p-5 card-shadow space-y-4">
+              {/* Search text */}
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Name, admission number, or parent"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 bg-[#EEF5FB]/40 border border-[#e2e8f0] rounded-[16px] focus:outline-none focus:border-brand-blue/60 text-xs font-semibold text-dark placeholder:text-[#A0AEC0]/65"
+                />
+                <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0AEC0]" />
+              </div>
+
+              {/* Class Dropdown */}
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-black text-secondaryText uppercase tracking-wider block">Class</label>
+                <select
+                  value={searchClassId}
+                  onChange={(e) => {
+                    setSearchClassId(e.target.value);
+                    setSearchSectionId('All'); // Reset section selection when class changes
+                  }}
+                  className="w-full px-3 py-2.5 bg-white border border-[#e2e8f0] rounded-[16px] text-xs font-bold text-dark focus:outline-none"
+                >
+                  <option value="All">All Classes</option>
+                  {dbClasses.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Section Dropdown */}
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-black text-secondaryText uppercase tracking-wider block">Section</label>
+                <select
+                  value={searchSectionId}
+                  onChange={(e) => setSearchSectionId(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-white border border-[#e2e8f0] rounded-[16px] text-xs font-bold text-dark focus:outline-none"
+                >
+                  <option value="All">All Sections</option>
+                  {searchSections.map(sec => (
+                    <option key={sec.id} value={sec.id}>{sec.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Status Dropdown */}
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-black text-secondaryText uppercase tracking-wider block">Status</label>
+                <select
+                  value={searchStatus}
+                  onChange={(e) => setSearchStatus(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-white border border-[#e2e8f0] rounded-[16px] text-xs font-bold text-dark focus:outline-none"
+                >
+                  <option value="All">All Statuses</option>
+                  <option value="ACTIVE">ACTIVE</option>
+                  <option value="INACTIVE">INACTIVE</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Results */}
+            <div className="space-y-3">
+              <div className="px-1 text-[9px] font-black text-secondaryText uppercase tracking-wider">
+                Results ({searchResults.length})
+              </div>
+
+              {searchResults.length === 0 ? (
+                <div className="bg-white rounded-[32px] border border-[#e2e8f0]/40 p-12 card-shadow text-center flex flex-col items-center justify-center space-y-3">
+                  <FiInbox className="w-8 h-8 text-secondaryText/60" />
+                  <h4 className="text-xs font-black text-dark">No results</h4>
+                  <p className="text-[10px] text-secondaryText">Try another search or filter.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {searchResults.map((s) => {
+                    const firstLetter = (s.fullName || 'ST').trim().charAt(0);
+                    const isInactive = s.isActive === false || s.status === 'INACTIVE';
+                    const displayStatus = isInactive ? 'Inactive' : 'Active';
+
+                    return (
+                      <div
+                        key={s.id}
+                        onClick={() => {
+                          setSelectedStudentId(s.id);
+                          setPrevView('advancedSearch');
+                          setCurrentView('studentDetails');
+                        }}
+                        className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/20 transition-all cursor-pointer relative group active:scale-[0.99]"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-full bg-[#EEF5FB] text-brand-blue border border-brand-blue/5 flex items-center justify-center font-bold text-xs select-none">
+                            {firstLetter}
+                          </div>
+                          <div>
+                            <h3 className="text-xs font-extrabold text-dark leading-tight uppercase group-hover:text-brand-blue transition-colors">
+                              {s.fullName}
+                            </h3>
+                            <p className="text-[9px] text-[#A0AEC0] font-bold mt-1">
+                              {s.academicClass?.name || 'Class'} – Section {s.section?.name || 'A'} · #{s.studentId || 'N/A'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <span className={`px-2.5 py-1 rounded-lg text-[8px] font-extrabold tracking-wider shrink-0 ${
+                          isInactive ? 'bg-red-50 text-[#E53E3E]' : 'bg-[#E8F8F0] text-[#23C16B]'
+                        }`}>
+                          {displayStatus.toUpperCase()}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        );
+      }
+
+      // ─── VIEW 4: MAIN CLASSES LIST (DEFAULT) ────────────────────────────────
       return (
         <motion.div
           initial={{ opacity: 0, y: 15 }}
@@ -521,25 +1087,23 @@ const StudentRecords = () => {
             >
               <FiArrowLeft className="w-5 h-5" />
             </button>
-            <h1 className="text-sm font-bold text-dark pr-8 mx-auto">Students</h1>
+            <h1 className="text-sm font-extrabold text-dark mx-auto pr-8">Students</h1>
           </header>
 
-          {/* Top curved blue header card */}
+          {/* Banner Card */}
           <div className="relative rounded-[32px] bg-gradient-to-br from-[#1597E5] to-[#00A1FF] p-6 text-white card-shadow overflow-hidden">
             <div className="absolute top-[-30px] right-[-30px] w-36 h-36 rounded-full bg-white/10" />
             <div className="absolute bottom-[-40px] left-[10%] w-48 h-48 rounded-full bg-white/5" />
 
-            {/* Subtitle */}
             <div className="mb-2 relative z-10">
               <span className="text-[10px] text-white/70 font-semibold tracking-wider uppercase">MANAGEMENT</span>
             </div>
 
-            {/* Title & Button */}
             <div className="flex items-center justify-between mb-1 relative z-10">
-              <h2 className="text-xl font-bold">Students</h2>
+              <h2 className="text-xl font-black">Students</h2>
               <button
                 onClick={() => navigate('/settings/create-student')}
-                className="bg-white hover:bg-slate-50 text-[#1597E5] px-3.5 py-1.5 rounded-full text-[10px] font-extrabold shadow-sm cursor-pointer transition-all active:scale-95 flex items-center gap-1"
+                className="bg-white hover:bg-slate-50 text-[#1597E5] px-3.5 py-1.5 rounded-full text-[10px] font-black shadow-sm cursor-pointer transition-all active:scale-95 flex items-center gap-1"
               >
                 <span>+ Add Student</span>
               </button>
@@ -550,75 +1114,129 @@ const StudentRecords = () => {
             </p>
           </div>
 
-          {/* Search Input Box */}
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search students, admission no, parent mobile"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-3.5 bg-white border border-[#e2e8f0] rounded-[20px] card-shadow-inset focus:outline-none focus:border-brand-blue/60 text-xs font-semibold text-dark placeholder:text-[#A0AEC0]"
-            />
-            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0AEC0]" />
+          {/* Metrics grids */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-white rounded-[24px] border border-[#e2e8f0]/40 p-5 text-center card-shadow">
+              <span className="text-xl font-black text-brand-blue block">
+                {classSummaryList.length}
+              </span>
+              <span className="text-[10px] text-secondaryText font-bold uppercase tracking-wider block mt-1">
+                Classes
+              </span>
+            </div>
+            <div className="bg-white rounded-[24px] border border-[#e2e8f0]/40 p-5 text-center card-shadow">
+              <span className="text-xl font-black text-brand-blue block">
+                {(rawStudents || []).length}
+              </span>
+              <span className="text-[10px] text-secondaryText font-bold uppercase tracking-wider block mt-1">
+                Total Students
+              </span>
+            </div>
           </div>
 
-          {/* Spaced Filters Area */}
-          <div className="flex gap-2 select-none pb-1">
-            {['All', 'Active', 'Inactive'].map((status) => (
-              <button
-                key={status}
-                onClick={() => setStatusFilter(status)}
-                className={`px-5 py-2 rounded-full text-[10px] font-extrabold border transition-all cursor-pointer whitespace-nowrap ${
-                  statusFilter === status
-                    ? 'bg-brand-blue border-brand-blue text-white shadow-md shadow-brand-blue/20'
-                    : 'bg-white border-[#e2e8f0] text-[#A0AEC0] hover:bg-slate-50'
-                }`}
+          {/* Select Class Header */}
+          <div className="px-1 text-[10px] font-black text-secondaryText tracking-widest uppercase">
+            Select a Class
+          </div>
+
+          {/* Classes Listing */}
+          <div className="space-y-3">
+            {studentsLoading && classSummaryList.length === 0 ? (
+              <div className="text-center py-12 text-xs font-semibold text-secondaryText">Loading...</div>
+            ) : classSummaryList.map((cls, idx) => (
+              <div
+                key={cls.id}
+                onClick={() => {
+                  setSelectedClassId(cls.id);
+                  setCurrentView('classStudents');
+                }}
+                className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/20 transition-all cursor-pointer relative group active:scale-[0.99]"
               >
-                {status}
-              </button>
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-[#EEF5FB] text-brand-blue border border-brand-blue/5 flex items-center justify-center font-bold text-xs select-none">
+                    {idx + 1}
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-extrabold text-dark leading-tight uppercase group-hover:text-brand-blue transition-colors">
+                      {cls.name}
+                    </h3>
+                    <p className="text-[9px] text-[#A0AEC0] font-bold mt-1">
+                      Sections: {cls.sections}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black text-brand-blue">
+                    {cls.studentsCount} <span className="text-[8px] text-secondaryText font-bold uppercase">students</span>
+                  </span>
+                  <FiChevronRight className="w-4 h-4 text-secondaryText" />
+                </div>
+              </div>
             ))}
           </div>
 
-          {/* List Subheading */}
-          <div className="px-1 text-[9px] font-extrabold text-[#A0AEC0] tracking-widest uppercase">
-            {filteredCoStudents.length} Students
-          </div>
+          {/* More Actions Section */}
+          <div className="space-y-3 select-none">
+            <div className="px-1 text-[10px] font-black text-secondaryText tracking-widest uppercase">
+              More Actions
+            </div>
 
-          {/* Student list grid */}
-          <div className="space-y-3">
-            {filteredCoStudents.map((student, idx) => {
-              const firstLetter = student.name.trim().charAt(0);
-              const isInactive = student.status === 'Inactive';
-
-              return (
-                <div
-                  key={idx}
-                  className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/20 transition-all cursor-pointer relative group active:scale-[0.99]"
-                >
-                  <div className="flex items-center gap-4">
-                    {/* Circle Avatar with First Letter */}
-                    <div className="w-11 h-11 rounded-full bg-[#EEF5FB] text-brand-blue border border-brand-blue/5 flex items-center justify-center font-bold text-xs select-none">
-                      {firstLetter}
-                    </div>
-                    <div>
-                      <h3 className="text-xs font-extrabold text-dark leading-tight group-hover:text-brand-blue transition-colors">
-                        {student.name}
-                      </h3>
-                      <p className="text-[9px] text-[#A0AEC0] font-bold mt-1">
-                        {student.class} · {student.admissionNo}
-                      </p>
-                    </div>
+            <div className="space-y-3">
+              <div
+                onClick={() => setCurrentView('advancedSearch')}
+                className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/20 transition-all cursor-pointer group"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-[#EEF5FB] text-brand-blue flex items-center justify-center shrink-0">
+                    <FiSearch className="w-4 h-4" />
                   </div>
-
-                  {/* Status Badge */}
-                  <span className={`px-2.5 py-1 rounded-lg text-[8px] font-extrabold tracking-wider shrink-0 ${
-                    isInactive ? 'bg-red-50 text-[#E53E3E]' : 'bg-[#E8F8F0] text-[#23C16B]'
-                  }`}>
-                    {student.status.toUpperCase()}
-                  </span>
+                  <div>
+                    <h3 className="text-xs font-extrabold text-dark leading-tight">Advanced Search</h3>
+                    <p className="text-[9px] text-[#A0AEC0] font-bold mt-1">
+                      Find by class, section, status
+                    </p>
+                  </div>
                 </div>
-              );
-            })}
+                <FiChevronRight className="w-4 h-4 text-secondaryText" />
+              </div>
+
+              <div
+                onClick={() => navigate('/settings/create-student')}
+                className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/20 transition-all cursor-pointer group"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-[#EEF5FB] text-brand-blue flex items-center justify-center shrink-0">
+                    <FiUserPlus className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-extrabold text-dark leading-tight">Bulk Import</h3>
+                    <p className="text-[9px] text-[#A0AEC0] font-bold mt-1">
+                      Upload students via CSV
+                    </p>
+                  </div>
+                </div>
+                <FiChevronRight className="w-4 h-4 text-secondaryText" />
+              </div>
+
+              <div
+                onClick={() => navigate('/settings/promotions')}
+                className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/20 transition-all cursor-pointer group"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-[#EEF5FB] text-brand-blue flex items-center justify-center shrink-0">
+                    <BiTransfer className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-extrabold text-dark leading-tight">Transfer Student</h3>
+                    <p className="text-[9px] text-[#A0AEC0] font-bold mt-1">
+                      Move between sections
+                    </p>
+                  </div>
+                </div>
+                <FiChevronRight className="w-4 h-4 text-secondaryText" />
+              </div>
+            </div>
           </div>
         </motion.div>
       );
@@ -630,7 +1248,7 @@ const StudentRecords = () => {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -15 }}
         transition={{ duration: 0.3 }}
-        className="p-4 md:p-8 space-y-6 pb-28 md:pb-24 max-w-[640px] mx-auto animate-fade-in relative"
+        className="p-4 md:p-8 space-y-6 pb-28 md:pb-24 max-w-[640px] mx-auto animate-fade-in relative animate-fade-in"
       >
         {/* Top Header Bar */}
         <header className="flex items-center justify-between py-2 border-b border-[#e2e8f0]/40 shrink-0">
@@ -667,7 +1285,7 @@ const StudentRecords = () => {
         </div>
 
         {/* Action pills row matching Screenshot 2 */}
-        <div className="flex gap-3 select-none pb-1">
+        <div className="flex gap-3 select-none pb-1 flex-wrap">
           <button
             onClick={() => navigate('/settings/create-student')}
             className="flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-[#EEF5FB] text-brand-blue border border-blue-100 rounded-full text-[11px] font-extrabold shadow-sm cursor-pointer transition-all active:scale-95"
@@ -676,11 +1294,39 @@ const StudentRecords = () => {
             <span>Add Student</span>
           </button>
           <button
-            onClick={() => navigate('/settings/transfer-student')}
+            onClick={() => navigate('/settings/promotions')}
             className="flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-[#EEF5FB] text-brand-blue border border-blue-100 rounded-full text-[11px] font-extrabold shadow-sm cursor-pointer transition-all active:scale-95"
           >
             <BiTransfer className="w-3.5 h-3.5" />
             <span>Transfer</span>
+          </button>
+
+          {/* Bulk assignment button */}
+          <button
+            disabled={selectedStudentIds.length === 0}
+            onClick={() => setShowAssignModal(true)}
+            className={`flex items-center gap-1.5 px-4 py-2 border rounded-full text-[11px] font-extrabold shadow-sm transition-all active:scale-95 ${
+              selectedStudentIds.length > 0
+                ? 'bg-[#1597E5] text-white border-[#1597E5] cursor-pointer'
+                : 'bg-white text-secondaryText border-slate-200 opacity-60 cursor-not-allowed'
+            }`}
+          >
+            <FiGrid className="w-3.5 h-3.5 animate-scale-up" />
+            <span>Bulk ({selectedStudentIds.length})</span>
+          </button>
+
+          {/* Status update button */}
+          <button
+            disabled={selectedStudentIds.length === 0}
+            onClick={() => setShowStatusModal(true)}
+            className={`flex items-center gap-1.5 px-4 py-2 border rounded-full text-[11px] font-extrabold shadow-sm transition-all active:scale-95 ${
+              selectedStudentIds.length > 0
+                ? 'bg-white text-[#D97706] border-[#F59E0B]/30 hover:bg-[#FFFBEB] cursor-pointer'
+                : 'bg-white text-secondaryText border-slate-200 opacity-60 cursor-not-allowed'
+            }`}
+          >
+            <FiUserCheck className="w-3.5 h-3.5 text-[#D97706]" />
+            <span>Status</span>
           </button>
         </div>
 
@@ -698,19 +1344,23 @@ const StudentRecords = () => {
 
         {/* List Subheading */}
         <div className="px-1 text-[9px] font-extrabold text-secondaryText tracking-widest uppercase">
-          {coordinatorStudents.length} Students
+          {coordinatorStudents.length} Students · {selectedStudentIds.length} Selected
         </div>
 
         {/* Student list grid */}
         <div className="space-y-3">
-          {filteredCoStudents.length > 0 ? (
+          {studentsLoading && filteredCoStudents.length === 0 ? (
+            <div className="text-center py-12 text-xs font-semibold text-secondaryText">Loading wing students...</div>
+          ) : filteredCoStudents.length > 0 ? (
             filteredCoStudents.map((student, idx) => {
               const namesList = student.name.split(' ');
               const initials = namesList.length > 1 ? `${namesList[0][0]}${namesList[1][0]}` : student.name.charAt(0);
-              
+              const isSelected = selectedStudentIds.includes(student.id);
+
               return (
                 <div
-                  key={idx}
+                  key={student.id}
+                  onClick={() => toggleStudentSelection(student.id)}
                   className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/20 transition-all cursor-pointer relative group active:scale-[0.99]"
                 >
                   <div className="flex items-center gap-4">
@@ -723,13 +1373,25 @@ const StudentRecords = () => {
                         {student.name}
                       </h3>
                       <p className="text-[9px] text-[#A0AEC0] font-bold mt-1">
-                        {student.class} · {student.admissionNo}
+                        {student.class}-{student.section} · #{student.admissionNo}
                       </p>
                     </div>
                   </div>
 
-                  {/* Hollow Circle Outline on the right */}
-                  <span className="w-5 h-5 rounded-full border border-blue-200 shrink-0" />
+                  {/* Selection Check Circle */}
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleStudentSelection(student.id);
+                    }}
+                    className={`w-5 h-5 rounded-full flex items-center justify-center border shrink-0 transition-all ${
+                      isSelected
+                        ? 'bg-[#1597E5] border-[#1597E5] text-white'
+                        : 'border-blue-200 bg-white'
+                    }`}
+                  >
+                    {isSelected && <FiCheck className="w-3 h-3" />}
+                  </div>
                 </div>
               );
             })
@@ -740,6 +1402,175 @@ const StudentRecords = () => {
             </div>
           )}
         </div>
+
+        {/* Modal: Bulk Section Assignment */}
+        {showAssignModal && (
+          <div className="fixed inset-0 bg-[#0F172A]/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="bg-[#F8FAFC] rounded-[32px] p-6 max-w-sm w-full card-shadow space-y-4 relative"
+            >
+              <h3 className="text-sm font-black text-[#0F172A]">Bulk Section Assignment</h3>
+              
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-secondaryText uppercase tracking-wider">Target Section</label>
+                
+                <div className="relative">
+                  <button
+                    onClick={() => setShowSectionDropdown(true)}
+                    className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-[20px] focus:outline-none flex items-center justify-between text-xs font-semibold text-[#0F172A] cursor-pointer shadow-sm"
+                  >
+                    <span>
+                      {selectedSectionOption ? selectedSectionOption.name : 'Select'}
+                    </span>
+                    <FiChevronDown className="w-4 h-4 text-secondaryText" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex gap-3 justify-end pt-2">
+                <button
+                  onClick={() => {
+                    setShowAssignModal(false);
+                    setSelectedSectionOption(null);
+                  }}
+                  className="px-5 py-2.5 bg-white hover:bg-slate-50 border border-slate-200 text-xs font-bold text-secondaryText rounded-full cursor-pointer transition-all active:scale-95"
+                >
+                  Cancel
+                </button>
+                <button
+                  disabled={actionLoading || !selectedSectionOption}
+                  onClick={handleAssignSection}
+                  className="px-5 py-2.5 bg-[#1597E5] hover:bg-[#1597E5]/90 text-white text-xs font-bold rounded-full cursor-pointer transition-all active:scale-95 disabled:opacity-50"
+                >
+                  {actionLoading ? 'Assigning...' : 'Assign'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Modal: Update Student Status */}
+        {showStatusModal && (
+          <div className="fixed inset-0 bg-[#0F172A]/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="bg-[#F8FAFC] rounded-[32px] p-6 max-w-sm w-full card-shadow space-y-4 relative"
+            >
+              <h3 className="text-sm font-black text-[#0F172A]">Update Student Status</h3>
+              
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-secondaryText uppercase tracking-wider">Status</label>
+                
+                <div className="relative">
+                  <button
+                    onClick={() => setShowStatusDropdown(true)}
+                    className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-[20px] focus:outline-none flex items-center justify-between text-xs font-semibold text-[#0F172A] cursor-pointer shadow-sm"
+                  >
+                    <span>{selectedStatusOption}</span>
+                    <FiChevronDown className="w-4 h-4 text-secondaryText" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex gap-3 justify-end pt-2">
+                <button
+                  onClick={() => setShowStatusModal(false)}
+                  className="px-5 py-2.5 bg-white hover:bg-slate-50 border border-slate-200 text-xs font-bold text-secondaryText rounded-full cursor-pointer transition-all active:scale-95"
+                >
+                  Cancel
+                </button>
+                <button
+                  disabled={actionLoading}
+                  onClick={handleUpdateStatus}
+                  className="px-5 py-2.5 bg-[#1597E5] hover:bg-[#1597E5]/90 text-white text-xs font-bold rounded-full cursor-pointer transition-all active:scale-95 disabled:opacity-50"
+                >
+                  {actionLoading ? 'Saving...' : 'Save'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Bottom Sheet Dropdown Overlay for Target Sections */}
+        <AnimatePresence>
+          {showSectionDropdown && (
+            <div className="fixed inset-0 bg-[#0F172A]/20 z-[100] flex flex-col justify-end animate-fade-in">
+              <div className="absolute inset-0" onClick={() => setShowSectionDropdown(false)} />
+              <motion.div
+                initial={{ y: '100%' }}
+                animate={{ y: 0 }}
+                exit={{ y: '100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 250 }}
+                className="bg-white rounded-t-[32px] p-6 max-h-[70vh] overflow-y-auto space-y-4 relative z-10"
+              >
+                <div className="flex items-center justify-between border-b border-[#e2e8f0]/45 pb-3">
+                  <h4 className="text-sm font-extrabold text-dark">Target Section</h4>
+                  <button onClick={() => setShowSectionDropdown(false)} className="p-1 hover:bg-[#EEF5FB] rounded-full text-secondaryText transition-all">
+                    <FiX className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {targetSections.map((sec) => (
+                    <div
+                      key={sec.id}
+                      onClick={() => {
+                        setSelectedSectionOption(sec);
+                        setShowSectionDropdown(false);
+                      }}
+                      className="py-3 px-4 hover:bg-[#EEF5FB] text-xs font-semibold text-dark rounded-xl cursor-pointer transition-all flex items-center justify-between"
+                    >
+                      <span className={selectedSectionOption?.id === sec.id ? 'text-[#1597E5]' : 'text-dark'}>{sec.name}</span>
+                      {selectedSectionOption?.id === sec.id && <FiCheck className="w-4 h-4 text-[#1597E5]" />}
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Bottom Sheet Dropdown Overlay for Status */}
+        <AnimatePresence>
+          {showStatusDropdown && (
+            <div className="fixed inset-0 bg-[#0F172A]/20 z-[100] flex flex-col justify-end animate-fade-in">
+              <div className="absolute inset-0" onClick={() => setShowStatusDropdown(false)} />
+              <motion.div
+                initial={{ y: '100%' }}
+                animate={{ y: 0 }}
+                exit={{ y: '100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 250 }}
+                className="bg-white rounded-t-[32px] p-6 max-h-[70vh] overflow-y-auto space-y-4 relative z-10"
+              >
+                <div className="flex items-center justify-between border-b border-[#e2e8f0]/45 pb-3">
+                  <h4 className="text-sm font-extrabold text-dark">Status</h4>
+                  <button onClick={() => setShowStatusDropdown(false)} className="p-1 hover:bg-[#EEF5FB] rounded-full text-secondaryText transition-all">
+                    <FiX className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {['ACTIVE', 'TRANSFERRED', 'GRADUATED', 'DROPPED'].map((statusOption) => (
+                    <div
+                      key={statusOption}
+                      onClick={() => {
+                        setSelectedStatusOption(statusOption);
+                        setShowStatusDropdown(false);
+                      }}
+                      className="py-3 px-4 hover:bg-[#EEF5FB] text-xs font-semibold text-dark rounded-xl cursor-pointer transition-all flex items-center justify-between"
+                    >
+                      <span className={selectedStatusOption === statusOption ? 'text-[#1597E5]' : 'text-dark'}>
+                        {statusOption}
+                      </span>
+                      {selectedStatusOption === statusOption && <FiCheck className="w-4 h-4 text-[#1597E5]" />}
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </motion.div>
     );
   }
@@ -1076,7 +1907,11 @@ const StudentRecords = () => {
         <div className="space-y-3">
           {/* Advanced Search */}
           <div
-            onClick={() => navigate('/settings/search-students')}
+            onClick={() => {
+              // Focus search input
+              const searchInput = document.querySelector('input[placeholder="Search students"]');
+              if (searchInput) searchInput.focus();
+            }}
             className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/20 transition-all cursor-pointer group active:scale-[0.99]"
           >
             <div className="flex items-center gap-4">
@@ -1118,7 +1953,7 @@ const StudentRecords = () => {
 
           {/* Transfer Student */}
           <div
-            onClick={() => navigate('/settings/transfer-student')}
+            onClick={() => navigate('/settings/promotions')}
             className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/20 transition-all cursor-pointer group active:scale-[0.99]"
           >
             <div className="flex items-center gap-4">

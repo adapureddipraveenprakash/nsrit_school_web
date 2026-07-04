@@ -4,12 +4,12 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
   FiGrid, FiUsers, FiSettings, FiCalendar, FiBell, FiArrowRight,
-  FiClipboard, FiActivity, FiEdit, FiFileText, FiPlus, FiCheckSquare
+  FiClipboard, FiActivity, FiEdit, FiFileText, FiPlus, FiCheckSquare, FiClock
 } from 'react-icons/fi';
 import { HiOutlinePresentationChartLine } from 'react-icons/hi2';
 import Drawer from '../../components/Drawer';
 import { useDataFetch } from '../../hooks/useDataFetch';
-import { getStudents, getFeeRecordsByBranch } from '../../services/dataService';
+import { getStudents, getFeeReports } from '../../services/dataService';
 
 const CoordinatorDashboard = () => {
   const { user } = useApp();
@@ -25,29 +25,24 @@ const CoordinatorDashboard = () => {
     { defaultValue: [], skip: !branchId }
   );
 
-  // Fetch branch fee structures to calculate collections
-  const { data: rawFees } = useDataFetch(
-    () => getFeeRecordsByBranch({ branchId }),
+  // Fetch branch fee reports to calculate collections
+  const { data: rawFeeReports } = useDataFetch(
+    () => getFeeReports({ branchId }),
     [branchId],
-    { defaultValue: { studentFees: [] }, pollInterval: 15000, skip: !branchId }
+    { defaultValue: { students: [] }, pollInterval: 15000, skip: !branchId }
   );
 
-  const studentFees = rawFees?.studentFees || [];
+  const feeStudents = rawFeeReports?.students || [];
 
   const wingStudents = useMemo(() => {
     if (!user?.wing) return dbStudents;
     return dbStudents.filter(s => s.academicClass?.wing?.code?.toUpperCase() === user.wing.toUpperCase());
   }, [dbStudents, user?.wing]);
 
-  const wingId = useMemo(() => {
-    const match = dbStudents.find(s => s.academicClass?.wing?.code?.toUpperCase() === user?.wing?.toUpperCase());
-    return match?.academicClass?.wing?.id || null;
-  }, [dbStudents, user?.wing]);
-
-  const wingFees = useMemo(() => {
-    if (!wingId) return studentFees;
-    return studentFees.filter(f => f.student?.wingId === wingId);
-  }, [studentFees, wingId]);
+  const wingStudentsWithFees = useMemo(() => {
+    if (!user?.wing) return feeStudents;
+    return feeStudents.filter(s => s.academicClass?.wing?.code?.toUpperCase() === user.wing.toUpperCase());
+  }, [feeStudents, user?.wing]);
 
   // Compute stats
   const stats = useMemo(() => {
@@ -55,16 +50,22 @@ const CoordinatorDashboard = () => {
     let collected = 0;
     let pending = 0;
 
-    wingFees.forEach(f => {
-      total += f.totalFee || 0;
-      collected += f.paidAmount || 0;
-      pending += f.remainingAmount || 0;
+    wingStudentsWithFees.forEach(s => {
+      const activePlans = (s.reportFeePlans || []).filter(fp => fp.isActive !== false);
+      activePlans.forEach(plan => {
+        total += plan.totalAmount || 0;
+        const paid = (plan.reportFeePayments || [])
+          .filter(p => String(p.status || 'RECORDED').toUpperCase() !== 'REVERSED')
+          .reduce((sum, p) => sum + Number(p.amount || 0), 0);
+        collected += paid;
+      });
     });
 
+    pending = Math.max(total - collected, 0);
     const percent = total > 0 ? Math.round((collected / total) * 100) : 0;
 
     return { total, collected, pending, percent };
-  }, [wingFees]);
+  }, [wingStudentsWithFees]);
 
   const handleListItemClick = (item) => {
     if (item === 'Wing Attendance') {
@@ -77,6 +78,8 @@ const CoordinatorDashboard = () => {
       navigate('/settings/class-teachers');
     } else if (item === 'Holiday Management') {
       navigate('/settings/holidays');
+    } else if (item === 'Timetable') {
+      navigate('/settings/timetable');
     } else if (item === 'Add Student') {
       navigate('/settings/create-student');
     } else if (item === 'Student Management') {
@@ -225,6 +228,12 @@ const CoordinatorDashboard = () => {
                 desc: 'School holidays & public holidays',
                 icon: <FiCalendar className="w-5 h-5 text-rose-500" />,
                 bg: 'bg-rose-50 border-rose-100/30'
+              },
+              {
+                title: 'Timetable',
+                desc: 'Manage class and section timetables',
+                icon: <FiClock className="w-5 h-5 text-emerald-500" />,
+                bg: 'bg-emerald-50 border-emerald-100/30'
               }
             ].map((item, idx) => (
               <div

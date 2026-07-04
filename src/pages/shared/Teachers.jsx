@@ -268,15 +268,17 @@ const Teachers = () => {
                     <h3 className="text-sm font-bold text-dark group-hover:text-[#1597E5] transition-colors leading-tight">
                       {t.name}
                     </h3>
-                    <div className="flex items-center gap-2 mt-1 select-none">
-                      <span className="bg-[#EBF8FF] text-[#1597E5] px-2 py-0.5 rounded-full text-[9px] font-extrabold border border-blue-100/50">
-                        {t.id}
-                      </span>
-                      <span className="text-[10px] font-semibold text-secondaryText">
-                        {t.staffType}
-                      </span>
-                      {/* Green active dot */}
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#23C16B]" />
+                    <div className="flex items-center gap-1.5 mt-1 select-none">
+                      <div className="bg-[#EBF8FF] border border-blue-100/50 rounded-full px-2.5 py-0.5 flex items-center gap-1.5">
+                        <span className="text-[#1597E5] text-[9px] font-extrabold">
+                          {t.staffId || t.id}
+                        </span>
+                        <span className="text-[9px] font-bold text-secondaryText">
+                          {t.staffType}
+                        </span>
+                        {/* Green active dot */}
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#23C16B]" />
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -105,58 +105,116 @@ export const AppProvider = ({ children }) => {
 
   const fetchGlobalReportsAndFees = useCallback(async () => {
     try {
-      const data = await dataService.getGlobalReports();
-      if (data) {
-        let rawUsers = data.users || [];
-        let rawStudents = data.students || [];
-        let feePlans = data.studentFeePlans || [];
+      if (activeRole === 'MAIN_ADMIN') {
+        const data = await dataService.getGlobalReports();
+        if (data) {
+          let rawUsers = data.users || [];
+          let rawStudents = data.students || [];
+          let feePlans = data.studentFeePlans || [];
 
-        // Scope to branch for branch admin and accountants
-        const targetBranchId = (activeRole !== 'MAIN_ADMIN') ? user?.branchId : null;
-        if (targetBranchId) {
-          rawUsers = rawUsers.filter(u => u.branchId === targetBranchId);
-          rawStudents = rawStudents.filter(s => s.branchId === targetBranchId);
-          feePlans = feePlans.filter(fp => fp.student?.branchId === targetBranchId);
+          setUsers(rawUsers);
+
+          // Map branches with counts computed dynamically from global reports data
+          const rawBranches = data.branches || [];
+          const computedBranches = rawBranches.map(b => {
+            const branchStudents = (data.students || []).filter(s => s.branchId === b.id && s.isActive !== false);
+            const branchTeachers = (data.users || []).filter(u => u.branchId === b.id && ['TEACHER', 'CLASS_TEACHER'].includes(u.role) && u.isActive !== false);
+            const branchCoordinators = (data.users || []).filter(u => u.branchId === b.id && u.role === 'COORDINATOR' && u.isActive !== false);
+            
+            return {
+              ...b,
+              studentsCount: branchStudents.length,
+              facultyCount: branchTeachers.length,
+              coordinatorsCount: branchCoordinators.length
+            };
+          });
+
+          setBranches(computedBranches.map(normalizeBranch));
+
+          const paidFees = feePlans.reduce(
+            (sum, plan) =>
+              sum +
+              (plan.reportPayments || [])
+                .filter(payment => String(payment.status || 'RECORDED').toUpperCase() !== 'REVERSED')
+                .reduce((paymentSum, payment) => paymentSum + Number(payment.amount || 0), 0),
+            0,
+          );
+          const totalFees = feePlans.reduce((sum, plan) => sum + Number(plan.totalAmount || 0), 0);
+          const concessionFees = feePlans.reduce((sum, plan) => sum + Number(plan.concessionAmount || 0), 0);
+
+          setFees({
+            collected: paidFees,
+            pending: Math.max(totalFees - paidFees, 0),
+            concession: concessionFees
+          });
         }
+      } else {
+        const branchId = user?.branchId || 'sontyam-branch-id';
+        const reportData = await dataService.getFeeReports({ branchId });
+        if (reportData && reportData.students) {
+          let students = reportData.students || [];
 
-        setUsers(rawUsers);
+          // Wing restrictions for coordinators
+          if (activeRole === 'COORDINATOR' && user?.wing) {
+            students = students.filter(
+              s => s.academicClass?.wing?.code?.toUpperCase() === user.wing.toUpperCase()
+            );
+          }
 
-        // Map branches with counts computed dynamically from global reports data
-        const rawBranches = data.branches || [];
-        const computedBranches = rawBranches.map(b => {
-          const branchStudents = (data.students || []).filter(s => s.branchId === b.id && s.isActive !== false);
-          const branchTeachers = (data.users || []).filter(u => u.branchId === b.id && ['TEACHER', 'CLASS_TEACHER'].includes(u.role) && u.isActive !== false);
-          const branchCoordinators = (data.users || []).filter(u => u.branchId === b.id && u.role === 'COORDINATOR' && u.isActive !== false);
-          
-          return {
-            ...b,
-            studentsCount: branchStudents.length,
-            facultyCount: branchTeachers.length,
-            coordinatorsCount: branchCoordinators.length
-          };
-        });
+          const feePlans = [];
+          students.forEach(s => {
+            if (s.reportFeePlans) {
+              s.reportFeePlans.forEach(fp => {
+                if (fp.isActive !== false) {
+                  feePlans.push(fp);
+                }
+              });
+            }
+          });
 
-        setBranches(computedBranches.map(normalizeBranch));
+          const paidFees = feePlans.reduce(
+            (sum, plan) =>
+              sum +
+              (plan.reportFeePayments || [])
+                .filter(payment => String(payment.status || 'RECORDED').toUpperCase() !== 'REVERSED')
+                .reduce((paymentSum, payment) => paymentSum + Number(payment.amount || 0), 0),
+            0,
+          );
+          const totalFees = feePlans.reduce((sum, plan) => sum + Number(plan.totalAmount || 0), 0);
+          const concessionFees = feePlans.reduce((sum, plan) => sum + Number(plan.concessionAmount || 0), 0);
 
-        const paidFees = feePlans.reduce(
-          (sum, plan) =>
-            sum +
-            (plan.reportPayments || [])
-              .filter(payment => String(payment.status || 'RECORDED').toUpperCase() !== 'REVERSED')
-              .reduce((paymentSum, payment) => paymentSum + Number(payment.amount || 0), 0),
-          0,
-        );
-        const totalFees = feePlans.reduce((sum, plan) => sum + Number(plan.totalAmount || 0), 0);
-        const concessionFees = feePlans.reduce((sum, plan) => sum + Number(plan.concessionAmount || 0), 0);
+          setFees({
+            collected: paidFees,
+            pending: Math.max(totalFees - paidFees, 0),
+            concession: concessionFees
+          });
 
-        setFees({
-          collected: paidFees,
-          pending: Math.max(totalFees - paidFees, 0),
-          concession: concessionFees
-        });
+          const mappedUsers = students.map(s => {
+            const activePlans = (s.reportFeePlans || []).filter(fp => fp.isActive !== false);
+            let total = 0;
+            let paid = 0;
+            activePlans.forEach(plan => {
+              total += plan.totalAmount || 0;
+              paid += (plan.reportFeePayments || [])
+                .filter(p => String(p.status || 'RECORDED').toUpperCase() !== 'REVERSED')
+                .reduce((sum, p) => sum + Number(p.amount || 0), 0);
+            });
+            const due = Math.max(total - paid, 0);
+            const feeStatus = due > 0 ? 'DUE' : 'PAID';
+
+            return {
+              id: s.id,
+              fullName: s.fullName,
+              role: 'STUDENT',
+              feeStatus,
+              branchId: s.branchId
+            };
+          });
+          setUsers(mappedUsers);
+        }
       }
     } catch (err) {
-      console.error('[AppContext] Failed to fetch global reports:', err.message);
+      console.error('[AppContext] Failed to fetch global/branch reports:', err.message);
     }
   }, [user, activeRole]);
 
@@ -176,7 +234,7 @@ export const AppProvider = ({ children }) => {
       setAuditLogs([]);
       return;
     }
-    const roles = ['MAIN_ADMIN', 'BRANCH_ADMIN', 'ACCOUNTANT'];
+    const roles = ['MAIN_ADMIN', 'BRANCH_ADMIN', 'ACCOUNTANT', 'COORDINATOR'];
     if (roles.includes(activeRole)) {
       fetchGlobalReportsAndFees();
       if (activeRole === 'MAIN_ADMIN') {

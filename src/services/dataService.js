@@ -74,6 +74,9 @@ const Q = {
   GET_RECEIPT_SEQUENCE: 'GetReceiptSequence',
   GET_BRANCH_STAFF_USER_IDS: 'GetBranchStaffUserIds',
   GET_BRANCH_STUDENTS_WITH_PARENTS: 'GetBranchStudentsWithParents',
+  GET_COORDINATOR_STUDENTS_BY_WING: 'GetCoordinatorStudentsByWing',
+  GET_HOLIDAYS_BY_BRANCH: 'GetHolidaysByBranch',
+  GET_ACTIVE_ACADEMIC_YEAR: 'GetActiveAcademicYear',
 };
 
 const M = {
@@ -111,6 +114,7 @@ const M = {
   REVERSE_PAYMENT: 'ReversePayment',
   CREATE_ATTENDANCE: 'CreateAttendance',
   UPDATE_ATTENDANCE: 'UpdateAttendance',
+  CORRECT_ATTENDANCE: 'CorrectAttendance',
   CREATE_NOTICE: 'CreateNotice',
   UPDATE_NOTICE: 'UpdateNotice',
   DELETE_NOTICE: 'DeleteNotice',
@@ -129,9 +133,14 @@ const M = {
   LINK_PARENT_USER: 'LinkParentUser',
   CREATE_SUBJECT: 'CreateSubject',
   ASSIGN_TEACHER_SUBJECT: 'AssignTeacherSubject',
-  CLEAR_TEACHER_SUBJECTS: 'ClearTeacherSubjects',
-  CLEAR_TEACHER_WING_RESTRICTIONS: 'ClearTeacherWingRestrictions',
   SWITCH_ROLE: 'SwitchRole',
+  CREATE_HOLIDAY: 'CreateHoliday',
+  UPDATE_HOLIDAY: 'UpdateHoliday',
+  DELETE_HOLIDAY: 'DeleteHoliday',
+  CREATE_PUBLIC_HOLIDAY: 'CreatePublicHoliday',
+  UPSERT_TIMETABLE_PERIOD_FULL: 'UpsertTimetablePeriodFull',
+  PUBLISH_TIMETABLE_SECTION: 'PublishTimetableSection',
+  UNPUBLISH_TIMETABLE_SECTION: 'UnpublishTimetableSection',
 };
 
 // ─── Branches ─────────────────────────────────────────────────────────────────
@@ -194,9 +203,14 @@ export const getStudentsBySection = async (sectionId, { limit = 500, offset = 0 
   return res.students || [];
 };
 
+export const getCoordinatorStudentsByWing = async ({ branchId, wing, limit = 500, offset = 0 }) => {
+  const res = await dataConnectClient.query(Q.GET_COORDINATOR_STUDENTS_BY_WING, { branchId, wing, limit, offset });
+  return res.students || [];
+};
+
 export const getStudentDetails = async (studentId) => {
   const res = await dataConnectClient.query(Q.GET_STUDENT_DETAILS, { studentId });
-  return res.student || null;
+  return res || null;
 };
 
 export const searchStudents = async ({ branchId, searchText, limit = 25 }) => {
@@ -220,8 +234,11 @@ export const transferStudent = async (payload) => {
   return dataConnectClient.mutate(M.TRANSFER_STUDENT, payload);
 };
 
-export const bulkAssignStudents = async (payload) => {
-  return dataConnectClient.mutate(M.BULK_ASSIGN_STUDENTS, payload);
+export const bulkAssignStudents = async ({ studentIds, classId, sectionId }) => {
+  const promises = studentIds.map(studentId => {
+    return dataConnectClient.mutate('UpdateStudentSection', { studentId, classId, sectionId });
+  });
+  return Promise.all(promises);
 };
 
 export const promoteStudents = async (payload) => {
@@ -249,20 +266,22 @@ export const getStudentFeeHistory = async (studentId) => {
 };
 
 // ─── Classes & Sections ───────────────────────────────────────────────────────
-export const getAcademicClasses = async () => {
-  const res = await dataConnectClient.query(Q.GET_ACADEMIC_CLASSES, {});
+export const getAcademicClasses = async ({ limit = 100, offset = 0 } = {}) => {
+  const res = await dataConnectClient.query(Q.GET_ACADEMIC_CLASSES, { limit, offset });
   return res.academicClasses || [];
 };
 
-export const getClassesByWing = async ({ branchId, wing }) => {
-  const res = await dataConnectClient.query(Q.GET_CLASSES_BY_WING, { branchId, wing });
+export const getClassesByWing = async ({ wingId }) => {
+  const res = await dataConnectClient.query(Q.GET_CLASSES_BY_WING, { wingId });
   return res.academicClasses || [];
 };
 
-export const getSections = async ({ branchId } = {}) => {
+export const getSections = async ({ branchId, academicYear = 2026, limit = 100, offset = 0 } = {}) => {
   const res = await dataConnectClient.query(Q.GET_SECTIONS, {
     branchId: branchId || null,
-    academicYear: 2026
+    academicYear,
+    limit,
+    offset
   });
   return res.sections || [];
 };
@@ -302,11 +321,7 @@ export const deactivateClass = async (payload) => {
 
 // ─── Teachers ─────────────────────────────────────────────────────────────────
 export const getTeachers = async ({ branchId, limit = 100, offset = 0 } = {}) => {
-  if (branchId) {
-    const res = await dataConnectClient.query(Q.GET_TEACHERS_BY_BRANCH, { branchId, limit, offset });
-    return res.teachers || [];
-  }
-  const res = await dataConnectClient.query(Q.GET_TEACHERS, { limit, offset });
+  const res = await dataConnectClient.query(Q.GET_TEACHERS, { branchId, limit, offset });
   return res.teachers || [];
 };
 
@@ -320,9 +335,12 @@ export const getTeacherDashboard = async ({ branchId, teacherId }) => {
   return res;
 };
 
-export const getClassTeacherAssignments = async ({ branchId }) => {
-  const res = await dataConnectClient.query(Q.GET_CLASS_TEACHER_ASSIGNMENTS, { branchId });
-  return res.teacherSectionAssignments || [];
+export const getClassTeacherAssignments = async ({ branchId, academicYear = 2026 }) => {
+  const res = await dataConnectClient.query(Q.GET_CLASS_TEACHER_ASSIGNMENTS, { branchId, academicYear });
+  return {
+    sections: res.sections || [],
+    teacherSectionAssignments: res.teacherSectionAssignments || []
+  };
 };
 
 export const createTeacher = async (payload) => {
@@ -341,8 +359,12 @@ export const removeClassTeacherAssignment = async (payload) => {
   return dataConnectClient.mutate(M.REMOVE_CLASS_TEACHER_ASSIGNMENT, payload);
 };
 
-export const getSectionsForTeacherAssignment = async ({ branchId }) => {
-  const res = await dataConnectClient.query(Q.GET_SECTIONS_FOR_TEACHER_ASSIGNMENT, { branchId });
+export const getSectionsForTeacherAssignment = async ({ branchId, wing, academicYear = 2026 }) => {
+  const res = await dataConnectClient.query(Q.GET_SECTIONS_FOR_TEACHER_ASSIGNMENT, {
+    branchId,
+    wing: wing || null,
+    academicYear
+  });
   return res.sections || [];
 };
 
@@ -415,8 +437,8 @@ export const getPaymentHistory = async ({ branchId, studentId, fromDate, toDate,
   return res.feePayments || [];
 };
 
-export const getFeeRecordsByBranch = async ({ branchId, limit = 200, offset = 0 }) => {
-  const res = await dataConnectClient.query(Q.GET_FEE_RECORDS_BY_BRANCH, { branchId, limit, offset });
+export const getFeeRecordsByBranch = async ({ branchId }) => {
+  const res = await dataConnectClient.query(Q.GET_FEE_RECORDS_BY_BRANCH, { branchId });
   return res;
 };
 
@@ -425,8 +447,19 @@ export const getAllFeeRecords = async ({ limit = 200, offset = 0 } = {}) => {
   return res;
 };
 
-export const getFeeReports = async ({ branchId, limit = 1000, offset = 0 } = {}) => {
+export const getFeeReports = async ({ branchId, academicYear, limit = 1000, offset = 0 } = {}) => {
   const res = await dataConnectClient.query(Q.GET_FEE_REPORTS, { branchId, limit, offset });
+  if (res && res.students && academicYear) {
+    res.students = res.students.map(student => {
+      const filteredPlans = (student.reportFeePlans || []).filter(
+        fp => fp.academicYear === Number(academicYear)
+      );
+      return {
+        ...student,
+        reportFeePlans: filteredPlans
+      };
+    });
+  }
   return res;
 };
 
@@ -452,10 +485,7 @@ export const reversePayment = async (payload) => {
 
 // ─── Attendance ───────────────────────────────────────────────────────────────
 export const getAttendanceBySection = async ({ sectionId, date }) => {
-  const res = await dataConnectClient.query(Q.GET_ATTENDANCE_BY_SECTION, {
-    sectionId,
-    attendanceDate: date
-  });
+  const res = await dataConnectClient.query(Q.GET_ATTENDANCE_BY_SECTION, { sectionId, attendanceDate: date });
   return res.attendances || [];
 };
 
@@ -470,6 +500,10 @@ export const createAttendance = async (payload) => {
 
 export const updateAttendance = async (payload) => {
   return dataConnectClient.mutate(M.UPDATE_ATTENDANCE, payload);
+};
+
+export const correctAttendance = async (payload) => {
+  return dataConnectClient.mutate(M.CORRECT_ATTENDANCE, payload);
 };
 
 // ─── Notice Board ─────────────────────────────────────────────────────────────
@@ -491,7 +525,8 @@ export const deleteNotice = async (noticeId) => {
 };
 
 // ─── Timetable ────────────────────────────────────────────────────────────────
-export const getTimetableForSection = async (sectionId) => {
+export const getTimetableForSection = async (param) => {
+  const sectionId = typeof param === 'string' ? param : param?.sectionId;
   const res = await dataConnectClient.query(Q.GET_TIMETABLE_FOR_SECTION, { sectionId });
   return res.timetablePeriods || [];
 };
@@ -505,8 +540,20 @@ export const upsertTimetablePeriod = async (payload) => {
   return dataConnectClient.mutate(M.UPSERT_TIMETABLE_PERIOD, payload);
 };
 
-export const clearTimetableForSection = async (sectionId) => {
-  return dataConnectClient.mutate(M.CLEAR_TIMETABLE_FOR_SECTION, { sectionId });
+export const clearTimetableForSection = async (param, branchId) => {
+  let sectionIdArg;
+  let branchIdArg;
+  if (typeof param === 'string') {
+    sectionIdArg = param;
+    branchIdArg = branchId;
+  } else {
+    sectionIdArg = param?.sectionId;
+    branchIdArg = param?.branchId;
+  }
+  return dataConnectClient.mutate(M.CLEAR_TIMETABLE_FOR_SECTION, {
+    sectionId: sectionIdArg,
+    branchId: branchIdArg
+  });
 };
 
 // ─── Suggestions ──────────────────────────────────────────────────────────────
@@ -667,4 +714,43 @@ export const broadcastNotification = async ({ branchId, title, message, target =
   const failed = results.length - sent;
   console.log(`[Notifications] Broadcast sent ${sent}/${userIds.size}, failed ${failed}`);
   return { sent, failed };
+
+// ─── Holidays ─────────────────────────────────────────────────────────────────
+export const getHolidaysByBranch = async ({ branchId, fromDate, toDate }) => {
+  const res = await dataConnectClient.query(Q.GET_HOLIDAYS_BY_BRANCH, { branchId, fromDate, toDate });
+  return res.holidays || [];
+};
+
+export const createHoliday = async (payload) => {
+  return dataConnectClient.mutate(M.CREATE_HOLIDAY, payload);
+};
+
+export const updateHoliday = async (payload) => {
+  return dataConnectClient.mutate(M.UPDATE_HOLIDAY, payload);
+};
+
+export const deleteHoliday = async (payload) => {
+  return dataConnectClient.mutate(M.DELETE_HOLIDAY, payload);
+};
+
+export const createPublicHoliday = async (payload) => {
+  return dataConnectClient.mutate(M.CREATE_PUBLIC_HOLIDAY, payload);
+};
+
+export const getActiveAcademicYear = async ({ branchId }) => {
+  const res = await dataConnectClient.query(Q.GET_ACTIVE_ACADEMIC_YEAR, { branchId });
+  return res.academicYears?.[0] || null;
+};
+
+// ─── Timetable ────────────────────────────────────────────────────────────────
+export const upsertTimetablePeriodFull = async (payload) => {
+  return dataConnectClient.mutate(M.UPSERT_TIMETABLE_PERIOD_FULL, payload);
+};
+
+export const publishTimetableSection = async (payload) => {
+  return dataConnectClient.mutate(M.PUBLISH_TIMETABLE_SECTION, payload);
+};
+
+export const unpublishTimetableSection = async (payload) => {
+  return dataConnectClient.mutate(M.UNPUBLISH_TIMETABLE_SECTION, payload);
 };
