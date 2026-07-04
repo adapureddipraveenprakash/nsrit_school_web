@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../../context/AppContext';
 import { motion } from 'framer-motion';
@@ -9,21 +9,73 @@ import {
   FiChevronLeft, FiChevronRight
 } from 'react-icons/fi';
 import { HiOutlineUserPlus } from 'react-icons/hi2';
+import {
+  getAcademicClasses,
+  getSectionsByClass,
+  getParentByPhone,
+  createParentWithoutUser,
+  createStudent
+} from '../../../services/dataService';
+import dataConnectClient from '../../../services/dataConnectClient';
 
 const CreateStudent = () => {
   const navigate = useNavigate();
-  const { addLog } = useApp();
+  const { addLog, user } = useApp();
 
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   // Form Fields State
-  const [studentClass, setStudentClass] = useState('');
-  const [section, setSection] = useState('');
+  const [selectedClassId, setSelectedClassId] = useState('');
+  const [selectedSectionId, setSelectedSectionId] = useState('');
   const [fullName, setFullName] = useState('');
   const [gender, setGender] = useState('');
   const [dob, setDob] = useState('');
   const [admissionDate, setAdmissionDate] = useState('21-06-2026');
+
+  // Lists loaded from database
+  const [classesList, setClassesList] = useState([]);
+  const [sectionsList, setSectionsList] = useState([]);
+
+  const branchId = user?.branchId;
+  const branchCode = user?.branchCode || 'SO';
+
+  useEffect(() => {
+    if (branchId) {
+      getAcademicClasses().then(list => {
+        const branchClasses = list.filter(c => c.branchId === branchId);
+        const seen = new Set();
+        const unique = [];
+        branchClasses.forEach(c => {
+          const nameKey = c.name.toUpperCase();
+          if (!seen.has(nameKey)) {
+            seen.add(nameKey);
+            unique.push(c);
+          }
+        });
+        const order = ['NURSERY', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7'];
+        const sorted = unique.sort((a, b) => order.indexOf(a.name.toUpperCase()) - order.indexOf(b.name.toUpperCase()));
+        setClassesList(sorted);
+      }).catch(err => {
+        console.error('Error fetching academic classes:', err);
+      });
+    }
+  }, [branchId]);
+
+  const handleClassChange = async (classId) => {
+    setSelectedClassId(classId);
+    setSelectedSectionId('');
+    setSectionsList([]);
+    if (classId) {
+      try {
+        const list = await getSectionsByClass(classId);
+        setSectionsList(list);
+      } catch (err) {
+        console.error('Error fetching sections for class:', err);
+      }
+    }
+  };
 
   // Custom Calendar State
   const [activePicker, setActivePicker] = useState(null); // 'dob' | 'admission' | null
@@ -148,25 +200,124 @@ const CreateStudent = () => {
   const [stateField, setStateField] = useState('');
   const [pincode, setPincode] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!studentClass || !section || !fullName || !gender || !dob || !admissionDate) {
+    if (!selectedClassId || !selectedSectionId || !fullName || !gender || !dob || !admissionDate) {
       setError('Please fill in all required (*) fields.');
       return;
     }
 
+    setLoading(true);
     setError('');
-    setSuccess(true);
-    addLog(`Registered student ${fullName} in Class ${studentClass}-${section}`);
 
-    setTimeout(() => {
-      setSuccess(false);
-      navigate('/settings/global-students');
-    }, 1500);
+    try {
+      const selectedClassObj = classesList.find(c => c.id === selectedClassId);
+      if (!selectedClassObj) {
+        throw new Error('Selected class not found');
+      }
+
+      // Step 1: Manage Parent details
+      const parentPhone = fatherMobile || motherMobile || guardianMobile;
+      if (!parentPhone) {
+        throw new Error('Please specify at least one parent/guardian contact number.');
+      }
+
+      // Check if parent exists
+      let parentId = null;
+      const existingParent = await getParentByPhone({ branchId, phoneNumber: parentPhone });
+      if (existingParent) {
+        parentId = existingParent.id;
+      } else {
+        // Create new parent
+        const firebaseUID = `pending:parent:${branchId || 'global'}:${parentPhone}`;
+        const parentRes = await createParentWithoutUser({
+          firebaseUID,
+          branchId,
+          fullName: fatherName || motherName || guardianName || `${fullName}'s Parent`,
+          fatherName: fatherName || null,
+          motherName: motherName || null,
+          countryCode: '+91',
+          phoneNumber: parentPhone,
+          address: address || null
+        });
+        parentId = parentRes?.parent_insert?.id;
+      }
+
+      if (!parentId) {
+        throw new Error('Failed to resolve or create a parent record.');
+      }
+
+      // Step 2: Determine Year & Serial Number
+      const yearPart = admissionDate.split('-')[2];
+      const admissionYear = yearPart ? parseInt(yearPart, 10) : 2026;
+
+      // Fetch last student serial
+      const lastSerialRes = await dataConnectClient.query('GetLastStudentSerial', {
+        admissionYear,
+        branchCode
+      });
+      const lastSerial = lastSerialRes?.students?.[0]?.serialNumber || 0;
+      const serialNumber = lastSerial + 1;
+
+      // Generate student ID
+      const yearShort = admissionYear.toString().slice(-2);
+      const studentId = `${yearShort}${branchCode}${String(serialNumber).padStart(4, '0')}`;
+
+      // Convert date string from DD-MM-YYYY to YYYY-MM-DD
+      const convertDate = (dateStr) => {
+        if (!dateStr) return null;
+        const parts = dateStr.split('-');
+        if (parts.length === 3) {
+          return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+        return dateStr;
+      };
+
+      // Step 3: Create student record
+      await createStudent({
+        studentId,
+        admissionYear,
+        branchCode,
+        serialNumber,
+        fullName,
+        gender,
+        dateOfBirth: convertDate(dob),
+        photoUrl: photoUrl || null,
+        aadhaarNumber: aadhaarNumber || null,
+        bloodGroup: bloodGroup || null,
+        branchId,
+        wingId: selectedClassObj.wingId,
+        wingCode: selectedClassObj.wing?.code || null,
+        academicClassId: selectedClassId,
+        sectionId: selectedSectionId,
+        parentId,
+        countryCode: '+91',
+        phoneNumber: parentPhone,
+        address: address || null,
+        city: city || null,
+        state: stateField || null,
+        pincode: pincode || null,
+        emergencyContact: emergencyContact || null,
+        transportRequired: transportRequired === 'Yes',
+        admissionDate: convertDate(admissionDate)
+      });
+
+      setSuccess(true);
+      addLog(`Registered student ${fullName} with ID ${studentId} in Class ${selectedClassObj.name}`);
+
+      setTimeout(() => {
+        setSuccess(false);
+        navigate('/settings/global-students');
+      }, 1500);
+
+    } catch (err) {
+      console.error('Error creating student:', err);
+      setError(err.message || 'An error occurred while adding student.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const classOptions = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
-  const sectionOptions = ['A', 'B', 'C', 'D'];
   const genderOptions = ['Male', 'Female', 'Other'];
 
   return (
@@ -225,13 +376,13 @@ const CreateStudent = () => {
               <label className="text-[10px] font-bold text-secondaryText tracking-wide">Class *</label>
               <select
                 required
-                value={studentClass}
-                onChange={(e) => setStudentClass(e.target.value)}
+                value={selectedClassId}
+                onChange={(e) => handleClassChange(e.target.value)}
                 className="w-full px-4 py-3 bg-white border border-[#e2e8f0] rounded-xl focus:outline-none focus:border-brand-blue text-xs font-semibold text-dark"
               >
-                <option value="">Select</option>
-                {classOptions.map((c) => (
-                  <option key={c} value={c}>{c}</option>
+                <option value="">Select Class</option>
+                {classesList.map((cls) => (
+                  <option key={cls.id} value={cls.id}>{cls.name}</option>
                 ))}
               </select>
             </div>
@@ -240,13 +391,14 @@ const CreateStudent = () => {
               <label className="text-[10px] font-bold text-secondaryText tracking-wide">Section *</label>
               <select
                 required
-                value={section}
-                onChange={(e) => setSection(e.target.value)}
+                value={selectedSectionId}
+                onChange={(e) => setSelectedSectionId(e.target.value)}
                 className="w-full px-4 py-3 bg-white border border-[#e2e8f0] rounded-xl focus:outline-none focus:border-brand-blue text-xs font-semibold text-dark"
+                disabled={!selectedClassId}
               >
-                <option value="">Select</option>
-                {sectionOptions.map((s) => (
-                  <option key={s} value={s}>{s}</option>
+                <option value="">Select Section</option>
+                {sectionsList.map((sec) => (
+                  <option key={sec.id} value={sec.id}>{sec.name}</option>
                 ))}
               </select>
             </div>
@@ -560,10 +712,19 @@ const CreateStudent = () => {
         {/* Submit button (At the very end of the page) */}
         <button
           type="submit"
-          className="w-full py-4 bg-[#1597E5] hover:bg-[#00A1FF] text-white rounded-full font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg shadow-brand-blue/35 transition-all cursor-pointer active:scale-95"
+          disabled={loading}
+          className={`w-full py-4 text-white rounded-full font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer active:scale-95 ${
+            loading 
+              ? 'bg-[#1597E5]/70 shadow-none cursor-not-allowed'
+              : 'bg-[#1597E5] hover:bg-[#00A1FF] shadow-brand-blue/35'
+          }`}
         >
-          <HiOutlineUserPlus className="w-4 h-4" />
-          Add Student
+          {loading ? (
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <HiOutlineUserPlus className="w-4 h-4" />
+          )}
+          {loading ? 'Adding Student...' : 'Add Student'}
         </button>
       </form>
 

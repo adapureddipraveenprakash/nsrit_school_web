@@ -140,7 +140,7 @@ const Drawer = ({ isOpen, onClose, position = 'left' }) => {
                       </button>
 
                       <button
-                        onClick={() => handleNav('/settings/post-notice')}
+                        onClick={() => handleNav('/settings/send-notification')}
                         className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-[#EEF5FB] transition-all text-left text-dark group cursor-pointer"
                       >
                         <div className="flex items-center gap-3">
@@ -594,7 +594,7 @@ const Drawer = ({ isOpen, onClose, position = 'left' }) => {
 
                           {(activeRole === 'MAIN_ADMIN' || activeRole === 'BRANCH_ADMIN' || activeRole === 'PRINCIPAL' || activeRole === 'COORDINATOR') && (
                             <button
-                              onClick={() => handleNav('/settings/post-notice')}
+                              onClick={() => handleNav('/settings/send-notification')}
                               className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-[#EEF5FB] transition-all text-left text-dark group"
                             >
                               <div className="flex items-center gap-3">

@@ -21,6 +21,8 @@ import Settings from './pages/mainAdmin/Settings';
 import BranchContext from './pages/mainAdmin/subpages/BranchContext';
 import CreateBranch from './pages/mainAdmin/subpages/CreateBranch';
 import StudentRecords from './pages/shared/StudentRecords';
+import SearchStudents from './pages/shared/SearchStudents';
+import TransferStudent from './pages/shared/TransferStudent';
 import FeeSetup from './pages/mainAdmin/subpages/FeeSetup';
 import AuditLogs from './pages/mainAdmin/subpages/AuditLogs';
 import RevenueOverview from './pages/mainAdmin/subpages/RevenueOverview';
@@ -53,6 +55,8 @@ import ClassManagement from './pages/coordinator/subpages/ClassManagement';
 import GraduateStudents from './pages/principal/subpages/GraduateStudents';
 import HolidayManagement from './pages/principal/subpages/HolidayManagement';
 import AcademicYear from './pages/principal/subpages/AcademicYear';
+import YearManagement from './pages/principal/subpages/YearManagement';
+import ExamsMarks from './pages/principal/subpages/ExamsMarks';
 import FeeCollection from './pages/accountant/subpages/FeeCollection';
 import FeeReports from './pages/accountant/subpages/FeeReports';
 import FeeHistory from './pages/accountant/subpages/FeeHistory';
@@ -143,6 +147,7 @@ const AnimatedRoutes = () => {
           <Route path="/settings/branch-context" element={<BranchContext />} />
           <Route path="/settings/create-branch" element={<CreateBranch />} />
           <Route path="/settings/global-students" element={<StudentRecords />} />
+          <Route path="/settings/search-students" element={<SearchStudents />} />
           <Route path="/settings/class-fee-templates" element={<FeeSetup />} />
           <Route path="/settings/audit-logs" element={<AuditLogs />} />
           <Route path="/settings/revenue-overview" element={<RevenueOverview />} />
@@ -169,6 +174,7 @@ const AnimatedRoutes = () => {
           <Route path="/settings/edit-branch" element={<EditBranch />} />
           <Route path="/settings/timetable" element={<Timetable />} />
           <Route path="/settings/promotions" element={<PromotionManagement />} />
+          <Route path="/settings/transfer-student" element={<TransferStudent />} />
           <Route path="/settings/suggestions" element={<Suggestions />} />
           <Route path="/settings/homework" element={<Homework />} />
           <Route path="/settings/coordinators" element={<Coordinators />} />
@@ -178,6 +184,8 @@ const AnimatedRoutes = () => {
           <Route path="/settings/graduate-students" element={<GraduateStudents />} />
           <Route path="/settings/holidays" element={<HolidayManagement />} />
           <Route path="/settings/academic-year" element={<AcademicYear />} />
+          <Route path="/settings/year-management" element={<YearManagement />} />
+          <Route path="/settings/exams-marks" element={<ExamsMarks />} />
           <Route path="/settings/collection" element={<FeeCollection />} />
           <Route path="/settings/fee-reports" element={<FeeReports />} />
           <Route path="/settings/fee-history" element={<FeeHistory />} />

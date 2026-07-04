@@ -52,6 +52,155 @@ const MyProfile = () => {
     { label: 'Region', value: 'asia-south1 (Live)', icon: <FiGlobe className="w-4 h-4 text-[#A0AEC0]" /> }
   ];
 
+  if (activeRole === 'PRINCIPAL') {
+    const prinName = user?.name || 'B. Geetha';
+    const prinPhone = user?.phone || user?.phoneNumber || '+919100046512';
+    const prinEmpId = user?.employeeId || '26SOTS016';
+    const prinBranch = user?.branchName || 'Sontyam';
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -15 }}
+        transition={{ duration: 0.3 }}
+        className="p-4 md:p-8 space-y-6 pb-28 max-w-[640px] mx-auto relative select-none animate-fade-in"
+      >
+        {/* Top curved blue header card with Concentric Circles */}
+        <div className="relative rounded-[32px] bg-[#1597E5] p-6 text-white text-center flex flex-col items-center card-shadow pb-8 overflow-hidden select-none">
+          {/* Back navigation button inside card */}
+          <button
+            onClick={() => navigate(-1)}
+            className="absolute top-4 left-4 p-1.5 hover:bg-white/15 rounded-full text-white transition-colors cursor-pointer z-10"
+          >
+            <FiArrowLeft className="w-5 h-5" />
+          </button>
+
+          {/* Avatar circle */}
+          <div className="w-20 h-20 rounded-full bg-white/20 border border-white/35 flex items-center justify-center text-2xl font-extrabold font-sans mb-3.5 mt-4 shadow-inner">
+            {getInitials(prinName)}
+          </div>
+
+          {/* Name */}
+          <h2 className="text-lg font-black tracking-tight">{prinName}</h2>
+          
+          {/* Principal Pill */}
+          <div className="inline-flex items-center gap-1.5 px-4 py-1 bg-white/25 border border-white/30 rounded-full mt-2.5 text-[9px] font-black uppercase tracking-wider">
+            Principal
+          </div>
+
+          <div className="text-[11px] text-white/80 font-bold mt-2">
+            {prinPhone}
+          </div>
+        </div>
+
+        {/* Account Details Card */}
+        <div className="bg-white rounded-[28px] border border-[#e2e8f0]/45 p-5 card-shadow space-y-4">
+          <h3 className="text-[10px] font-extrabold text-[#1597E5] uppercase tracking-widest px-1">
+            Account Details
+          </h3>
+
+          <div className="divide-y divide-[#e2e8f0]/60 text-xs">
+            {/* Branch */}
+            <div className="flex items-center justify-between py-3.5">
+              <span className="text-secondaryText font-bold flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-[#EEF5FB] flex items-center justify-center text-[#1597E5] shrink-0">
+                  <BiBuildingHouse className="w-4 h-4 text-brand-blue" />
+                </div>
+                Branch
+              </span>
+              <span className="text-dark font-extrabold">{prinBranch}</span>
+            </div>
+
+            {/* Phone */}
+            <div className="flex items-center justify-between py-3.5">
+              <span className="text-secondaryText font-bold flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-[#EEF5FB] flex items-center justify-center text-[#1597E5] shrink-0">
+                  <FiPhone className="w-4 h-4 text-brand-blue" />
+                </div>
+                Phone
+              </span>
+              <span className="text-dark font-extrabold">{prinPhone}</span>
+            </div>
+
+            {/* Employee ID */}
+            <div className="flex items-center justify-between py-3.5">
+              <span className="text-secondaryText font-bold flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-[#EEF5FB] flex items-center justify-center text-[#1597E5] shrink-0">
+                  <span className="text-[9px] font-black text-brand-blue select-none uppercase tracking-wider leading-none">ID</span>
+                </div>
+                Employee ID
+              </span>
+              <span className="text-dark font-extrabold">{prinEmpId}</span>
+            </div>
+
+            {/* Role */}
+            <div className="flex items-center justify-between py-3.5">
+              <span className="text-secondaryText font-bold flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-[#EEF5FB] flex items-center justify-center text-[#1597E5] shrink-0">
+                  <FiShield className="w-4 h-4 text-brand-blue" />
+                </div>
+                Role
+              </span>
+              <span className="text-dark font-extrabold">Principal</span>
+            </div>
+          </div>
+        </div>
+
+        {/* System Details Card */}
+        <div className="bg-white rounded-[28px] border border-[#e2e8f0]/45 p-5 card-shadow space-y-4">
+          <h3 className="text-[10px] font-extrabold text-[#1597E5] uppercase tracking-widest px-1">
+            System
+          </h3>
+
+          <div className="divide-y divide-[#e2e8f0]/60 text-xs">
+            {/* App Version */}
+            <div className="flex items-center justify-between py-3.5">
+              <span className="text-secondaryText font-bold flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-[#EEF5FB] flex items-center justify-center text-[#1597E5] shrink-0">
+                  <FiMonitor className="w-4 h-4 text-brand-blue" />
+                </div>
+                App Version
+              </span>
+              <span className="text-dark font-extrabold">v1.0.0 (Release)</span>
+            </div>
+
+            {/* Database */}
+            <div className="flex items-center justify-between py-3.5">
+              <span className="text-secondaryText font-bold flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-[#EEF5FB] flex items-center justify-center text-[#1597E5] shrink-0">
+                  <FiDatabase className="w-4 h-4 text-brand-blue" />
+                </div>
+                Database
+              </span>
+              <span className="text-dark font-extrabold">Firebase Data Connect</span>
+            </div>
+
+            {/* Region */}
+            <div className="flex items-center justify-between py-3.5">
+              <span className="text-secondaryText font-bold flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-[#EEF5FB] flex items-center justify-center text-[#1597E5] shrink-0">
+                  <FiGlobe className="w-4 h-4 text-brand-blue" />
+                </div>
+                Region
+              </span>
+              <span className="text-dark font-extrabold">asia-south1 (Live)</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Red Sign Out Button */}
+        <button
+          onClick={handleSignOut}
+          className="w-full py-4 bg-[#EF4444] hover:bg-[#DC2626] text-white rounded-[20px] font-extrabold text-xs flex items-center justify-center gap-2.5 shadow-lg shadow-[#EF4444]/25 transition-all cursor-pointer active:scale-95 mt-4"
+        >
+          <FiLogOut className="w-4 h-4" />
+          <span>Sign Out of ERP</span>
+        </button>
+      </motion.div>
+    );
+  }
+
   if (activeRole === 'COORDINATOR') {
     const coordName = user?.name || 'Raghupatruni Roopakala';
     const coordPhone = user?.phoneNumber || user?.phone || '+918297191669';

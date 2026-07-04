@@ -50,6 +50,10 @@ export const AppProvider = ({ children }) => {
   const [branchesLoading, setBranchesLoading] = useState(false);
   const [users, setUsers] = useState([]);
   const [fees, setFees] = useState({ collected: 0, pending: 0, concession: 0 });
+  const [feeRefreshTrigger, setFeeRefreshTrigger] = useState(0);
+  const triggerFeeRefresh = useCallback(() => {
+    setFeeRefreshTrigger(prev => prev + 1);
+  }, []);
   const [auditLogs, setAuditLogs] = useState([]);
 
   // ─── Bootstrap: restore session on page load ─────────────────────────────────
@@ -445,6 +449,8 @@ export const AppProvider = ({ children }) => {
     deleteBranch,
     users,
     fees,
+    feeRefreshTrigger,
+    triggerFeeRefresh,
     auditLogs,
     addUser,
     changeUserRole,

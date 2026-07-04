@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiArrowLeft, FiCalendar, FiSearch } from 'react-icons/fi';
+import { FiArrowLeft, FiCalendar, FiSearch, FiChevronRight, FiGrid, FiUsers, FiClock, FiCheckCircle, FiInbox } from 'react-icons/fi';
 import { useApp } from '../../context/AppContext';
+import { useDataFetch } from '../../hooks/useDataFetch';
+import { getStudents, getAcademicClasses, getSections, getAttendanceBySection } from '../../services/dataService';
 
 const STUDENT_NAMES = [
   'THINAGAM SETYAPRAKASH',
@@ -107,8 +109,491 @@ const AttendanceOverview = () => {
   const [attendanceTab, setAttendanceTab] = useState('Month'); // 'Month' | 'AcademicYear'
   const [search, setSearch] = useState('');
   const [teacherTab, setTeacherTab] = useState('attendance'); // 'attendance' | 'fees'
+  const [selectedClass, setSelectedClass] = useState(null);
+  const [selectedSection, setSelectedSection] = useState(null);
+  const [selectedDate, setSelectedDate] = useState('2026-07-03');
 
-  if (activeRole === 'COORDINATOR') {
+  const branchId = user?.branchId || null;
+
+  // State to hold academic classes
+  const [classesList, setClassesList] = useState([]);
+  useEffect(() => {
+    if (branchId) {
+      getAcademicClasses().then(list => {
+        const branchClasses = Array.isArray(list) ? list.filter(c => c && c.branchId === branchId) : [];
+        setClassesList(branchClasses);
+      }).catch(err => {
+        console.error('Error fetching academic classes:', err);
+      });
+    }
+  }, [branchId]);
+
+  // Fetch sections catalog
+  const { data: dbSections = [] } = useDataFetch(
+    () => getSections({ branchId }),
+    [branchId],
+    { defaultValue: [], skip: !branchId }
+  );
+
+  // Fetch real students to construct list dynamically
+  const { data: dbStudents = [] } = useDataFetch(
+    () => getStudents({ branchId, limit: 500 }),
+    [branchId],
+    { defaultValue: [], skip: !branchId }
+  );
+
+  // Fetch real attendance records for selected section and date
+  const { data: dbAttendanceRecords = [], loading: loadingAttendance } = useDataFetch(
+    () => {
+      if (!selectedSection) return Promise.resolve([]);
+      return getAttendanceBySection({ sectionId: selectedSection.id, date: selectedDate });
+    },
+    [selectedSection, selectedDate],
+    { defaultValue: [], skip: !selectedSection }
+  );
+
+  const classesOrder = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7'];
+
+  // Global present, absent, total counts for fallback return
+  const globalPresentCount = useMemo(() => ATTENDANCE_LIST.filter(s => s.status === 'Present').length, []);
+  const globalAbsentCount = useMemo(() => ATTENDANCE_LIST.filter(s => s.status === 'Absent').length, []);
+  const globalTotalCount = ATTENDANCE_LIST.length;
+
+  // Current class details
+  const currentClassObj = useMemo(() => {
+    if (!selectedClass) return null;
+    return classesList.find(c => c && c.name?.toUpperCase() === selectedClass.toUpperCase());
+  }, [selectedClass, classesList]);
+
+  // Filter sections by selected class
+  const classSections = useMemo(() => {
+    if (!currentClassObj) return [];
+    return dbSections.filter(s => s.academicClassId === currentClassObj.id);
+  }, [currentClassObj, dbSections]);
+
+  // If no sections in DB, fallback to a mock section to match Screenshot 1 Nursery-A
+  const resolvedSections = useMemo(() => {
+    if (classSections.length > 0) {
+      return classSections;
+    }
+    return [{ id: 'mock-sec-a-id', name: 'A', academicClassId: currentClassObj?.id || 'mock-class' }];
+  }, [classSections, currentClassObj]);
+
+  // Determine students in the selected class/section
+  const classAttendanceRecords = useMemo(() => {
+    if (!selectedClass || !selectedSection) return [];
+    
+    // Check if we have real database students in this class/section
+    const sectionStudents = dbStudents.filter(s => 
+      s.academicClass?.name?.toUpperCase() === selectedClass.toUpperCase() &&
+      s.section?.id === selectedSection.id
+    );
+
+    if (sectionStudents.length > 0 && dbAttendanceRecords.length > 0) {
+      return sectionStudents.map(student => {
+        const record = dbAttendanceRecords.find(a => a.studentId === student.id);
+        return {
+          id: student.id,
+          name: student.fullName || student.name || 'Unknown Student',
+          class: `${student.academicClass?.name || ''} - ${student.section?.name || ''}`.trim().replace(/^-|-$/, ''),
+          status: record?.status || 'Absent',
+          date: selectedDate
+        };
+      });
+    }
+
+    // Demo / fallback students
+    if (dbAttendanceRecords.length > 0) {
+      // Mock some attendance records matches
+      return STUDENT_NAMES.slice(0, 10).map((name, idx) => {
+        const rec = dbAttendanceRecords[idx];
+        return {
+          id: idx + 1,
+          name,
+          class: `${selectedClass} - ${selectedSection.name}`,
+          status: rec?.status || (idx % 8 === 0 ? 'Absent' : 'Present'),
+          date: selectedDate
+        };
+      });
+    }
+
+    return [];
+  }, [selectedClass, selectedSection, dbStudents, dbAttendanceRecords, selectedDate]);
+
+  const [attendanceFilter, setAttendanceFilter] = useState('All'); // 'All' | 'Present' | 'Absent'
+
+  const filteredClassAttendance = useMemo(() => {
+    return classAttendanceRecords.filter(s => {
+      const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase());
+      let matchesFilter = true;
+      if (attendanceFilter === 'Present') matchesFilter = s.status === 'Present';
+      else if (attendanceFilter === 'Absent') matchesFilter = s.status === 'Absent';
+      return matchesSearch && matchesFilter;
+    });
+  }, [classAttendanceRecords, search, attendanceFilter]);
+
+  const toDisplayDate = (dStr) => {
+    if (!dStr) return '';
+    const parts = dStr.split('-');
+    if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    return dStr;
+  };
+
+  const handlePrevDate = () => {
+    const d = new Date(selectedDate);
+    d.setDate(d.getDate() - 1);
+    setSelectedDate(d.toISOString().split('T')[0]);
+  };
+
+  const handleNextDate = () => {
+    const d = new Date(selectedDate);
+    d.setDate(d.getDate() + 1);
+    setSelectedDate(d.toISOString().split('T')[0]);
+  };
+
+  if (activeRole?.toUpperCase() === 'PRINCIPAL' || activeRole?.toUpperCase() === 'BRANCH_ADMIN') {
+    if (selectedClass) {
+      if (!selectedSection) {
+        // SCREENSHOT 1: SELECT SECTION VIEW
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.3 }}
+            className="p-4 md:p-8 space-y-6 pb-28 md:pb-24 max-w-[640px] mx-auto animate-fade-in relative select-none font-sans"
+          >
+            {/* Top Header Bar */}
+            <header className="flex items-center justify-between py-2 border-b border-[#e2e8f0]/40 shrink-0 font-sans">
+              <button
+                onClick={() => setSelectedClass(null)}
+                className="p-1.5 hover:bg-[#EEF5FB] rounded-full text-dark transition-colors cursor-pointer"
+              >
+                <FiArrowLeft className="w-5 h-5" />
+              </button>
+              <h1 className="text-sm font-black text-dark pr-8 mx-auto font-sans tracking-wide">Attendance</h1>
+            </header>
+
+            {/* Back to Classes link */}
+            <button
+              onClick={() => setSelectedClass(null)}
+              className="flex items-center gap-1 text-xs font-bold text-[#1597E5] hover:underline cursor-pointer"
+            >
+              <FiArrowLeft className="w-3.5 h-3.5" />
+              <span>Classes</span>
+            </button>
+
+            {/* Curved blue header card */}
+            <div className="relative rounded-[32px] bg-gradient-to-br from-[#1597E5] to-[#00A1FF] p-6 text-white card-shadow overflow-hidden">
+              <div className="absolute top-[-30px] right-[-30px] w-36 h-36 rounded-full bg-white/10 pointer-events-none" />
+              <div className="absolute bottom-[-40px] left-[10%] w-48 h-48 rounded-full bg-white/5 pointer-events-none" />
+
+              <div className="mb-2 relative z-10">
+                <span className="text-[10px] text-white/70 font-semibold tracking-wider uppercase font-black">{selectedClass}</span>
+              </div>
+              <h2 className="text-xl font-bold mb-1 relative z-10 font-sans">Select Section</h2>
+              <p className="text-xs text-white/85 mt-1 relative z-10 font-sans leading-relaxed">
+                Choose a section to view its attendance
+              </p>
+            </div>
+
+            {/* Sections cards list matching Screenshot 1 */}
+            <div className="space-y-3 pt-1">
+              {resolvedSections.map((sec) => {
+                // If it is mock or has no submissions in database, label as Pending
+                const isPending = true; // By default shows Pending matching Screenshot 1
+                return (
+                  <div
+                    key={sec.id}
+                    onClick={() => setSelectedSection(sec)}
+                    className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/20 transition-all cursor-pointer group active:scale-[0.99]"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-11 h-11 rounded-full bg-[#EEF5FB] flex items-center justify-center border border-brand-blue/5">
+                        <FiUsers className="w-5 h-5 text-[#805AD5]" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-black text-dark leading-tight group-hover:text-brand-blue transition-colors font-sans">
+                          Section {sec.name}
+                        </h4>
+                        <div className="flex items-center gap-1 mt-1">
+                          {isPending ? (
+                            <>
+                              <FiClock className="w-3.5 h-3.5 text-accent-red" />
+                              <span className="text-[9px] text-accent-red font-black">Pending</span>
+                            </>
+                          ) : (
+                            <>
+                              <FiCheckCircle className="w-3.5 h-3.5 text-accent-green" />
+                              <span className="text-[9px] text-accent-green font-black">Submitted</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <FiChevronRight className="w-4 h-4 text-[#A0AEC0] group-hover:translate-x-0.5 transition-transform" />
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        );
+      }
+
+      // SCREENSHOT 2: SECTION ATTENDANCE VIEW (with date selector and empty state/roster list)
+      const presentCnt = classAttendanceRecords.filter(s => s.status === 'Present').length;
+      const absentCnt = classAttendanceRecords.filter(s => s.status === 'Absent').length;
+      const totalCnt = classAttendanceRecords.length;
+      const isToday = selectedDate === '2026-07-03' || selectedDate === new Date().toISOString().split('T')[0];
+
+      return (
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -15 }}
+          transition={{ duration: 0.3 }}
+          className="p-4 md:p-8 space-y-6 pb-28 md:pb-24 max-w-[640px] mx-auto animate-fade-in relative select-none font-sans"
+        >
+          {/* Top Header Bar */}
+          <header className="flex items-center justify-between py-2 border-b border-[#e2e8f0]/40 shrink-0 font-sans">
+            <button
+              onClick={() => setSelectedSection(null)}
+              className="p-1.5 hover:bg-[#EEF5FB] rounded-full text-dark transition-colors cursor-pointer"
+            >
+              <FiArrowLeft className="w-5 h-5" />
+            </button>
+            <h1 className="text-sm font-black text-dark pr-8 mx-auto font-sans tracking-wide">Attendance</h1>
+          </header>
+
+          {/* Back to Sections link */}
+          <button
+            onClick={() => setSelectedSection(null)}
+            className="flex items-center gap-1 text-xs font-bold text-[#1597E5] hover:underline cursor-pointer"
+          >
+            <FiArrowLeft className="w-3.5 h-3.5" />
+            <span>{selectedClass} · Sections</span>
+          </button>
+
+          {/* Curved blue header card */}
+          <div className="relative rounded-[32px] bg-gradient-to-br from-[#1597E5] to-[#00A1FF] p-6 text-white card-shadow overflow-hidden">
+            <div className="absolute top-[-30px] right-[-30px] w-36 h-36 rounded-full bg-white/10 pointer-events-none" />
+            <div className="absolute bottom-[-40px] left-[10%] w-48 h-48 rounded-full bg-white/5 pointer-events-none" />
+
+            <div className="mb-2 relative z-10">
+              <span className="text-[10px] text-white/70 font-semibold tracking-wider uppercase font-black">
+                {selectedClass} – {selectedSection.name}
+              </span>
+            </div>
+            <h2 className="text-xl font-bold mb-1 relative z-10 font-sans">Attendance</h2>
+            <p className="text-xs text-white/85 mt-1 relative z-10 font-sans leading-relaxed">
+              Review and correct teacher submissions
+            </p>
+          </div>
+
+          {/* Date Selector switcher box matching Screenshot 2 */}
+          <div className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between font-sans relative">
+            <button
+              onClick={handlePrevDate}
+              className="p-1 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
+            >
+              <FiChevronRight className="w-5 h-5 text-[#1597E5] rotate-180" />
+            </button>
+            <div className="text-center">
+              <p className="text-xs font-extrabold text-dark">{toDisplayDate(selectedDate)}</p>
+              {isToday && <p className="text-[9px] text-[#1597E5] font-black mt-0.5">Today</p>}
+            </div>
+            <button
+              onClick={handleNextDate}
+              className="p-1 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
+            >
+              <FiChevronRight className="w-5 h-5 text-[#1597E5]" />
+            </button>
+          </div>
+
+          {/* Jump to Date Selector Input matching Screenshot 2 */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-black text-dark pl-0.5">Jump to Date</label>
+            <div className="relative">
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="w-full pl-5 pr-10 py-3.5 bg-white border border-[#e2e8f0] rounded-[20px] text-xs font-bold text-dark focus:outline-none focus:border-brand-blue/60"
+              />
+              <FiCalendar className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0AEC0] pointer-events-none" />
+            </div>
+          </div>
+
+          <div className="text-center">
+            <span className="text-[9px] text-[#A0AEC0] font-black uppercase tracking-wider">
+              Academic year: 12-06-2026 – 24-04-2027
+            </span>
+          </div>
+
+          {/* Roster list or Empty State card */}
+          {dbAttendanceRecords.length > 0 ? (
+            <div className="space-y-6">
+              {/* Stats Box */}
+              <div className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-5 card-shadow flex items-center justify-between text-center font-sans">
+                <div className="flex-1">
+                  <p className="text-xl font-black text-[#23C16B]">{presentCnt}</p>
+                  <p className="text-[10px] text-[#A0AEC0] font-black uppercase tracking-wide">Present</p>
+                </div>
+                <div className="w-[1px] h-8 bg-[#e2e8f0]" />
+                <div className="flex-1">
+                  <p className="text-xl font-black text-[#E53E3E]">{absentCnt}</p>
+                  <p className="text-[10px] text-[#A0AEC0] font-black uppercase tracking-wide">Absent</p>
+                </div>
+                <div className="w-[1px] h-8 bg-[#e2e8f0]" />
+                <div className="flex-1">
+                  <p className="text-xl font-black text-dark">{totalCnt}</p>
+                  <p className="text-[10px] text-[#A0AEC0] font-black uppercase tracking-wide">Total</p>
+                </div>
+              </div>
+
+              {/* Search */}
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search students"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3.5 bg-white border border-[#e2e8f0] rounded-[20px] card-shadow-inset focus:outline-none focus:border-brand-blue/60 text-xs font-semibold text-dark placeholder:text-[#A0AEC0]"
+                />
+                <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0AEC0]" />
+              </div>
+
+              {/* Filters */}
+              <div className="flex gap-2 select-none pb-1">
+                {['All', 'Present', 'Absent'].map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setAttendanceFilter(f)}
+                    className={`px-5 py-2 rounded-full text-[10px] font-extrabold border transition-all cursor-pointer whitespace-nowrap ${
+                      attendanceFilter === f
+                        ? 'bg-[#1597E5] border-[#1597E5] text-white shadow-md shadow-brand-blue/20'
+                        : 'bg-white border-[#e2e8f0] text-secondaryText hover:bg-slate-50'
+                    }`}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
+
+              {/* Student list */}
+              <div className="space-y-3 pt-1">
+                {filteredClassAttendance.length > 0 ? (
+                  filteredClassAttendance.map((student) => {
+                    const initials = student.name.charAt(0);
+                    const isPresent = student.status === 'Present';
+                    return (
+                      <div
+                        key={student.id}
+                        className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/20 transition-all cursor-pointer group active:scale-[0.99]"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className={`w-11 h-11 rounded-full flex items-center justify-center font-bold text-xs select-none ${
+                            isPresent ? 'bg-[#E8F8F0] text-[#23C16B]' : 'bg-red-50 text-[#E53E3E]'
+                          }`}>
+                            {initials}
+                          </div>
+                          <div>
+                            <h3 className="text-xs font-extrabold text-dark leading-tight group-hover:text-brand-blue transition-colors font-sans">
+                              {student.name}
+                            </h3>
+                            <p className="text-[9px] text-[#A0AEC0] font-bold mt-1 font-sans">
+                              {student.class} · {student.date}
+                            </p>
+                          </div>
+                        </div>
+                        <span className={`px-2.5 py-1.5 rounded-lg text-[8px] font-extrabold tracking-wider ${
+                          isPresent ? 'bg-[#E8F8F0] text-[#23C16B]' : 'bg-red-50 text-[#E53E3E]'
+                        }`}>
+                          {student.status.toUpperCase()}
+                        </span>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="bg-white rounded-[32px] border border-[#e2e8f0]/40 p-12 card-shadow text-center flex flex-col items-center justify-center space-y-4 min-h-[260px]">
+                    <FiInbox className="w-8 h-8 text-secondaryText" />
+                    <h4 className="text-xs font-extrabold text-dark">No records found</h4>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            // SCREENSHOT 2: EMPTY STATE CARD
+            <div className="bg-white rounded-[32px] border border-[#e2e8f0]/40 p-12 card-shadow text-center flex flex-col items-center justify-center space-y-4 min-h-[300px]">
+              <div className="w-16 h-16 rounded-full bg-[#EEF5FB] flex items-center justify-center">
+                <FiCalendar className="w-8 h-8 text-[#1597E5]" />
+              </div>
+              <h3 className="text-sm font-extrabold text-dark">No attendance submitted</h3>
+              <p className="text-xs text-secondaryText font-medium max-w-[280px] mx-auto leading-relaxed">
+                No attendance submitted for {selectedClass}–{selectedSection.name} on {toDisplayDate(selectedDate)}.
+              </p>
+            </div>
+          )}
+        </motion.div>
+      );
+    }
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -15 }}
+        transition={{ duration: 0.3 }}
+        className="p-4 md:p-8 space-y-6 pb-28 md:pb-24 max-w-[640px] mx-auto animate-fade-in relative select-none font-sans"
+      >
+        <header className="flex items-center justify-between py-2 border-b border-[#e2e8f0]/40 shrink-0 font-sans">
+          <button
+            onClick={() => navigate(-1)}
+            className="p-1.5 hover:bg-[#EEF5FB] rounded-full text-dark transition-colors cursor-pointer"
+          >
+            <FiArrowLeft className="w-5 h-5" />
+          </button>
+          <h1 className="text-sm font-bold text-dark pr-8 mx-auto font-sans">Attendance</h1>
+        </header>
+
+        <div className="relative rounded-[32px] bg-gradient-to-br from-[#1597E5] to-[#00A1FF] p-6 text-white card-shadow overflow-hidden">
+          <div className="absolute top-[-30px] right-[-30px] w-36 h-36 rounded-full bg-white/10" />
+          <div className="absolute bottom-[-40px] left-[10%] w-48 h-48 rounded-full bg-white/5" />
+          <div className="mb-2 relative z-10">
+            <span className="text-[10px] text-white/70 font-semibold tracking-wider uppercase font-sans">PRINCIPAL</span>
+          </div>
+          <h2 className="text-xl font-bold mb-1 relative z-10 font-sans">View Attendance</h2>
+          <p className="text-xs text-white/85 font-medium relative z-10 font-sans">
+            Select a class to view submitted attendance
+          </p>
+        </div>
+
+        <div className="space-y-3 pt-1">
+          {classesOrder.map((cls) => (
+            <div
+              key={cls}
+              onClick={() => setSelectedClass(cls)}
+              className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/20 transition-all cursor-pointer group active:scale-[0.99]"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-11 h-11 rounded-full bg-[#EEF5FB] flex items-center justify-center border border-brand-blue/5">
+                  <FiGrid className="w-5 h-5 text-[#1597E5]" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-black text-dark leading-tight group-hover:text-brand-blue transition-colors font-sans">
+                    {cls}
+                  </h4>
+                </div>
+              </div>
+              <FiChevronRight className="w-4 h-4 text-[#A0AEC0] group-hover:translate-x-0.5 transition-transform" />
+            </div>
+          ))}
+        </div>
+      </motion.div>
+    );
+  }
+
+  if (activeRole?.toUpperCase() === 'COORDINATOR') {
     const coNames = [
       'SHINAGAM SUTANVASVIK',
       'SHINAGAM KUSHANK',
@@ -279,7 +764,7 @@ const AttendanceOverview = () => {
     { name: 'Mar', percentage: null }
   ];
 
-  if (activeRole === 'PARENT') {
+  if (activeRole?.toUpperCase() === 'PARENT') {
     return (
       <motion.div
         initial={{ opacity: 0, y: 15 }}
@@ -505,7 +990,7 @@ const AttendanceOverview = () => {
     );
   }
 
-  if (activeRole === 'TEACHER' || activeRole === 'CLASS_TEACHER') {
+  if (activeRole?.toUpperCase() === 'TEACHER' || activeRole?.toUpperCase() === 'CLASS_TEACHER') {
     const presentCount = ATTENDANCE_LIST.filter(s => s.status === 'Present').length;
     const absentCount = ATTENDANCE_LIST.filter(s => s.status === 'Absent').length;
     const totalCount = ATTENDANCE_LIST.length;
@@ -744,17 +1229,17 @@ const AttendanceOverview = () => {
       {/* Triple metrics card */}
       <div className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-5 card-shadow flex items-center justify-between text-center select-none">
         <div className="flex-1">
-          <p className="text-2xl font-black text-[#23C16B]">{presentCount}</p>
+          <p className="text-2xl font-black text-[#23C16B]">{globalPresentCount}</p>
           <p className="text-[10px] text-[#A0AEC0] font-bold mt-1 uppercase tracking-wide">Present</p>
         </div>
         <div className="w-[1px] h-8 bg-[#e2e8f0]" />
         <div className="flex-1">
-          <p className="text-2xl font-black text-[#E53E3E]">{absentCount}</p>
+          <p className="text-2xl font-black text-[#E53E3E]">{globalAbsentCount}</p>
           <p className="text-[10px] text-[#A0AEC0] font-bold mt-1 uppercase tracking-wide">Absent</p>
         </div>
         <div className="w-[1px] h-8 bg-[#e2e8f0]" />
         <div className="flex-1">
-          <p className="text-2xl font-black text-dark">{totalCount}</p>
+          <p className="text-2xl font-black text-dark">{globalTotalCount}</p>
           <p className="text-[10px] text-[#A0AEC0] font-bold mt-1 uppercase tracking-wide">Total</p>
         </div>
       </div>

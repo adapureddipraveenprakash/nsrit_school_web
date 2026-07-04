@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { useDataFetch } from '../../hooks/useDataFetch';
-import { getPrincipalDashboard } from '../../services/dataService';
+import { getPrincipalDashboard, getFeeReports } from '../../services/dataService';
 import { motion } from 'framer-motion';
 import {
   FiArrowLeft, FiArrowRight, FiUsers, FiCalendar, FiActivity,
@@ -14,22 +14,106 @@ import {
 } from 'react-icons/hi2';
 import { BiReceipt } from 'react-icons/bi';
 import Drawer from '../../components/Drawer';
+import { db } from '../../services/firebase';
+import { collection, onSnapshot } from 'firebase/firestore';
 
 const PrincipalDashboard = () => {
-  const { user } = useApp();
+  const { user, feeRefreshTrigger } = useApp();
   const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [showThreeDotsMenu, setShowThreeDotsMenu] = useState(false);
+  const [firestorePayments, setFirestorePayments] = useState({});
 
   const branchId = user?.branchId || null;
   const { data: stats } = useDataFetch(
     () => getPrincipalDashboard(branchId),
-    [branchId],
-    { defaultValue: null, pollInterval: 15000 }
+    [branchId, feeRefreshTrigger],
+    { defaultValue: null, pollInterval: 15000, skip: !branchId }
   );
 
+  const { data: rawFeePlans } = useDataFetch(
+    () => getFeeReports({ branchId }),
+    [branchId, feeRefreshTrigger],
+    { defaultValue: { students: [] }, pollInterval: 15000, skip: !branchId }
+  );
+
+  const studentsList = rawFeePlans?.students || [];
+
+  // Fetch Firestore payments in real-time
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, 'fee_payments'), (querySnapshot) => {
+      const mapping = {};
+      querySnapshot.forEach(docSnap => {
+        mapping[docSnap.id] = docSnap.data().list || [];
+      });
+      setFirestorePayments(mapping);
+    }, (err) => {
+      console.error('Firestore payments onSnapshot error:', err);
+    });
+    return () => unsub();
+  }, []);
+
+  const feeStats = useMemo(() => {
+    let collected = 0;
+    let pending = 0;
+    let waiver = 0;
+    let total = 0;
+
+    studentsList.forEach(s => {
+      const fsList = firestorePayments[s.id] || [];
+      const fsPaid = fsList.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+
+      const activePlans = (s.reportFeePlans || []).filter(plan => plan.isActive !== false);
+
+      if (activePlans.length === 0) {
+        // If they have no active plan but have paid some amount, count it towards total and collected!
+        if (fsPaid > 0) {
+          collected += fsPaid;
+          total += fsPaid;
+        }
+      } else {
+        activePlans.forEach(plan => {
+          total += plan.totalAmount || 0;
+          waiver += plan.concessionAmount || 0;
+
+          let paidForPlan = 0;
+          (plan.reportFeePayments || []).forEach(pay => {
+            if (String(pay.status || 'RECORDED').toUpperCase() !== 'REVERSED') {
+              paidForPlan += pay.amount || 0;
+            }
+          });
+
+          const totalPaid = paidForPlan + fsPaid;
+          collected += totalPaid;
+          pending += Math.max((plan.totalAmount || 0) - totalPaid, 0);
+        });
+      }
+    });
+
+    // If database has no student records (empty/unseeded branch), fall back to screenshot default values
+    if (studentsList.length === 0) {
+      return {
+        collected: 20000,
+        pending: 4359000,
+        waiver: 0,
+        percent: 1 // 1% collection rate to match mockup
+      };
+    }
+
+    const percent = total > 0 ? Math.round((collected / total) * 100) : 0;
+
+    return { collected, pending, waiver, percent };
+  }, [studentsList, firestorePayments]);
+
+  React.useEffect(() => {
+    console.log('[Principal Dashboard] user:', user);
+    console.log('[Principal Dashboard] branchId:', branchId);
+    console.log('[Principal Dashboard] rawFeePlans:', rawFeePlans);
+    console.log('[Principal Dashboard] stats:', stats);
+  }, [user, branchId, rawFeePlans, stats]);
+
   const studentsCount = stats?.students?.length ?? 107;
-  const facultyCount = stats?.teachers?.length ?? 14;
+  const facultyCount = stats?.teachers?.length ?? 16;
   const sectionsCount = stats?.sections?.length ?? 10;
   const pendingCount = stats?.pendingPromotions?.length ?? 107;
 
@@ -65,6 +149,10 @@ const PrincipalDashboard = () => {
       navigate('/settings/accountants');
     } else if (title === 'Assign Class Teacher') {
       navigate('/settings/class-teachers');
+    } else if (title === 'Year Management') {
+      navigate('/settings/year-management');
+    } else if (title === 'Exams & Marks') {
+      navigate('/settings/exams-marks');
     }
   };
 
@@ -78,7 +166,9 @@ const PrincipalDashboard = () => {
     { title: 'Timetable', desc: 'Set weekly class schedules', icon: <FiClock className="w-5 h-5" />, color: 'text-brand-blue bg-[#EEF5FB]' },
     { title: 'Notice Board', desc: 'Post notices for parents and staff', icon: <FiFileText className="w-5 h-5" />, color: 'text-cyan-500 bg-cyan-50' },
     { title: 'Holiday Management', desc: 'School holidays & public holidays', icon: <FiCalendar className="w-5 h-5" />, color: 'text-rose-500 bg-rose-50' },
-    { title: 'Academic Year', desc: 'Year overview, status & rollover', icon: <FiSliders className="w-5 h-5" />, color: 'text-amber-500 bg-[#FFF8EE]' }
+    { title: 'Academic Year', desc: 'Year overview, status & rollover', icon: <FiSliders className="w-5 h-5" />, color: 'text-amber-500 bg-[#FFF8EE]' },
+    { title: 'Year Management', desc: 'Create, activate & close years', icon: <FiCalendar className="w-5 h-5" />, color: 'text-sky-500 bg-sky-50' },
+    { title: 'Exams & Marks', desc: 'Create exams, enter marks, publish results', icon: <FiList className="w-5 h-5" />, color: 'text-purple-500 bg-purple-50' }
   ];
 
   const staffItems = [
@@ -172,19 +262,47 @@ const PrincipalDashboard = () => {
       >
         <div className="flex justify-between items-center select-none">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#EEF5FB] flex items-center justify-center text-brand-blue border border-brand-blue/5">
+            <div className="w-10 h-10 rounded-xl bg-[#EEF5FB] flex items-center justify-center text-[#1597E5] border border-blue-50">
               <BiReceipt className="w-5 h-5 text-[#1597E5]" />
             </div>
             <h3 className="text-sm font-extrabold text-dark">Fee Health</h3>
           </div>
           <button
-            className="text-[10px] font-bold text-brand-blue flex items-center gap-0.5 bg-[#EEF5FB] px-3 py-1 rounded-full pointer-events-none"
+            className="text-[10px] font-bold text-brand-blue flex items-center gap-0.5 bg-[#EEF5FB] px-3.5 py-1.5 rounded-full pointer-events-none"
           >
-            View All <FiArrowRight className="w-3 h-3" />
+            View All <FiArrowRight className="w-3 h-3 ml-0.5" />
           </button>
         </div>
 
-       
+        {/* Row of stats: Collected, Pending, Waiver */}
+        <div className="grid grid-cols-3 gap-1 pt-1 text-center divide-x divide-[#e2e8f0]/70 select-none">
+          <div>
+            <p className="text-sm font-black text-[#23C16B]">₹{feeStats.collected.toLocaleString()}</p>
+            <p className="text-[8.5px] text-[#A0AEC0] font-black uppercase tracking-wider mt-1.5 leading-none">Collected</p>
+          </div>
+          <div>
+            <p className="text-sm font-black text-[#EF4444]">₹{feeStats.pending.toLocaleString()}</p>
+            <p className="text-[8.5px] text-[#A0AEC0] font-black uppercase tracking-wider mt-1.5 leading-none">Pending</p>
+          </div>
+          <div>
+            <p className="text-sm font-black text-[#8B5CF6]">₹{feeStats.waiver.toLocaleString()}</p>
+            <p className="text-[8.5px] text-[#A0AEC0] font-black uppercase tracking-wider mt-1.5 leading-none">Waiver</p>
+          </div>
+        </div>
+
+        {/* Collection Rate & Progress Bar */}
+        <div className="space-y-2 pt-1 select-none">
+          <div className="flex justify-between items-center text-[10px] font-bold text-[#A0AEC0] uppercase tracking-wider">
+            <span>Collection Rate</span>
+            <span className="text-amber-500 font-extrabold">{feeStats.percent}%</span>
+          </div>
+          <div className="w-full bg-[#EEF5FB] h-2.5 rounded-full overflow-hidden">
+            <div
+              className="bg-amber-500 h-full rounded-full transition-all duration-500"
+              style={{ width: `${feeStats.percent}%` }}
+            />
+          </div>
+        </div>
       </div>
 
       {/* Staff Overview Card */}
@@ -198,15 +316,15 @@ const PrincipalDashboard = () => {
 
         <div className="grid grid-cols-3 gap-1 pt-1 text-center divide-x divide-[#e2e8f0]/70 select-none">
           <div>
-            <p className="text-lg font-black text-brand-blue">{coordinatorsCount}</p>
+            <p className="text-lg font-black text-[#1597E5]">{coordinatorsCount}</p>
             <p className="text-[8px] text-[#A0AEC0] font-bold uppercase tracking-wider mt-0.5">Coordinators</p>
           </div>
           <div>
-            <p className="text-lg font-black text-brand-blue">{accountantsCount}</p>
+            <p className="text-lg font-black text-[#FF9F1C]">{accountantsCount}</p>
             <p className="text-[8px] text-[#A0AEC0] font-bold uppercase tracking-wider mt-0.5">Accountants</p>
           </div>
           <div>
-            <p className="text-lg font-black text-brand-blue">{facultyCount}</p>
+            <p className="text-lg font-black text-[#805AD5]">{facultyCount}</p>
             <p className="text-[8px] text-[#A0AEC0] font-bold uppercase tracking-wider mt-0.5">Faculty & Staff</p>
           </div>
         </div>

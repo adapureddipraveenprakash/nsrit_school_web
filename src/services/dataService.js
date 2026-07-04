@@ -43,6 +43,7 @@ const Q = {
   GET_ALL_FEE_RECORDS: 'GetAllFeeRecords',
   GET_FEE_RECORDS_BY_BRANCH: 'GetFeeRecordsByBranch',
   GET_ATTENDANCE_BY_SECTION: 'GetAttendanceBySection',
+  GET_PARENT_BY_PHONE: 'GetParentByPhone',
   GET_ATTENDANCE_BY_MONTH: 'GetAttendanceByMonth',
   GET_ATTENDANCE_BY_BRANCH: 'GetAttendanceByBranch',
   GET_NOTICES_BY_BRANCH: 'GetNoticesByBranch',
@@ -71,6 +72,8 @@ const Q = {
   GET_STUDENT_ID_SEQUENCE: 'GetStudentIdSequence',
   GET_STAFF_ID_SEQUENCE: 'GetStaffIdSequence',
   GET_RECEIPT_SEQUENCE: 'GetReceiptSequence',
+  GET_BRANCH_STAFF_USER_IDS: 'GetBranchStaffUserIds',
+  GET_BRANCH_STUDENTS_WITH_PARENTS: 'GetBranchStudentsWithParents',
 };
 
 const M = {
@@ -122,6 +125,7 @@ const M = {
   CREATE_USER: 'CreateUser',
   LINK_STUDENT_PARENT: 'LinkStudentParent',
   CREATE_PARENT: 'CreateParent',
+  CREATE_PARENT_WITHOUT_USER: 'CreateParentWithoutUser',
   LINK_PARENT_USER: 'LinkParentUser',
   CREATE_SUBJECT: 'CreateSubject',
   ASSIGN_TEACHER_SUBJECT: 'AssignTeacherSubject',
@@ -245,8 +249,8 @@ export const getStudentFeeHistory = async (studentId) => {
 };
 
 // ─── Classes & Sections ───────────────────────────────────────────────────────
-export const getAcademicClasses = async ({ branchId } = {}) => {
-  const res = await dataConnectClient.query(Q.GET_ACADEMIC_CLASSES, { branchId: branchId || null });
+export const getAcademicClasses = async () => {
+  const res = await dataConnectClient.query(Q.GET_ACADEMIC_CLASSES, {});
   return res.academicClasses || [];
 };
 
@@ -255,12 +259,20 @@ export const getClassesByWing = async ({ branchId, wing }) => {
   return res.academicClasses || [];
 };
 
-export const getSections = async ({ branchId, academicClassId } = {}) => {
+export const getSections = async ({ branchId } = {}) => {
   const res = await dataConnectClient.query(Q.GET_SECTIONS, {
     branchId: branchId || null,
-    academicClassId: academicClassId || null,
+    academicYear: 2026
   });
   return res.sections || [];
+};
+
+export const getSectionsDetailed = async ({ branchId, academicYear = 2026 } = {}) => {
+  const res = await dataConnectClient.query(Q.GET_SECTIONS, {
+    branchId: branchId || null,
+    academicYear: academicYear
+  });
+  return res;
 };
 
 export const getSectionsByClass = async (academicClassId) => {
@@ -390,14 +402,16 @@ export const getStudentFeeProfile = async (studentId) => {
 };
 
 export const getPaymentHistory = async ({ branchId, studentId, fromDate, toDate, limit = 200, offset = 0 } = {}) => {
-  const res = await dataConnectClient.query(Q.GET_PAYMENT_HISTORY, {
-    branchId: branchId || 'sontyam-branch-id', // Fallback
-    studentId: studentId || null,
-    fromDate: fromDate || null,
-    toDate: toDate || null,
+  const variables = {
+    branchId: branchId || 'sontyam-branch-id',
     limit,
     offset
-  });
+  };
+  if (studentId) variables.studentId = studentId;
+  if (fromDate) variables.fromDate = fromDate;
+  if (toDate) variables.toDate = toDate;
+
+  const res = await dataConnectClient.query(Q.GET_PAYMENT_HISTORY, variables);
   return res.feePayments || [];
 };
 
@@ -411,8 +425,8 @@ export const getAllFeeRecords = async ({ limit = 200, offset = 0 } = {}) => {
   return res;
 };
 
-export const getFeeReports = async ({ branchId, academicYear }) => {
-  const res = await dataConnectClient.query(Q.GET_FEE_REPORTS, { branchId, academicYear: Number(academicYear) });
+export const getFeeReports = async ({ branchId, limit = 1000, offset = 0 } = {}) => {
+  const res = await dataConnectClient.query(Q.GET_FEE_REPORTS, { branchId, limit, offset });
   return res;
 };
 
@@ -438,8 +452,11 @@ export const reversePayment = async (payload) => {
 
 // ─── Attendance ───────────────────────────────────────────────────────────────
 export const getAttendanceBySection = async ({ sectionId, date }) => {
-  const res = await dataConnectClient.query(Q.GET_ATTENDANCE_BY_SECTION, { sectionId, date });
-  return res.attendanceRecords || [];
+  const res = await dataConnectClient.query(Q.GET_ATTENDANCE_BY_SECTION, {
+    sectionId,
+    attendanceDate: date
+  });
+  return res.attendances || [];
 };
 
 export const getAttendanceByMonth = async ({ branchId, sectionId, month, year }) => {
@@ -577,8 +594,17 @@ export const createUser = async (payload) => {
 };
 
 // ─── Parents ──────────────────────────────────────────────────────────────────
+export const getParentByPhone = async ({ branchId, phoneNumber }) => {
+  const res = await dataConnectClient.query(Q.GET_PARENT_BY_PHONE, { branchId, phoneNumber });
+  return res.parents?.[0] || null;
+};
+
 export const createParent = async (payload) => {
   return dataConnectClient.mutate(M.CREATE_PARENT, payload);
+};
+
+export const createParentWithoutUser = async (payload) => {
+  return dataConnectClient.mutate(M.CREATE_PARENT_WITHOUT_USER, payload);
 };
 
 export const linkStudentParent = async (payload) => {
@@ -598,4 +624,47 @@ export const getPromotionHistory = async ({ branchId }) => {
 
 export const changeUserRole = async ({ userId, oldRole, newRole }) => {
   return dataConnectClient.mutate(M.SWITCH_ROLE, { userId, oldRole, newRole });
+};
+
+export const broadcastNotification = async ({ branchId, title, message, target = 'all' }) => {
+  if (!branchId) throw new Error('branchId required for broadcast');
+  const userIds = new Set();
+
+  try {
+    const includeStaff = target === 'all' || target === 'teachers';
+    const includeParents = target === 'all' || target === 'parents' || target === 'students';
+
+    const [staffRes, studentsRes] = await Promise.all([
+      includeStaff
+        ? dataConnectClient.query(Q.GET_BRANCH_STAFF_USER_IDS, { branchId, limit: 500 })
+        : Promise.resolve(null),
+      includeParents
+        ? dataConnectClient.query(Q.GET_BRANCH_STUDENTS_WITH_PARENTS, { branchId, limit: 1000 })
+        : Promise.resolve(null),
+    ]);
+
+    if (staffRes?.users) {
+      staffRes.users.forEach(u => u?.id && userIds.add(u.id));
+    }
+    if (studentsRes?.students) {
+      studentsRes.students.forEach(s => {
+        (s?.linkedParents || []).forEach(lp => lp?.userId && userIds.add(lp.userId));
+      });
+    }
+  } catch (err) {
+    console.log('[Notifications] Broadcast user fetch failed:', err);
+    throw err;
+  }
+
+  if (!userIds.size) return { sent: 0, failed: 0 };
+
+  const results = await Promise.allSettled(
+    [...userIds].map(uid =>
+      createNotification({ userId: uid, branchId, title, message, audienceRole: target.toUpperCase() })
+    )
+  );
+  const sent = results.filter(r => r.status === 'fulfilled' && r.value).length;
+  const failed = results.length - sent;
+  console.log(`[Notifications] Broadcast sent ${sent}/${userIds.size}, failed ${failed}`);
+  return { sent, failed };
 };

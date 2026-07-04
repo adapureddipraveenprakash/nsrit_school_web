@@ -16,20 +16,20 @@ const CoordinatorDashboard = () => {
   const navigate = useNavigate();
   const [showThreeDotsMenu, setShowThreeDotsMenu] = useState(false);
 
-  const branchId = user?.branchId || 'sontyam-branch-id';
+  const branchId = user?.branchId || null;
 
   // Fetch branch students count
   const { data: dbStudents = [] } = useDataFetch(
     () => getStudents({ branchId, limit: 500 }),
     [branchId],
-    { defaultValue: [] }
+    { defaultValue: [], skip: !branchId }
   );
 
   // Fetch branch fee structures to calculate collections
   const { data: rawFees } = useDataFetch(
     () => getFeeRecordsByBranch({ branchId }),
     [branchId],
-    { defaultValue: { studentFees: [] }, pollInterval: 15000 }
+    { defaultValue: { studentFees: [] }, pollInterval: 15000, skip: !branchId }
   );
 
   const studentFees = rawFees?.studentFees || [];

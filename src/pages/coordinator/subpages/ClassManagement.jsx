@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiArrowLeft, FiBookOpen, FiPlus, FiSearch, FiGrid, FiCheckCircle } from 'react-icons/fi';
 import { BiTransfer } from 'react-icons/bi';
 import { useApp } from '../../../context/AppContext';
+import { useDataFetch } from '../../../hooks/useDataFetch';
+import { getAcademicClasses } from '../../../services/dataService';
 
 const ACADEMIC_CLASSES = [
   { id: 1, name: 'Nursery', category: 'Pre-Primary' },
@@ -38,6 +40,35 @@ const ClassManagement = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   
+  const branchId = user?.branchId || null;
+  const { data: dbClasses = [] } = useDataFetch(
+    () => getAcademicClasses({ branchId }),
+    [branchId],
+    { defaultValue: [], skip: !branchId }
+  );
+
+  const finalClasses = useMemo(() => {
+    const branchClasses = dbClasses.filter(c => c.branchId === branchId);
+    const list = branchClasses.length > 0 ? branchClasses.map(c => ({
+      id: c.id,
+      name: c.name,
+      category: c.wing?.name || 'PRIMARY'
+    })) : ACADEMIC_CLASSES;
+
+    const allowedClasses = ['NURSERY', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7'];
+    const seen = new Set();
+    const uniqueList = [];
+    for (const c of list) {
+      const nameKey = c.name.toUpperCase();
+      if (!seen.has(nameKey) && allowedClasses.includes(nameKey)) {
+        seen.add(nameKey);
+        uniqueList.push(c);
+      }
+    }
+
+    return uniqueList.sort((a, b) => allowedClasses.indexOf(a.name.toUpperCase()) - allowedClasses.indexOf(b.name.toUpperCase()));
+  }, [dbClasses]);
+
   // Coordinator specific mock selection state matching Screenshot 2
   const [selectedIds, setSelectedIds] = useState([1, 2, 3, 4, 11, 12]);
 
@@ -256,7 +287,7 @@ const ClassManagement = () => {
         <div className="flex items-center gap-2 mb-3 relative z-10">
           <h2 className="text-xl font-bold">Academic Structure</h2>
           <span className="bg-white/20 border border-white/25 rounded-full px-2.5 py-0.5 text-[10px] font-bold">
-            {ACADEMIC_CLASSES.length}
+            {finalClasses.length}
           </span>
         </div>
 
@@ -275,7 +306,7 @@ const ClassManagement = () => {
 
       {/* Vertical list of Class items */}
       <div className="space-y-3 pt-1">
-        {ACADEMIC_CLASSES.map((cls) => {
+        {finalClasses.map((cls) => {
           return (
             <div
               key={cls.id}

@@ -25,6 +25,7 @@ const StudentRecords = () => {
   const location = useLocation();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All'); // 'All' | 'Active' | 'Inactive'
+  const [selectedClass, setSelectedClass] = useState(null);
 
   // Determine which branch to fetch students for
   const branchId = user?.branchId || currentBranchContext?.id || null;
@@ -65,6 +66,393 @@ const StudentRecords = () => {
       student.admissionNo.toLowerCase().includes(search.toLowerCase())
     );
   }, [dueStudents, search]);
+
+  const mockStudentsByClass = {
+    'LKG': [
+      { id: 'lkg1', name: 'KORADA BHARGAVSAI', class: 'LKG', section: 'A', admissionNo: '26SO0002', status: 'Active', gender: 'Male' },
+      { id: 'lkg2', name: 'GANDARDDI MANJUSHA', class: 'LKG', section: 'A', admissionNo: '26SO0003', status: 'Active', gender: 'Female' },
+      { id: 'lkg3', name: 'GONTHINA POORVESH', class: 'LKG', section: 'A', admissionNo: '26SO0004', status: 'Active', gender: 'Male' },
+    ],
+    'UKG': [
+      { id: 'ukg1', name: 'AKKIREDDY SADHVIK', class: 'UKG', section: 'A', admissionNo: '26SO0006', status: 'Active', gender: 'Male' },
+      { id: 'ukg2', name: 'KORADA CHERVIK', class: 'UKG', section: 'A', admissionNo: '26SO0007', status: 'Active', gender: 'Male' },
+    ],
+    '1': [
+      { id: '1-1', name: 'GOLAGANA HANSHITH', class: '1', section: 'A', admissionNo: '26SO0017', status: 'Active', gender: 'Male' },
+      { id: '1-2', name: 'GOLAJANA GNANESWARI', class: '1', section: 'A', admissionNo: '26SO0019', status: 'Active', gender: 'Female' },
+    ]
+  };
+
+  const classGroups = useMemo(() => {
+    const groups = {};
+    (rawStudents || []).forEach(s => {
+      const className = s.academicClass?.name || 'Unassigned';
+      if (!groups[className]) {
+        groups[className] = {
+          name: className,
+          students: [],
+          sections: new Set()
+        };
+      }
+      groups[className].students.push(s);
+      if (s.section?.name) {
+        groups[className].sections.add(s.section.name);
+      }
+    });
+
+    const classNamesOrder = ['LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', 'Nursery'];
+    const mockStudentCounts = {
+      'LKG': 19,
+      'UKG': 12,
+      '1': 14,
+      '2': 15,
+      '3': 14,
+      '4': 10,
+      '5': 5,
+      '6': 7,
+      '7': 2,
+      'Nursery': 9
+    };
+
+    const finalGroups = [];
+    classNamesOrder.forEach(name => {
+      if (groups[name]) {
+        finalGroups.push({
+          name,
+          sectionsStr: Array.from(groups[name].sections).join(', ') || 'A',
+          studentCount: groups[name].students.length,
+          students: groups[name].students
+        });
+      } else {
+        finalGroups.push({
+          name,
+          sectionsStr: 'A',
+          studentCount: mockStudentCounts[name] || 0,
+          students: []
+        });
+      }
+    });
+
+    return finalGroups;
+  }, [rawStudents]);
+
+  const totalStudentsCount = useMemo(() => {
+    if (rawStudents && rawStudents.length > 0) {
+      return rawStudents.length;
+    }
+    return 107; // Mock fallback
+  }, [rawStudents]);
+
+  const totalClassesCount = useMemo(() => {
+    const uniqueClasses = new Set((rawStudents || []).map(s => s.academicClass?.name).filter(Boolean));
+    return uniqueClasses.size > 0 ? uniqueClasses.size : 10; // Mock fallback
+  }, [rawStudents]);
+
+  const classStudents = useMemo(() => {
+    if (!selectedClass) return [];
+    const actual = (rawStudents || []).filter(s => s.academicClass?.name?.toUpperCase() === selectedClass.toUpperCase());
+    if (actual.length > 0) {
+      return actual.map(normalizeStudent);
+    }
+    return mockStudentsByClass[selectedClass] || [
+      { id: 'gen1', name: `Student One (${selectedClass})`, class: selectedClass, section: 'A', admissionNo: '26SO0101', status: 'Active', gender: 'Male' },
+      { id: 'gen2', name: `Student Two (${selectedClass})`, class: selectedClass, section: 'A', admissionNo: '26SO0102', status: 'Active', gender: 'Female' },
+    ];
+  }, [selectedClass, rawStudents]);
+
+  const filteredClassStudents = useMemo(() => {
+    return classStudents.filter(student => {
+      const matchesSearch = student.name.toLowerCase().includes(search.toLowerCase()) || 
+                            student.admissionNo.toLowerCase().includes(search.toLowerCase());
+      
+      let matchesStatus = true;
+      if (statusFilter === 'Active') matchesStatus = student.status === 'Active';
+      else if (statusFilter === 'Inactive') matchesStatus = student.status === 'Inactive';
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [classStudents, search, statusFilter]);
+
+  const classColorMap = {
+    'LKG': { bg: 'bg-[#EEF5FB]', text: 'text-[#1597E5]', circle: 'bg-blue-100' },
+    'UKG': { bg: 'bg-[#FAF5FF]', text: 'text-[#805AD5]', circle: 'bg-purple-100' },
+    '1': { bg: 'bg-[#F0FDF4]', text: 'text-[#22C55E]', circle: 'bg-green-100' },
+    '2': { bg: 'bg-[#FFF7ED]', text: 'text-[#EA580C]', circle: 'bg-orange-100' },
+    '3': { bg: 'bg-[#FEF2F2]', text: 'text-[#EF4444]', circle: 'bg-red-100' },
+    '4': { bg: 'bg-[#EEF5FB]', text: 'text-[#1597E5]', circle: 'bg-blue-100' },
+    '5': { bg: 'bg-[#FAF5FF]', text: 'text-[#805AD5]', circle: 'bg-purple-100' },
+    '6': { bg: 'bg-[#F0FDF4]', text: 'text-[#22C55E]', circle: 'bg-green-100' },
+    '7': { bg: 'bg-[#FFF7ED]', text: 'text-[#EA580C]', circle: 'bg-orange-100' },
+    'Nursery': { bg: 'bg-[#EEF5FB]', text: 'text-[#1597E5]', circle: 'bg-blue-100' }
+  };
+
+  if (activeRole === 'PRINCIPAL' || activeRole === 'BRANCH_ADMIN') {
+    if (selectedClass) {
+      return (
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -15 }}
+          transition={{ duration: 0.3 }}
+          className="p-4 md:p-8 space-y-6 pb-28 md:pb-24 max-w-[640px] mx-auto animate-fade-in relative select-none"
+        >
+          <header className="flex items-center justify-between py-2 border-b border-[#e2e8f0]/40 shrink-0">
+            <button
+              onClick={() => setSelectedClass(null)}
+              className="p-1.5 hover:bg-[#EEF5FB] rounded-full text-dark transition-colors cursor-pointer"
+            >
+              <FiArrowLeft className="w-5 h-5" />
+            </button>
+            <h1 className="text-sm font-bold text-dark pr-8 mx-auto font-sans">Class {selectedClass}</h1>
+          </header>
+
+          <div className="relative rounded-[32px] bg-gradient-to-br from-[#1597E5] to-[#00A1FF] p-6 text-white card-shadow overflow-hidden">
+            <div className="absolute top-[-30px] right-[-30px] w-36 h-36 rounded-full bg-white/10" />
+            <div className="mb-1 relative z-10">
+              <span className="text-[10px] text-white/70 font-semibold tracking-wider uppercase">CLASS STUDENTS</span>
+            </div>
+            <h2 className="text-xl font-bold relative z-10 font-sans">Class {selectedClass}</h2>
+            <p className="text-xs text-white/85 mt-1 relative z-10 font-sans">
+              View student list and profiles for this grade.
+            </p>
+          </div>
+
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search students or admission no"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-3.5 bg-white border border-[#e2e8f0] rounded-[20px] card-shadow-inset focus:outline-none focus:border-brand-blue/60 text-xs font-semibold text-dark placeholder:text-[#A0AEC0]"
+            />
+            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0AEC0]" />
+          </div>
+
+          <div className="flex gap-2 select-none pb-1">
+            {['All', 'Active', 'Inactive'].map((status) => (
+              <button
+                key={status}
+                onClick={() => setStatusFilter(status)}
+                className={`px-5 py-2 rounded-full text-[10px] font-extrabold border transition-all cursor-pointer whitespace-nowrap ${
+                  statusFilter === status
+                    ? 'bg-[#1597E5] border-[#1597E5] text-white shadow-md shadow-brand-blue/20'
+                    : 'bg-white border-[#e2e8f0] text-secondaryText hover:bg-slate-50'
+                }`}
+              >
+                {status}
+              </button>
+            ))}
+          </div>
+
+          <div className="space-y-3 pt-1">
+            {filteredClassStudents.length > 0 ? (
+              filteredClassStudents.map((student) => {
+                const initials = student.name.charAt(0);
+                const isMale = student.gender === 'Male';
+                const isInactive = student.status === 'Inactive';
+                return (
+                  <div
+                    key={student.id}
+                    className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/20 transition-all cursor-pointer group active:scale-[0.99]"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`w-11 h-11 rounded-full flex items-center justify-center font-bold text-xs select-none ${
+                        isMale ? 'bg-[#EEF5FB] text-brand-blue' : 'bg-pink-50 text-pink-500'
+                      }`}>
+                        {initials}
+                      </div>
+                      <div>
+                        <h3 className="text-xs font-extrabold text-dark leading-tight group-hover:text-brand-blue transition-colors">
+                          {student.name}
+                        </h3>
+                        <p className="text-[9px] text-[#A0AEC0] font-bold mt-1">
+                          {student.class} - {student.section} · {student.admissionNo}
+                        </p>
+                      </div>
+                    </div>
+                    <span className={`px-2.5 py-1 rounded-lg text-[8px] font-extrabold tracking-wider ${
+                      isInactive ? 'bg-red-50 text-[#E53E3E]' : 'bg-[#E8F8F0] text-[#23C16B]'
+                    }`}>
+                      {student.status.toUpperCase()}
+                    </span>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="bg-white rounded-[32px] border border-[#e2e8f0]/40 p-12 card-shadow text-center flex flex-col items-center justify-center space-y-4 min-h-[260px]">
+                <FiInbox className="w-8 h-8 text-secondaryText" />
+                <h4 className="text-xs font-extrabold text-dark">No students found</h4>
+              </div>
+            )}
+          </div>
+        </motion.div>
+      );
+    }
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -15 }}
+        transition={{ duration: 0.3 }}
+        className="p-4 md:p-8 space-y-6 pb-28 md:pb-24 max-w-[640px] mx-auto animate-fade-in relative select-none"
+      >
+        <header className="flex items-center justify-between py-2 border-b border-[#e2e8f0]/40 shrink-0">
+          <button
+            onClick={() => navigate(-1)}
+            className="p-1.5 hover:bg-[#EEF5FB] rounded-full text-dark transition-colors cursor-pointer"
+          >
+            <FiArrowLeft className="w-5 h-5" />
+          </button>
+          <h1 className="text-sm font-bold text-dark pr-8 mx-auto font-sans">Students</h1>
+        </header>
+
+        <div className="relative rounded-[32px] bg-gradient-to-br from-[#1597E5] to-[#00A1FF] p-6 text-white card-shadow overflow-hidden">
+          <div className="absolute top-[-30px] right-[-30px] w-36 h-36 rounded-full bg-white/10" />
+          <div className="absolute bottom-[-40px] left-[10%] w-48 h-48 rounded-full bg-white/5" />
+
+          <div className="mb-2 relative z-10">
+            <span className="text-[10px] text-white/70 font-semibold tracking-wider uppercase">MANAGEMENT</span>
+          </div>
+
+          <div className="flex items-center justify-between mb-1 relative z-10">
+            <h2 className="text-xl font-bold font-sans">Students</h2>
+            <button
+              onClick={() => navigate('/settings/create-student')}
+              className="bg-white hover:bg-slate-50 text-[#1597E5] px-4 py-2 rounded-full text-[10px] font-black shadow-sm cursor-pointer transition-all active:scale-95 flex items-center gap-1.5"
+            >
+              <FiUserPlus className="w-3.5 h-3.5" />
+              <span>Add Student</span>
+            </button>
+          </div>
+
+          <p className="text-xs text-white/85 font-medium mt-1.5 relative z-10 font-sans">
+            Admissions, profiles, status, and section transfers.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-5 card-shadow flex flex-col items-center justify-center text-center">
+            <p className="text-lg font-black text-[#1597E5]">{totalClassesCount}</p>
+            <p className="text-[9px] text-[#A0AEC0] font-black uppercase mt-1 tracking-wider leading-none">Classes</p>
+          </div>
+          <div className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-5 card-shadow flex flex-col items-center justify-center text-center">
+            <p className="text-lg font-black text-[#1597E5]">{totalStudentsCount}</p>
+            <p className="text-[9px] text-[#A0AEC0] font-black uppercase mt-1 tracking-wider leading-none">Total Students</p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-[10px] font-extrabold text-[#718096] uppercase tracking-widest px-1 font-sans">
+            Select a Class
+          </h3>
+
+          <div className="space-y-3">
+            {classGroups.map((group) => {
+              const style = classColorMap[group.name] || { bg: 'bg-[#EEF5FB]', text: 'text-[#1597E5]', circle: 'bg-blue-100' };
+              return (
+                <div
+                  key={group.name}
+                  onClick={() => setSelectedClass(group.name)}
+                  className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/20 transition-all cursor-pointer group active:scale-[0.99]"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`w-11 h-11 rounded-full flex items-center justify-center font-black text-[10px] ${style.bg} ${style.text}`}>
+                      {group.name}
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-black text-dark leading-tight group-hover:text-brand-blue transition-colors font-sans">
+                        Class {group.name}
+                      </h4>
+                      <p className="text-[9px] text-[#A0AEC0] font-bold mt-1 font-sans">
+                        Sections: {group.sectionsStr}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-black text-dark">
+                      {group.studentCount}
+                    </span>
+                    <span className="text-[8.5px] text-[#A0AEC0] font-bold uppercase mr-1 font-sans">students</span>
+                    <FiChevronRight className="w-4 h-4 text-[#A0AEC0] group-hover:translate-x-0.5 transition-transform" />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <h3 className="text-[10px] font-extrabold text-[#718096] uppercase tracking-widest px-1 font-sans">
+            More Actions
+          </h3>
+
+          <div className="space-y-3">
+            <div
+              onClick={() => navigate('/settings/search-students')}
+              className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/20 transition-all cursor-pointer group active:scale-[0.99]"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-[#EEF5FB] flex items-center justify-center border border-brand-blue/5">
+                  <FiSearch className="w-4 h-4 text-[#1597E5]" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-extrabold text-dark group-hover:text-brand-blue transition-colors font-sans">
+                    Advanced Search
+                  </h3>
+                  <p className="text-[9px] text-[#A0AEC0] font-semibold mt-0.5 font-sans">
+                    Find by class, section, status
+                  </p>
+                </div>
+              </div>
+              <FiChevronRight className="w-4 h-4 text-[#A0AEC0] group-hover:translate-x-0.5 transition-transform" />
+            </div>
+
+            <div
+              onClick={() => navigate('/settings/bulk-upload')}
+              className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/20 transition-all cursor-pointer group active:scale-[0.99]"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-[#EEF5FB] flex items-center justify-center border border-brand-blue/5">
+                  <FiFileText className="w-4 h-4 text-[#1597E5]" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-extrabold text-dark group-hover:text-brand-blue transition-colors font-sans">
+                    Bulk Import
+                  </h3>
+                  <p className="text-[9px] text-[#A0AEC0] font-semibold mt-0.5 font-sans">
+                    Upload students via CSV
+                  </p>
+                </div>
+              </div>
+              <FiChevronRight className="w-4 h-4 text-[#A0AEC0] group-hover:translate-x-0.5 transition-transform" />
+            </div>
+
+            <div
+              onClick={() => navigate('/settings/transfer-student')}
+              className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/20 transition-all cursor-pointer group active:scale-[0.99]"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-[#EEF5FB] flex items-center justify-center border border-brand-blue/5">
+                  <FiRepeat className="w-4 h-4 text-[#1597E5]" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-extrabold text-dark group-hover:text-brand-blue transition-colors font-sans">
+                    Transfer Student
+                  </h3>
+                  <p className="text-[9px] text-[#A0AEC0] font-semibold mt-0.5 font-sans">
+                    Move between sections
+                  </p>
+                </div>
+              </div>
+              <FiChevronRight className="w-4 h-4 text-[#A0AEC0] group-hover:translate-x-0.5 transition-transform" />
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
 
   if (activeRole === 'COORDINATOR') {
     const isStudentManagement = location.pathname === '/settings/student-management';
@@ -288,7 +676,7 @@ const StudentRecords = () => {
             <span>Add Student</span>
           </button>
           <button
-            onClick={() => navigate('/settings/promotions')}
+            onClick={() => navigate('/settings/transfer-student')}
             className="flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-[#EEF5FB] text-brand-blue border border-blue-100 rounded-full text-[11px] font-extrabold shadow-sm cursor-pointer transition-all active:scale-95"
           >
             <BiTransfer className="w-3.5 h-3.5" />
@@ -688,11 +1076,7 @@ const StudentRecords = () => {
         <div className="space-y-3">
           {/* Advanced Search */}
           <div
-            onClick={() => {
-              // Focus search input
-              const searchInput = document.querySelector('input[placeholder="Search students"]');
-              if (searchInput) searchInput.focus();
-            }}
+            onClick={() => navigate('/settings/search-students')}
             className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/20 transition-all cursor-pointer group active:scale-[0.99]"
           >
             <div className="flex items-center gap-4">
@@ -734,7 +1118,7 @@ const StudentRecords = () => {
 
           {/* Transfer Student */}
           <div
-            onClick={() => navigate('/settings/promotions')}
+            onClick={() => navigate('/settings/transfer-student')}
             className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/20 transition-all cursor-pointer group active:scale-[0.99]"
           >
             <div className="flex items-center gap-4">

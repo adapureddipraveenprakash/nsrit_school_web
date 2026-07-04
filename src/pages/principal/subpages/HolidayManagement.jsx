@@ -1,10 +1,151 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { FiArrowLeft } from 'react-icons/fi';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FiArrowLeft, FiPlus, FiEdit2, FiTrash2, FiInfo, FiCalendar, FiX } from 'react-icons/fi';
+import { useApp } from '../../../context/AppContext';
+import { subscribeHolidays, saveHolidays } from '../../../services/holidayService';
+
+const MOCK_HOLIDAYS = [
+  { id: '1', name: 'Janmashtami', desc: 'Festival holiday', type: 'Festival Holiday', date: '2026-08-05' },
+  { id: '2', name: 'Independence Day', desc: 'National holiday — Government of India', type: 'National Holiday', date: '2026-08-15' },
+  { id: '3', name: 'Gandhi Jayanti', desc: 'National holiday — Government of India', type: 'National Holiday', date: '2026-10-02' },
+  { id: '4', name: 'Dussehra', desc: 'Vijaya Dashami', type: 'Festival Holiday', date: '2026-10-19' },
+  { id: '5', name: 'AP Formation Day', desc: 'Andhra Pradesh State Formation Day', type: 'State Holiday', date: '2026-11-01' },
+  { id: '6', name: 'Diwali', desc: 'Diwali — Festival of Lights', type: 'Festival Holiday', date: '2026-11-08' },
+  { id: '7', name: 'Diwali (Day 2)', desc: 'Diwali holiday', type: 'Festival Holiday', date: '2026-11-09' },
+  { id: '8', name: 'Guru Nanak Jayanti', desc: 'Festival holiday', type: 'Festival Holiday', date: '2026-11-24' },
+  { id: '9', name: 'Christmas Day', desc: 'Festival holiday', type: 'Festival Holiday', date: '2026-12-25' },
+  { id: '10', name: 'Republic Day', desc: 'National holiday — Government of India', type: 'National Holiday', date: '2026-01-26' },
+  { id: '11', name: 'Holi', desc: 'Festival of colours', type: 'Festival Holiday', date: '2027-03-09' },
+  { id: '12', name: 'Good Friday', desc: 'Festival holiday', type: 'Festival Holiday', date: '2027-04-02' },
+  { id: '13', name: 'Dr. Ambedkar Jayanti', desc: 'National holiday', type: 'National Holiday', date: '2027-04-14' }
+];
 
 const HolidayManagement = () => {
+  const { user } = useApp();
   const navigate = useNavigate();
+  const branchId = user?.branchId || 'sontyam-branch-id';
+
+  const [dbHolidays, setDbHolidays] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Modal Dialog states
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [holidayName, setHolidayName] = useState('');
+  const [holidayDesc, setHolidayDesc] = useState('');
+  const [holidayType, setHolidayType] = useState('Festival Holiday'); // 'Festival Holiday' | 'National Holiday' | 'State Holiday'
+  const [holidayDate, setHolidayDate] = useState('');
+
+  // Subscribe to realtime database logs
+  useEffect(() => {
+    setLoading(true);
+    const unsubscribe = subscribeHolidays(branchId, 
+      (list) => {
+        setDbHolidays(list);
+        setLoading(false);
+      },
+      (err) => {
+        console.error('Error fetching holidays:', err);
+        setLoading(false);
+      }
+    );
+    return unsubscribe;
+  }, [branchId]);
+
+  const activeHolidays = useMemo(() => {
+    return dbHolidays.length > 0 ? dbHolidays : MOCK_HOLIDAYS;
+  }, [dbHolidays]);
+
+  // Group holidays by month
+  const holidaysByMonth = useMemo(() => {
+    const months = {};
+    const sorted = [...activeHolidays].sort((a, b) => new Date(a.date) - new Date(b.date));
+    
+    sorted.forEach(h => {
+      const dateObj = new Date(h.date);
+      // Constructing formatting like "AUGUST 2026"
+      const monthYear = dateObj.toLocaleString('default', { month: 'long', year: 'numeric' }).toUpperCase();
+      if (!months[monthYear]) {
+        months[monthYear] = [];
+      }
+      months[monthYear].push({
+        ...h,
+        dayNum: dateObj.getDate(),
+        monthShort: dateObj.toLocaleString('default', { month: 'short' }).toUpperCase()
+      });
+    });
+    return months;
+  }, [activeHolidays]);
+
+  // Seed default mockup values to DB
+  const handleSeedPublic = async () => {
+    try {
+      await saveHolidays(branchId, MOCK_HOLIDAYS);
+    } catch (err) {
+      console.error('Error seeding holidays:', err);
+    }
+  };
+
+  const handleOpenAdd = () => {
+    setEditingId(null);
+    setHolidayName('');
+    setHolidayDesc('');
+    setHolidayType('Festival Holiday');
+    setHolidayDate('');
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEdit = (h) => {
+    setEditingId(h.id);
+    setHolidayName(h.name);
+    setHolidayDesc(h.desc || '');
+    setHolidayType(h.type);
+    setHolidayDate(h.date);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this holiday?')) {
+      const newList = activeHolidays.filter(item => item.id !== id);
+      try {
+        await saveHolidays(branchId, newList);
+      } catch (err) {
+        console.error('Error deleting holiday:', err);
+      }
+    }
+  };
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    if (!holidayName || !holidayDate) return;
+
+    let newList = [...activeHolidays];
+    if (editingId) {
+      newList = newList.map(item => item.id === editingId ? {
+        ...item,
+        name: holidayName,
+        desc: holidayDesc,
+        type: holidayType,
+        date: holidayDate
+      } : item);
+    } else {
+      newList.push({
+        id: String(Date.now()),
+        name: holidayName,
+        desc: holidayDesc,
+        type: holidayType,
+        date: holidayDate
+      });
+    }
+
+    try {
+      await saveHolidays(branchId, newList);
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error('Error saving holiday:', err);
+    }
+  };
 
   return (
     <motion.div
@@ -12,10 +153,10 @@ const HolidayManagement = () => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
       transition={{ duration: 0.3 }}
-      className="p-4 md:p-8 space-y-6 pb-20 md:pb-8 max-w-[640px] mx-auto animate-fade-in text-center"
+      className="p-4 md:p-8 space-y-6 pb-24 max-w-[640px] mx-auto relative select-none animate-fade-in"
     >
       {/* Top Header Bar */}
-      <header className="flex items-center justify-between py-2 border-b border-[#e2e8f0]/40 shrink-0">
+      <header className="flex items-center justify-between py-2 border-b border-[#e2e8f0]/40 shrink-0 font-sans">
         <button
           onClick={() => navigate(-1)}
           className="p-1.5 hover:bg-[#EEF5FB] rounded-full text-dark transition-colors cursor-pointer"
@@ -25,37 +166,195 @@ const HolidayManagement = () => {
         <h1 className="text-sm font-bold text-dark pr-8 mx-auto">Holiday Management</h1>
       </header>
 
-      {/* Main content empty/placeholder state */}
-      <div className="flex flex-col items-center justify-center py-20 px-6 space-y-6 select-none min-h-[460px]">
-        {/* Custom SVG Red Calendar with X inside */}
-        <div className="w-24 h-24 rounded-3xl bg-red-50 flex items-center justify-center border border-red-100 shadow-sm relative">
-          <div className="absolute inset-[-6px] rounded-full border border-red-50" />
-          <svg
-            className="w-12 h-12 text-[#E53E3E]"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-            <line x1="16" y1="2" x2="16" y2="6"></line>
-            <line x1="8" y1="2" x2="8" y2="6"></line>
-            <line x1="3" y1="10" x2="21" y2="10"></line>
-            <line x1="9" y1="14" x2="15" y2="20"></line>
-            <line x1="15" y1="14" x2="9" y2="20"></line>
-          </svg>
-        </div>
-
-        <div className="space-y-2 max-w-[340px]">
-          <h2 className="text-lg font-black text-dark">Holiday Management</h2>
-          <p className="text-xs text-[#E53E3E] font-extrabold uppercase tracking-widest">Coming Soon</p>
-          <p className="text-xs text-[#A0AEC0] font-semibold leading-relaxed pt-2">
-            Manage school holidays and public holidays for your branch. This feature will be available in a future update.
-          </p>
-        </div>
+      {/* Top banner info row (Screenshot 4) */}
+      <div className="flex justify-between items-center bg-[#EEF5FB]/75 rounded-[18px] p-3.5 px-4.5 text-[10px] font-black text-secondaryText font-sans uppercase tracking-wider">
+        <span className="flex items-center gap-1.5">
+          <span>📅</span> 2026-27 · 2026-06-12 ~ 2027-04-24
+        </span>
+        <span className="bg-white border border-[#e2e8f0] rounded-full px-2.5 py-0.5 text-dark font-extrabold lowercase">
+          {activeHolidays.length} holidays
+        </span>
       </div>
+
+      {/* Info warning / Seed button (Screenshot 4) */}
+      {dbHolidays.length === 0 && (
+        <div className="flex justify-between items-center bg-amber-50/75 border border-amber-100 rounded-[20px] p-4 font-sans">
+          <div className="flex items-center gap-2">
+            <FiInfo className="w-4 h-4 text-amber-500 shrink-0" />
+            <span className="text-[10px] font-extrabold text-amber-700 uppercase tracking-wide">
+              13 public holidays can be added
+            </span>
+          </div>
+          <button
+            onClick={handleSeedPublic}
+            className="px-3.5 py-1.5 bg-white border border-blue-200 text-[#1597E5] hover:bg-[#EEF5FB] rounded-full text-[10.5px] font-black cursor-pointer transition-all active:scale-95 flex items-center gap-1 shadow-sm"
+          >
+            <span>➕ Seed Public</span>
+          </button>
+        </div>
+      )}
+
+      {/* Holidays List grouped by Month (Screenshot 4 layout) */}
+      <div className="space-y-6 pt-1 select-none">
+        {Object.keys(holidaysByMonth).map(monthYear => (
+          <div key={monthYear} className="space-y-3.5">
+            <h3 className="text-[10.5px] font-extrabold text-[#718096] uppercase tracking-wider px-1 font-sans">
+              {monthYear}
+            </h3>
+
+            <div className="space-y-3">
+              {holidaysByMonth[monthYear].map((holiday) => (
+                <div
+                  key={holiday.id}
+                  className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex justify-between items-center hover:border-brand-blue/15 transition-all group"
+                >
+                  <div className="flex items-center gap-4">
+                    {/* Month Date Block */}
+                    <div className="w-11 h-11 rounded-2xl bg-[#EEF5FB] flex flex-col items-center justify-center shrink-0 border border-brand-blue/5">
+                      <span className="text-sm font-black text-[#1597E5] leading-none">{holiday.dayNum}</span>
+                      <span className="text-[7.5px] font-extrabold text-[#A0AEC0] uppercase tracking-wider mt-1">{holiday.monthShort}</span>
+                    </div>
+
+                    <div>
+                      <h4 className="text-xs font-black text-dark leading-tight font-sans">
+                        {holiday.name}
+                      </h4>
+                      <p className="text-[9.5px] text-secondaryText font-bold mt-1 font-sans">
+                        {holiday.desc}
+                      </p>
+
+                      {/* Type Badge */}
+                      <span className={`inline-block mt-2 px-2.5 py-0.5 rounded-full text-[7.5px] font-black uppercase tracking-wider border ${
+                        holiday.type === 'National Holiday' ? 'bg-red-50 text-red-600 border-red-100' :
+                        holiday.type === 'State Holiday' ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                        'bg-purple-50 text-purple-600 border-purple-100'
+                      }`}>
+                        {holiday.type}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleOpenEdit(holiday)}
+                      className="p-1.5 hover:bg-slate-50 rounded-full text-[#A0AEC0] hover:text-[#1597E5] transition-colors cursor-pointer"
+                    >
+                      <FiEdit2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(holiday.id)}
+                      className="p-1.5 hover:bg-red-50 rounded-full text-[#A0AEC0] hover:text-red-500 transition-colors cursor-pointer"
+                    >
+                      <FiTrash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Floating Action Button: Add Holiday */}
+      <button
+        onClick={handleOpenAdd}
+        className="fixed bottom-6 right-6 py-3.5 px-6 bg-[#00A1FF] hover:bg-[#0088ff] text-white rounded-full font-extrabold text-xs flex items-center gap-2 shadow-lg shadow-brand-blue/35 transition-all cursor-pointer hover:scale-105 active:scale-95 z-45"
+      >
+        <FiPlus className="w-4.5 h-4.5" />
+        <span>Add Holiday</span>
+      </button>
+
+      {/* Modal Dialog for Add/Edit Holiday */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="fixed inset-0 bg-[#0F172A]/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-[32px] w-full max-w-md p-6 card-shadow space-y-5"
+            >
+              <div className="flex justify-between items-center pb-2 border-b border-slate-100 select-none">
+                <h3 className="text-sm font-black text-dark font-sans">
+                  {editingId ? 'Edit Holiday' : 'Add New Holiday'}
+                </h3>
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="p-1 hover:bg-slate-100 rounded-full text-secondaryText transition-colors"
+                >
+                  <FiX className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSave} className="space-y-4 font-sans text-xs">
+                <div className="space-y-1">
+                  <label className="text-[10.5px] font-black text-dark block">Holiday Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={holidayName}
+                    onChange={(e) => setHolidayName(e.target.value)}
+                    placeholder="e.g. Diwali"
+                    className="w-full bg-white border border-[#e2e8f0] rounded-[20px] px-4 py-3.5 text-xs font-semibold focus:outline-none focus:border-[#1597E5]"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10.5px] font-black text-dark block">Description</label>
+                  <input
+                    type="text"
+                    value={holidayDesc}
+                    onChange={(e) => setHolidayDesc(e.target.value)}
+                    placeholder="e.g. Festival of Lights"
+                    className="w-full bg-white border border-[#e2e8f0] rounded-[20px] px-4 py-3.5 text-xs font-semibold focus:outline-none focus:border-[#1597E5]"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10.5px] font-black text-dark block">Holiday Type</label>
+                  <select
+                    value={holidayType}
+                    onChange={(e) => setHolidayType(e.target.value)}
+                    className="w-full bg-white border border-[#e2e8f0] rounded-[20px] px-4 py-3.5 text-xs font-semibold focus:outline-none focus:border-[#1597E5] cursor-pointer"
+                  >
+                    <option value="Festival Holiday">Festival Holiday</option>
+                    <option value="National Holiday">National Holiday</option>
+                    <option value="State Holiday">State Holiday</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10.5px] font-black text-dark block">Date</label>
+                  <input
+                    type="date"
+                    required
+                    value={holidayDate}
+                    onChange={(e) => setHolidayDate(e.target.value)}
+                    className="w-full bg-white border border-[#e2e8f0] rounded-[20px] px-4 py-3.5 text-xs font-semibold focus:outline-none focus:border-[#1597E5] cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="flex-1 py-3.5 bg-slate-100 hover:bg-slate-200 text-dark rounded-[20px] font-bold transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 py-3.5 bg-[#1597E5] hover:bg-[#00A1FF] text-white rounded-[20px] font-bold transition-all shadow-md shadow-brand-blue/20"
+                  >
+                    Save Holiday
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
