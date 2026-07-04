@@ -17,7 +17,7 @@ export const useDataFetch = (fetcher, deps = [], options = {}) => {
   }, []);
 
   const run = useCallback(async (isSilent = false) => {
-    if (skip) return;
+    if (skip || typeof fetcher !== 'function') return;
     if (!isSilent) setLoading(true);
     setError(null);
     try {

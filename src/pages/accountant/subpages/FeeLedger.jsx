@@ -1,14 +1,232 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiArrowLeft, FiSearch, FiInbox } from 'react-icons/fi';
+import { FiArrowLeft, FiSearch, FiInbox, FiBookOpen, FiShare2 } from 'react-icons/fi';
 import { useApp } from '../../../context/AppContext';
+import { getStudentFeeProfile } from '../../../services/dataService';
+
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  const d = new Date(dateString);
+  if (isNaN(d.getTime())) return dateString;
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}-${month}-${year}`;
+};
 
 const FeeLedger = () => {
   const { activeRole } = useApp();
   const navigate = useNavigate();
+  const location = useLocation();
+  const studentId = location.state?.studentId;
+
   const [search, setSearch] = useState('');
   const [showBreakdown, setShowBreakdown] = useState(true);
+  const [studentDetails, setStudentDetails] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!studentId) return;
+    let active = true;
+    const loadProfile = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await getStudentFeeProfile(studentId);
+        if (active) {
+          setStudentDetails(res.student);
+        }
+      } catch (err) {
+        console.error('Error fetching student fee profile:', err);
+        if (active) setError('Failed to load student fee profile.');
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+    loadProfile();
+    return () => { active = false; };
+  }, [studentId]);
+
+  if (studentId) {
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center min-h-screen text-xs font-semibold text-secondaryText">
+          Loading student fee profile...
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div className="p-4 max-w-[640px] mx-auto text-center py-12">
+          <p className="text-xs font-semibold text-rose-500">{error}</p>
+          <button
+            onClick={() => navigate(-1)}
+            className="mt-4 px-4 py-2 bg-[#EEF5FB] text-brand-blue rounded-full text-xs font-bold"
+          >
+            Go Back
+          </button>
+        </div>
+      );
+    }
+
+    if (!studentDetails) {
+      return (
+        <div className="p-4 max-w-[640px] mx-auto text-center py-12">
+          <p className="text-xs font-semibold text-secondaryText">Student profile not found.</p>
+          <button
+            onClick={() => navigate(-1)}
+            className="mt-4 px-4 py-2 bg-[#EEF5FB] text-brand-blue rounded-full text-xs font-bold"
+          >
+            Go Back
+          </button>
+        </div>
+      );
+    }
+
+    const plan = (studentDetails.profileFeePlans || []).find(p => p.isActive !== false) || studentDetails.profileFeePlans?.[0];
+    const totalFee = plan?.totalAmount || 0;
+    const payments = plan?.profileFeePayments || [];
+    const paidAmount = payments
+      .filter(p => String(p.status || 'RECORDED').toUpperCase() !== 'REVERSED')
+      .reduce((sum, p) => sum + Number(p.amount || 0), 0);
+    const dueAmount = Math.max(totalFee - paidAmount, 0);
+    const progressPercent = totalFee > 0 ? Math.round((paidAmount / totalFee) * 100) : 0;
+
+    let status = 'Due';
+    if (progressPercent === 100) status = 'Paid';
+    else if (progressPercent > 0) status = 'Partial';
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -15 }}
+        transition={{ duration: 0.3 }}
+        className="p-4 md:p-8 space-y-6 pb-20 md:pb-8 max-w-[640px] mx-auto animate-fade-in"
+      >
+        {/* Top Header Bar */}
+        <header className="flex items-center justify-between py-2 border-b border-[#e2e8f0]/40 shrink-0">
+          <button
+            onClick={() => navigate(-1)}
+            className="p-1.5 hover:bg-[#EEF5FB] rounded-full text-dark transition-colors cursor-pointer"
+          >
+            <FiArrowLeft className="w-5 h-5" />
+          </button>
+          <h1 className="text-sm font-bold text-dark pr-8 mx-auto">Student Fee</h1>
+        </header>
+
+        {/* Curved blue card matching Screenshot 1 */}
+        <div className="relative rounded-[32px] bg-gradient-to-br from-[#1E56EC] to-[#4076FF] p-6 text-white card-shadow overflow-hidden">
+          <div className="absolute top-[-30px] right-[-30px] w-36 h-36 rounded-full bg-white/10" />
+          <div className="absolute bottom-[-40px] left-[10%] w-48 h-48 rounded-full bg-white/5" />
+
+          {/* Header Info with Badge */}
+          <div className="flex justify-between items-start mb-6 z-10 relative">
+            <div>
+              <h2 className="text-xl font-bold uppercase tracking-tight">
+                {studentDetails.fullName}
+              </h2>
+              <p className="text-xs text-white/80 font-semibold mt-1">
+                {studentDetails.academicClass?.name || ''} - Section {studentDetails.section?.name || 'A'}
+              </p>
+            </div>
+            
+            {/* Status Badge */}
+            <span className={`rounded-full px-3 py-1 text-[10px] font-extrabold flex items-center gap-1.5 ${
+              status === 'Paid' ? 'bg-[#D1FAE5] text-[#065F46]' :
+              status === 'Partial' ? 'bg-[#FEF3C7] text-[#D97706]' : 'bg-[#FEE2E2] text-[#991B1B]'
+            }`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${
+                status === 'Paid' ? 'bg-[#065F46]' :
+                status === 'Partial' ? 'bg-[#D97706]' : 'bg-[#991B1B]'
+              }`} />
+              {status}
+            </span>
+          </div>
+
+          {/* Progress bar */}
+          <div className="w-full bg-white/20 h-2 rounded-full overflow-hidden mt-4 z-10 relative">
+            <div className="bg-white h-full rounded-full transition-all duration-300" style={{ width: `${progressPercent}%` }} />
+          </div>
+
+          <div className="flex justify-between items-center text-xs text-white/90 font-bold mt-3 z-10 relative">
+            <span>Rs {paidAmount.toLocaleString('en-IN')} paid</span>
+            <span>Rs {dueAmount.toLocaleString('en-IN')} due</span>
+          </div>
+        </div>
+
+        {/* Ledger card matching Screenshot 1 */}
+        <div className="bg-white rounded-[28px] border border-[#e2e8f0]/40 p-5 card-shadow space-y-4">
+          <div className="flex items-center gap-2.5 px-1 text-[10px] font-bold text-secondaryText uppercase tracking-wider">
+            <FiBookOpen className="w-4 h-4 text-brand-blue" />
+            <span>Ledger</span>
+          </div>
+          
+          <div className="divide-y divide-[#e2e8f0]/50 text-xs font-semibold font-sans">
+            <div className="flex justify-between items-center py-3">
+              <span className="text-[#4A5568]">Total Fee</span>
+              <span className="text-[#0F172A] font-extrabold uppercase">Rs {totalFee.toLocaleString('en-IN')}</span>
+            </div>
+            <div className="flex justify-between items-center py-3">
+              <span className="text-[#4A5568]">Paid Amount</span>
+              <span className="text-[#23C16B] font-extrabold uppercase">Rs {paidAmount.toLocaleString('en-IN')}</span>
+            </div>
+            <div className="flex justify-between items-center py-3">
+              <span className="text-[#4A5568]">Remaining Balance</span>
+              <span className="text-[#FF3B30] font-extrabold uppercase">Rs {dueAmount.toLocaleString('en-IN')}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Transactions Section matching Screenshot 1 */}
+        <div className="space-y-3">
+          <div className="px-1 text-[10px] font-black text-secondaryText tracking-widest uppercase">
+            ? Transactions
+          </div>
+
+          {payments.length === 0 ? (
+            <div className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-8 text-center text-xs font-bold text-secondaryText">
+              No transactions recorded yet.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {payments.map((p) => (
+                <div
+                  key={p.id}
+                  className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-4">
+                    {/* Circle icon with question mark */}
+                    <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-500 border border-emerald-100 flex items-center justify-center font-bold text-xs select-none">
+                      ?
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-extrabold text-dark">
+                        Rs {Number(p.amount || 0).toLocaleString('en-IN')}
+                      </h3>
+                      <p className="text-[10px] text-dark font-semibold mt-0.5">
+                        {studentDetails.fullName} · {p.paymentMode || 'UPI'}
+                      </p>
+                      <p className="text-[9px] text-[#A0AEC0] font-semibold mt-0.5">
+                        {formatDate(p.paymentDate)} | {p.receiptNumber || 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <button className="w-9 h-9 rounded-full bg-[#EBF8FF] text-brand-blue flex items-center justify-center hover:bg-blue-100 transition-colors cursor-pointer active:scale-95">
+                    <FiShare2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </motion.div>
+    );
+  }
 
   if (activeRole === 'PARENT') {
     return (

@@ -5060,3 +5060,50 @@ mutation RecordMarksAuditLog(
     }
   )
 }
+
+mutation UpdateStudentStatus($studentId: UUID!, $status: String!) @auth(level: USER) @transaction {
+  query @redact {
+    users(
+      where: {
+        _and: [
+          {firebaseUID: {eq_expr: "auth.uid"}}
+          {isActive: {eq: true}}
+        ]
+      }
+      limit: 1
+    ) @check(expr: "this.exists(u, true)", message: "Student status update access denied") {
+      id
+    }
+  }
+  student_update(
+    id: $studentId
+    data: {
+      status: $status
+      updatedAt_expr: "request.time"
+    }
+  )
+}
+
+mutation UpdateStudentSection($studentId: UUID!, $classId: UUID!, $sectionId: UUID!) @auth(level: USER) @transaction {
+  query @redact {
+    users(
+      where: {
+        _and: [
+          {firebaseUID: {eq_expr: "auth.uid"}}
+          {isActive: {eq: true}}
+        ]
+      }
+      limit: 1
+    ) @check(expr: "this.exists(u, true)", message: "Student assignment access denied") {
+      id
+    }
+  }
+  student_update(
+    id: $studentId
+    data: {
+      academicClassId: $classId
+      sectionId: $sectionId
+      updatedAt_expr: "request.time"
+    }
+  )
+}

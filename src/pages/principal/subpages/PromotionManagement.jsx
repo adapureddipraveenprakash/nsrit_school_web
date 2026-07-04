@@ -5,23 +5,23 @@ import { FiArrowLeft, FiChevronDown, FiCheckCircle } from 'react-icons/fi';
 import { BiTransfer } from 'react-icons/bi';
 
 const COORDINATOR_STUDENTS = [
-  'KORADA BHARGAVSAI',
-  'GANDARDDI MANJUSHA',
-  'GONTHINA POORVESH',
-  'AKKIREDDY SADHVIK',
-  'KORADA CHERVIK',
-  'BOGADHI HETVIK',
-  'BOOSA MANOJ',
-  'GNANA ABHINAVA RAM KORADA',
-  'GOLAGANA HANSHITH',
-  'GOLAJANA GNANESWARI',
-  'KORUKONDA NISSY SWAASTHYA',
-  'RAMINA PARDHU',
-  'RAMINA TEJASREE PRANAV',
-  'M SRAVYA SRI',
-  'BODDAPU PRERANA LATHA',
-  'BALLIREDDY LOKSHITHA SRI',
-  'CHANDAPARAPU GNANWITH'
+  { name: 'KORADA BHARGAVSAI', rollNo: '26S00002' },
+  { name: 'GANDARDDI MANJUSHA', rollNo: '26S00003' },
+  { name: 'GONTHINA POORVESH', rollNo: '26S00004' },
+  { name: 'AKKIREDDY SADHVIK', rollNo: '26S00006' },
+  { name: 'KORADA CHERVIK', rollNo: '26S00007' },
+  { name: 'BOGADHI HETVIK', rollNo: '26S00008' },
+  { name: 'BOOSA MANOJ', rollNo: '26S00011' },
+  { name: 'GNANA ABHINAVA RAM KORADA', rollNo: '26S00014' },
+  { name: 'GOLAGANA HANSHITH', rollNo: '26S00017' },
+  { name: 'GOLAJANA GNANESWARI', rollNo: '26S00019' },
+  { name: 'KORUKONDA NISSY SWAASTHYA', rollNo: '26S00021' },
+  { name: 'RAMINA PARDHU', rollNo: '26S00022' },
+  { name: 'RAMINA TEJASREE PRANAV', rollNo: '26S00024' },
+  { name: 'M SRAVYA SRI', rollNo: '26S00025' },
+  { name: 'BODDAPU PRERANA LATHA', rollNo: '26S00027' },
+  { name: 'BALLIREDDY LOKSHITHA SRI', rollNo: '26S00031' },
+  { name: 'CHANDAPARAPU GNANWITH', rollNo: '26S00037' }
 ];
 
 const SECTIONS = [
@@ -97,9 +97,9 @@ const PromotionManagement = () => {
                 }`}
               >
                 <option value="">Select</option>
-                {COORDINATOR_STUDENTS.map((name) => (
-                  <option key={name} value={name}>
-                    {name}
+                {COORDINATOR_STUDENTS.map((stud) => (
+                  <option key={stud.rollNo} value={stud.name}>
+                    {stud.name} - {stud.rollNo}
                   </option>
                 ))}
               </select>

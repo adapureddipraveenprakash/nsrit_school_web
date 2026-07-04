@@ -1,18 +1,176 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   FiArrowLeft, FiSearch, FiGrid, FiSliders, FiPlusCircle, FiClock,
-  FiBookOpen, FiFileText, FiInbox, FiTrendingUp, FiCreditCard
+  FiBookOpen, FiFileText, FiInbox, FiTrendingUp, FiCreditCard, FiChevronRight
 } from 'react-icons/fi';
 import { BiReceipt } from 'react-icons/bi';
 import { useApp } from '../../context/AppContext';
+import { useDataFetch } from '../../hooks/useDataFetch';
+import { getFeeReports, getStudentFeeProfile, getParentChildrenByUser } from '../../services/dataService';
 
 const FeeOverview = () => {
-  const { activeRole } = useApp();
+  const { activeRole, user } = useApp();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('All'); // 'All' | 'Paid' | 'Partial' | 'Due' | 'Other'
+
+  // Parent Wards data fetching
+  const parentUserId = user?.id || user?.uid || null;
+  const { data: childrenWithFees, loading: parentLoading } = useDataFetch(
+    async () => {
+      if (activeRole !== 'PARENT' || !parentUserId) return [];
+      const children = await getParentChildrenByUser(parentUserId);
+      const studentDetails = await Promise.all(
+        children.map(async (cp) => {
+          const studentId = cp.student?.id;
+          if (!studentId) return cp.student;
+          try {
+            const profile = await getStudentFeeProfile(studentId);
+            return {
+              ...cp.student,
+              feeProfile: profile.student
+            };
+          } catch (err) {
+            console.error('Error fetching fee profile for student:', studentId, err);
+            return cp.student;
+          }
+        })
+      );
+      return studentDetails.filter(Boolean);
+    },
+    [parentUserId, activeRole],
+    { defaultValue: [] }
+  );
+
+  // Calculate parent stats
+  const parentStats = useMemo(() => {
+    let totalPaid = 0;
+    let outstanding = 0;
+
+    childrenWithFees.forEach(student => {
+      const activePlans = (student.feeProfile?.profileFeePlans || []).filter(fp => fp.isActive !== false);
+      activePlans.forEach(plan => {
+        outstanding += plan.totalAmount || 0;
+        const paid = (plan.profileFeePayments || [])
+          .filter(p => String(p.status || 'RECORDED').toUpperCase() !== 'REVERSED')
+          .reduce((sum, p) => sum + Number(p.amount || 0), 0);
+        totalPaid += paid;
+      });
+    });
+
+    outstanding = Math.max(outstanding - totalPaid, 0);
+    return { totalPaid, outstanding };
+  }, [childrenWithFees]);
+
+  // Staff Data Fetching (if activeRole !== 'PARENT')
+  const branchId = user?.branchId || 'sontyam-branch-id';
+  const { data: rawFeeReports, loading: staffLoading } = useDataFetch(
+    () => getFeeReports({ branchId }),
+    [branchId],
+    { defaultValue: { students: [] }, skip: activeRole === 'PARENT', pollInterval: 15000 }
+  );
+
+  const allStudents = rawFeeReports?.students || [];
+
+  // If coordinator, filter by wing
+  const filteredStudentsForStaff = useMemo(() => {
+    if (activeRole === 'COORDINATOR' && user?.wing) {
+      return allStudents.filter(
+        s => s.academicClass?.wing?.code?.toUpperCase() === user.wing.toUpperCase()
+      );
+    }
+    return allStudents;
+  }, [allStudents, activeRole, user?.wing]);
+
+  // Compute staff aggregates
+  const staffStats = useMemo(() => {
+    let totalFees = 0;
+    let totalCollected = 0;
+    let totalDues = 0;
+    let paidCount = 0;
+    let pendingCount = 0;
+
+    filteredStudentsForStaff.forEach(s => {
+      const activePlans = (s.reportFeePlans || []).filter(fp => fp.isActive !== false);
+      let studentTotal = 0;
+      let studentPaid = 0;
+
+      activePlans.forEach(plan => {
+        studentTotal += plan.totalAmount || 0;
+        studentPaid += (plan.reportFeePayments || [])
+          .filter(p => String(p.status || 'RECORDED').toUpperCase() !== 'REVERSED')
+          .reduce((sum, p) => sum + Number(p.amount || 0), 0);
+      });
+
+      totalFees += studentTotal;
+      totalCollected += studentPaid;
+
+      if (studentTotal > 0) {
+        if (studentPaid >= studentTotal) {
+          paidCount++;
+        } else {
+          pendingCount++;
+        }
+      }
+    });
+
+    totalDues = Math.max(totalFees - totalCollected, 0);
+    const collectionRate = totalFees > 0 ? Math.round((totalCollected / totalFees) * 100) : 0;
+
+    return { totalFees, totalCollected, totalDues, collectionRate, paidCount, pendingCount };
+  }, [filteredStudentsForStaff]);
+
+  // Get and filter student records for the table/list
+  const normalizedRecords = useMemo(() => {
+    return filteredStudentsForStaff.map(s => {
+      const activePlans = (s.reportFeePlans || []).filter(fp => fp.isActive !== false);
+      let total = 0;
+      let paid = 0;
+      activePlans.forEach(plan => {
+        total += plan.totalAmount || 0;
+        paid += (plan.reportFeePayments || [])
+          .filter(p => String(p.status || 'RECORDED').toUpperCase() !== 'REVERSED')
+          .reduce((sum, p) => sum + Number(p.amount || 0), 0);
+      });
+      const due = Math.max(total - paid, 0);
+      let status = 'DUE';
+      if (total > 0) {
+        if (paid >= total) status = 'PAID';
+        else if (paid > 0) status = 'PARTIAL';
+      } else {
+        status = 'PAID'; // no fees assigned means paid
+      }
+
+      return {
+        id: s.id,
+        name: s.fullName || 'Unknown Student',
+        class: `${s.academicClass?.name || 'N/A'}-${s.section?.name || 'N/A'}`.toUpperCase(),
+        admissionNo: s.studentId || 'N/A',
+        total,
+        paid,
+        due,
+        status
+      };
+    });
+  }, [filteredStudentsForStaff]);
+
+  // Apply search and tab filters
+  const searchedRecords = useMemo(() => {
+    return normalizedRecords.filter(r => {
+      const matchesSearch = r.name.toLowerCase().includes(search.toLowerCase()) ||
+                            r.admissionNo.toLowerCase().includes(search.toLowerCase());
+
+      const matchesTab = activeTab === 'All' ||
+                         (activeTab === 'Paid' && r.status === 'PAID') ||
+                         (activeTab === 'Partial' && r.status === 'PARTIAL') ||
+                         (activeTab === 'Due' && r.status === 'DUE') ||
+                         (activeTab === 'Other' && r.status !== 'PAID' && r.status !== 'PARTIAL' && r.status !== 'DUE');
+
+      return matchesSearch && matchesTab;
+    });
+  }, [normalizedRecords, search, activeTab]);
 
   if (activeRole === 'PARENT') {
     return (
@@ -57,11 +215,11 @@ const FeeOverview = () => {
               <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
                 <div>
                   <p className="text-[9.5px] text-white/70 font-black uppercase tracking-wider">Total Paid</p>
-                  <p className="text-lg font-black mt-0.5">Rs 0</p>
+                  <p className="text-lg font-black mt-0.5">Rs {parentStats.totalPaid.toLocaleString('en-IN')}</p>
                 </div>
                 <div>
                   <p className="text-[9.5px] text-white/70 font-black uppercase tracking-wider">Outstanding</p>
-                  <p className="text-lg font-black mt-0.5 text-[#ffb4b4]">Rs 41,000</p>
+                  <p className="text-lg font-black mt-0.5 text-[#ffb4b4]">Rs {parentStats.outstanding.toLocaleString('en-IN')}</p>
                 </div>
               </div>
             </div>
@@ -79,58 +237,85 @@ const FeeOverview = () => {
               </div>
             </div>
 
-            {/* Child Due Status block */}
-            <div className="bg-white rounded-[28px] border border-[#e2e8f0]/40 p-5 card-shadow flex flex-col gap-4 relative overflow-hidden">
-              {/* Header row */}
-              <div className="flex justify-between items-start">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#EEF5FB] flex items-center justify-center text-[#0088ff] font-bold text-xs shrink-0 select-none">
-                    PP
+            {parentLoading ? (
+              <div className="text-center py-6 text-xs text-secondaryText font-bold">Loading ward fee status...</div>
+            ) : childrenWithFees.length === 0 ? (
+              <div className="text-center py-6 text-xs text-secondaryText font-bold">No registered wards found.</div>
+            ) : childrenWithFees.map((student) => {
+              let total = 0;
+              let paid = 0;
+              const activePlans = (student.feeProfile?.profileFeePlans || []).filter(fp => fp.isActive !== false);
+              activePlans.forEach(plan => {
+                total += plan.totalAmount || 0;
+                paid += (plan.profileFeePayments || [])
+                  .filter(p => String(p.status || 'RECORDED').toUpperCase() !== 'REVERSED')
+                  .reduce((sum, p) => sum + Number(p.amount || 0), 0);
+              });
+              const balance = Math.max(total - paid, 0);
+              const percent = total > 0 ? Math.round((paid / total) * 100) : 0;
+              const initials = student.fullName ? student.fullName.split(' ').map(n => n[0]).join('').slice(0, 2) : 'ST';
+
+              return (
+                <div key={student.id} className="bg-white rounded-[28px] border border-[#e2e8f0]/40 p-5 card-shadow flex flex-col gap-4 relative overflow-hidden">
+                  {/* Header row */}
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-[#EEF5FB] flex items-center justify-center text-[#0088ff] font-bold text-xs shrink-0 select-none">
+                        {initials}
+                      </div>
+                      <div>
+                        <h3 className="text-xs font-black text-[#0F172A] leading-tight">
+                          {student.fullName}
+                        </h3>
+                        <p className="text-[10px] text-secondaryText font-bold mt-0.5">
+                          Class: {student.academicClass?.name || 'N/A'} - {student.section?.name || 'N/A'}
+                        </p>
+                      </div>
+                    </div>
+                    <span className={`px-2.5 py-1 text-[8.5px] font-black rounded-lg uppercase tracking-wider border ${
+                      balance === 0 ? 'bg-emerald-50 text-emerald-500 border-emerald-100' : 'bg-red-50 text-[#FF3B30] border-red-100'
+                    }`}>
+                      {balance === 0 ? 'Paid' : 'Due'}
+                    </span>
                   </div>
-                  <div>
-                    <h3 className="text-xs font-black text-[#0F172A] leading-tight">
-                      PATCHAMATLA PRANEETH VARMA
-                    </h3>
-                    <p className="text-[10px] text-secondaryText font-bold mt-0.5">
-                      Class not assigned
-                    </p>
+
+                  {/* Stats Row */}
+                  <div className="grid grid-cols-3 gap-2 text-center text-xs border-t border-slate-100 pt-3.5 font-sans">
+                    <div>
+                      <span className="text-[9.5px] font-bold text-secondaryText uppercase tracking-wider">Total</span>
+                      <p className="text-xs font-black text-[#0F172A] mt-1">Rs {total.toLocaleString('en-IN')}</p>
+                    </div>
+                    <div>
+                      <span className="text-[9.5px] font-bold text-secondaryText uppercase tracking-wider">Paid</span>
+                      <p className="text-xs font-black text-[#23C16B] mt-1">Rs {paid.toLocaleString('en-IN')}</p>
+                    </div>
+                    <div>
+                      <span className="text-[9.5px] font-bold text-secondaryText uppercase tracking-wider">Balance</span>
+                      <p className="text-xs font-black text-[#FF3B30] mt-1">Rs {balance.toLocaleString('en-IN')}</p>
+                    </div>
                   </div>
-                </div>
-                <span className="px-2.5 py-1 bg-red-50 text-[#FF3B30] text-[8.5px] font-black rounded-lg uppercase tracking-wider border border-red-100">
-                  Due
-                </span>
-              </div>
 
-              {/* Stats Row */}
-              <div className="grid grid-cols-3 gap-2 text-center text-xs border-t border-slate-100 pt-3.5 font-sans">
-                <div>
-                  <span className="text-[9.5px] font-bold text-secondaryText uppercase tracking-wider">Total</span>
-                  <p className="text-xs font-black text-[#0F172A] mt-1">Rs 41,000</p>
-                </div>
-                <div>
-                  <span className="text-[9.5px] font-bold text-secondaryText uppercase tracking-wider">Paid</span>
-                  <p className="text-xs font-black text-[#23C16B] mt-1">Rs 0</p>
-                </div>
-                <div>
-                  <span className="text-[9.5px] font-bold text-secondaryText uppercase tracking-wider">Balance</span>
-                  <p className="text-xs font-black text-[#FF3B30] mt-1">Rs 41,000</p>
-                </div>
-              </div>
+                  {/* Progress Percent Text */}
+                  <p className="text-[9.5px] font-black text-secondaryText mt-1">
+                    {percent}% of fees paid
+                  </p>
 
-              {/* Progress Percent Text */}
-              <p className="text-[9.5px] font-black text-secondaryText mt-1">
-                0% of fees paid
-              </p>
+                  {/* Progress Bar */}
+                  <div className="w-full bg-[#EEF5FB] h-1.5 rounded-full overflow-hidden">
+                    <div className="bg-[#0088ff] h-full rounded-full transition-all duration-300" style={{ width: `${percent}%` }} />
+                  </div>
 
-              {/* View Fee Ledger Button */}
-              <button
-                onClick={() => navigate('/settings/ledger')}
-                className="w-full py-3 bg-[#EEF5FB] hover:bg-[#e2effa] text-[#0088ff] rounded-[16px] text-xs font-black transition-all active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                <span>View Fee Ledger</span>
-                <span className="text-[9px]">&gt;</span>
-              </button>
-            </div>
+                  {/* View Fee Ledger Button */}
+                  <button
+                    onClick={() => navigate('/settings/ledger', { state: { studentId: student.id } })}
+                    className="w-full py-3 bg-[#EEF5FB] hover:bg-[#e2effa] text-[#0088ff] rounded-[16px] text-xs font-black transition-all active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <span>View Fee Ledger</span>
+                    <span className="text-[9px]">&gt;</span>
+                  </button>
+                </div>
+              );
+            })}
           </div>
 
           {/* Column 2 */}
@@ -162,12 +347,6 @@ const FeeOverview = () => {
       </motion.div>
     );
   }
-
-  // Empty state for Sontyam Branch context (0 paid, 0 pending, Rs 0 total)
-  const collectionRate = 0;
-  const totalCollected = 0;
-  const totalDues = 0;
-  const totalFees = 0;
 
   const handleAction = (label) => {
     if (label === 'Class Fees') {
@@ -236,30 +415,30 @@ const FeeOverview = () => {
               Collection Rate
             </span>
             <p className="text-[10px] text-[#A0AEC0] font-bold">
-              0 paid · 0 pending
+              {staffStats.paidCount} paid · {staffStats.pendingCount} pending
             </p>
           </div>
-          <span className="text-2xl font-black text-accent-red">{collectionRate}%</span>
+          <span className="text-2xl font-black text-accent-red">{staffStats.collectionRate}%</span>
         </div>
 
         {/* Thin progress bar */}
         <div className="w-full bg-[#EEF5FB] h-1.5 rounded-full overflow-hidden">
-          <div className="bg-accent-red h-full rounded-full transition-all duration-300" style={{ width: '0%' }} />
+          <div className="bg-accent-red h-full rounded-full transition-all duration-300" style={{ width: `${staffStats.collectionRate}%` }} />
         </div>
 
         {/* Triple column statistics */}
         <div className="grid grid-cols-3 gap-2 pt-2 text-center divide-x divide-[#e2e8f0]/75">
           <div className="space-y-0.5">
-            <p className="text-xs font-black text-dark">Rs {totalFees}</p>
+            <p className="text-xs font-black text-dark">Rs {staffStats.totalFees.toLocaleString('en-IN')}</p>
             <p className="text-[9px] text-[#A0AEC0] font-bold uppercase tracking-wider">Total</p>
           </div>
           <div className="space-y-0.5">
-            <p className="text-xs font-black text-accent-green">Rs {totalCollected}</p>
+            <p className="text-xs font-black text-accent-green">Rs {staffStats.totalCollected.toLocaleString('en-IN')}</p>
             <p className="text-[9px] text-[#A0AEC0] font-bold uppercase tracking-wider">Paid</p>
           </div>
           <div className="space-y-0.5">
             <p className="text-xs font-black text-accent-red flex items-center justify-center gap-0.5">
-              Rs {totalDues}
+              Rs {staffStats.totalDues.toLocaleString('en-IN')}
               <span className="text-[8px] opacity-75">↗️</span>
             </p>
             <p className="text-[9px] text-[#A0AEC0] font-bold uppercase tracking-wider">Due</p>
@@ -319,18 +498,58 @@ const FeeOverview = () => {
           ))}
         </div>
 
-        {/* Empty State Panel */}
-        <div className="bg-white rounded-[32px] border border-[#e2e8f0]/40 p-12 card-shadow text-center flex flex-col items-center justify-center space-y-4 min-h-[260px]">
-          <div className="w-18 h-18 rounded-full bg-[#EEF5FB] flex items-center justify-center text-brand-blue border border-brand-blue/10">
-            <FiInbox className="w-8 h-8" />
+        {/* Results list */}
+        {staffLoading ? (
+          <div className="text-center py-12 text-xs font-bold text-secondaryText font-medium">
+            Loading branch fee records...
           </div>
-          <div className="space-y-1.5 max-w-[260px]">
-            <h4 className="text-xs font-extrabold text-dark">No fee records</h4>
-            <p className="text-[10px] text-[#A0AEC0] font-semibold leading-relaxed">
-              Try another filter or search term.
-            </p>
+        ) : searchedRecords.length > 0 ? (
+          <div className="space-y-3">
+            {searchedRecords.map((student) => (
+              <div
+                key={student.id}
+                onClick={() => navigate('/settings/ledger', { state: { studentId: student.id } })}
+                className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/15 transition-all cursor-pointer group active:scale-[0.99]"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-11 h-11 rounded-full bg-[#EEF5FB] text-brand-blue flex items-center justify-center text-xs font-black shadow-inner">
+                    {student.name.charAt(0)}
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-extrabold text-dark group-hover:text-brand-blue transition-colors">
+                      {student.name}
+                    </h3>
+                    <p className="text-[9.5px] text-[#A0AEC0] font-bold mt-0.5">
+                      Class: {student.class} · ID: {student.admissionNo}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg ${
+                    student.status === 'PAID' ? 'bg-emerald-50 text-emerald-500' :
+                    student.status === 'PARTIAL' ? 'bg-amber-50 text-amber-500' : 'bg-rose-50 text-rose-500'
+                  }`}>
+                    {student.status === 'PAID' ? 'Paid' : `Due: Rs ${student.due.toLocaleString('en-IN')}`}
+                  </span>
+                  <FiChevronRight className="w-4 h-4 text-[#A0AEC0] group-hover:translate-x-0.5 transition-transform" />
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
+        ) : (
+          /* Empty State Panel */
+          <div className="bg-white rounded-[32px] border border-[#e2e8f0]/40 p-12 card-shadow text-center flex flex-col items-center justify-center space-y-4 min-h-[260px]">
+            <div className="w-18 h-18 rounded-full bg-[#EEF5FB] flex items-center justify-center text-brand-blue border border-brand-blue/10">
+              <FiInbox className="w-8 h-8" />
+            </div>
+            <div className="space-y-1.5 max-w-[260px]">
+              <h4 className="text-xs font-extrabold text-dark">No fee records</h4>
+              <p className="text-[10px] text-[#A0AEC0] font-semibold leading-relaxed">
+                Try another filter or search term.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </motion.div>
   );

@@ -1,0 +1,660 @@
+import { GetCurrentUserData, GetCurrentUserVariables, GetUserByPhoneData, GetUserByPhoneVariables, GetUserRolesData, GetUserRolesVariables, GetStudentsByBranchData, GetStudentsByBranchVariables, GetStudentsBySectionData, GetStudentsBySectionVariables, GetParentChildrenData, GetParentChildrenVariables, GetParentChildrenByUserData, GetParentChildrenByUserVariables, GetStudentParentsData, GetStudentParentsVariables, GetParentByUserData, GetParentByUserVariables, GetParentByPhoneData, GetParentByPhoneVariables, GetBranchesData, GetBranchesVariables, GetBranchDetailsData, GetBranchDetailsVariables, GetUsersByRoleData, GetUsersByRoleVariables, GetAssignmentConflictsData, GetAssignmentConflictsVariables, GetGlobalClassesData, GetGlobalClassesVariables, GetClassDetailsData, GetClassDetailsVariables, GetGlobalStudentsData, GetGlobalStudentsVariables, GetStudentProfileData, GetStudentProfileVariables, GetStudentAttendanceData, GetStudentAttendanceVariables, GetStudentFeeHistoryData, GetStudentFeeHistoryVariables, GetDashboardStatisticsData, GetWingsByBranchData, GetWingsByBranchVariables, GetClassesByWingData, GetClassesByWingVariables, GetSectionsByClassData, GetSectionsByClassVariables, GetTeacherAssignmentsData, GetTeacherAssignmentsVariables, SearchStudentsData, SearchStudentsVariables, GetStudentIdSequenceData, GetStudentIdSequenceVariables, GetStudentDetailsData, GetStudentDetailsVariables, GetStudentsData, GetStudentsVariables, GetStaffIdSequenceData, GetStaffIdSequenceVariables, GetEmployeeSequenceData, GetEmployeeSequenceVariables, GetStaffIdsByPrefixData, GetStaffIdsByPrefixVariables, GetAttendanceByMonthData, GetAttendanceByMonthVariables, GetAttendanceBySectionData, GetAttendanceBySectionVariables, GetAttendanceBySectionHistoryData, GetAttendanceBySectionHistoryVariables, GetAttendanceByBranchData, GetAttendanceByBranchVariables, GetAttendanceByWingData, GetAttendanceByWingVariables, GetFeeDetailsData, GetFeeDetailsVariables, GetFeeRecordsByBranchData, GetFeeRecordsByBranchVariables, GetAllFeeRecordsData, GetAllFeeRecordsVariables, GetDueStudentsData, GetDueStudentsVariables, GetPaidStudentsData, GetPaidStudentsVariables, GetBranchAnalyticsData, GetBranchAnalyticsVariables, GetClassAnalyticsData, GetClassAnalyticsVariables, GetAcademicClassesData, GetAcademicClassesVariables, GetActiveAcademicClassesData, GetActiveAcademicClassesVariables, GetClassesByWingCodeData, GetClassesByWingCodeVariables, GetCoordinatorsData, GetCoordinatorsVariables, GetCoordinatorDetailsData, GetCoordinatorDetailsVariables, GetCoordinatorByUserData, GetCoordinatorByUserVariables, GetSectionsData, GetSectionsVariables, GetSectionsByClassAndYearData, GetSectionsByClassAndYearVariables, GetPrincipalDashboardData, GetPrincipalDashboardVariables, GetStudentsByWingData, GetStudentsByWingVariables, GetCoordinatorStudentsByWingData, GetCoordinatorStudentsByWingVariables, GetPromotionHistoryData, GetPromotionHistoryVariables, GetStudentSequenceData, GetStudentSequenceVariables, GenerateAdmissionNumberData, GenerateAdmissionNumberVariables, GetLastStudentSerialData, GetLastStudentSerialVariables, GetTeachersData, GetTeachersVariables, GetTeachersByBranchData, GetTeachersByBranchVariables, GetTeachersByWingData, GetTeachersByWingVariables, GetCoordinatorTeachersByWingData, GetCoordinatorTeachersByWingVariables, GetTeacherProfileData, GetTeacherProfileVariables, GetTeacherProfileByUserData, GetTeacherProfileByUserVariables, GetTeacherDashboardData, GetTeacherDashboardVariables, GetSubjectsData, GetSubjectsVariables, GetSectionsForTeacherAssignmentData, GetSectionsForTeacherAssignmentVariables, GetAccountantsData, GetAccountantsVariables, GetAccountantProfileData, GetAccountantProfileVariables, GetAccountantByUserData, GetAccountantByUserVariables, GetFeeCategoriesData, GetFeeCategoriesVariables, GetClassTeacherAssignmentsData, GetClassTeacherAssignmentsVariables, GetClassFeesData, GetClassFeesVariables, GetStudentFeeProfileData, GetStudentFeeProfileVariables, GetPaymentHistoryData, GetPaymentHistoryVariables, GetReceiptSequenceData, GetReceiptSequenceVariables, GetFeeReportsData, GetFeeReportsVariables, GetGlobalStudentExplorerData, GetGlobalStudentExplorerVariables, GetGlobalReportsData, GetAuditLogsData, GetAuditLogsVariables, GetClassFeeReportData, GetClassFeeReportVariables, GetClassStudentsFeeStatusData, GetClassStudentsFeeStatusVariables, GetClassCollectionSummaryData, GetClassCollectionSummaryVariables, GetClassOutstandingSummaryData, GetClassOutstandingSummaryVariables, GetUsersByPhoneData, GetUsersByPhoneVariables, GetNoticesByBranchData, GetNoticesByBranchVariables, GetNoticesByBranchCategoryData, GetNoticesByBranchCategoryVariables, GetTimetableForSectionData, GetTimetableForSectionVariables, GetTimetablesForBranchData, GetTimetablesForBranchVariables, GetTimetablesForWingData, GetTimetablesForWingVariables, GetTimetableForTeacherData, GetTimetableForTeacherVariables, GetSuggestionsByParentData, GetSuggestionsByParentVariables, GetSuggestionsByBranchData, GetSuggestionsByBranchVariables, GetNotificationsByUserData, GetNotificationsByUserVariables, GetUnreadNotificationCountData, GetUnreadNotificationCountVariables, GetBranchStaffUserIdsData, GetBranchStaffUserIdsVariables, GetBranchStudentsWithParentsData, GetBranchStudentsWithParentsVariables, GetUserForRoleChangeData, GetUserForRoleChangeVariables, GetAcademicYearsData, GetAcademicYearsVariables, GetActiveAcademicYearData, GetActiveAcademicYearVariables, GetBranchPromotionHistoryData, GetBranchPromotionHistoryVariables, GetHolidaysByBranchData, GetHolidaysByBranchVariables, GetHolidaysByMonthData, GetHolidaysByMonthVariables, GetAttendanceLockStatusData, GetAttendanceLockStatusVariables, GetAttendanceAuditLogData, GetAttendanceAuditLogVariables, GetAttendanceAuditLogByBranchData, GetAttendanceAuditLogByBranchVariables, GetAttendanceAuditLogBySectionData, GetAttendanceAuditLogBySectionVariables, GetAttendanceSummaryByStudentData, GetAttendanceSummaryByStudentVariables, GetAttendanceSummaryBySectionData, GetAttendanceSummaryBySectionVariables, GetLowAttendanceStudentsData, GetLowAttendanceStudentsVariables, GetDailyAttendanceReportData, GetDailyAttendanceReportVariables, GetMonthlyAttendanceReportData, GetMonthlyAttendanceReportVariables, GetAttendanceAlertLogData, GetAttendanceAlertLogVariables, GetExamsByBranchData, GetExamsByBranchVariables, GetExamDetailsData, GetExamDetailsVariables, GetMarksForSectionData, GetMarksForSectionVariables, GetStudentResultsForParentData, GetStudentResultsForParentVariables, GetStudentResultDetailData, GetStudentResultDetailVariables, GetExamAnalyticsData, GetExamAnalyticsVariables, GetPublishedExamsForSectionData, GetPublishedExamsForSectionVariables, GetExamsBySectionData, GetExamsBySectionVariables, CreateBranchData, CreateBranchVariables, UpdateBranchData, UpdateBranchVariables, AssignBranchAdminData, AssignBranchAdminVariables, AssignPrincipalData, AssignPrincipalVariables, CreateClassData, CreateClassVariables, ActivateClassData, ActivateClassVariables, DeactivateClassData, DeactivateClassVariables, SeedAcademicClassData, SeedAcademicClassVariables, CreateWingData, CreateWingVariables, CreateSectionData, CreateSectionVariables, RemoveSectionData, RemoveSectionVariables, CreateUserData, CreateUserVariables, ClaimUserFirebaseUidData, ClaimUserFirebaseUidVariables, EnsureCurrentUserLegacyRoleData, AddParentRoleData, AddParentRoleVariables, SwitchRoleData, SwitchRoleVariables, LinkParentUserData, LinkParentUserVariables, LinkStudentParentData, LinkStudentParentVariables, CreateParentData, CreateParentVariables, CreateParentWithoutUserData, CreateParentWithoutUserVariables, CreateStudentData, CreateStudentVariables, UpdateStudentData, UpdateStudentVariables, CreateAttendanceData, CreateAttendanceVariables, UpdateAttendanceData, UpdateAttendanceVariables, UploadFeePaymentData, UploadFeePaymentVariables, AssignTeacherData, AssignTeacherVariables, CreateCoordinatorData, CreateCoordinatorVariables, CreateTeacherData, CreateTeacherVariables, AssignTeacherClassTeacherData, AssignTeacherClassTeacherVariables, UpdateTeacherData, UpdateTeacherVariables, AssignClassTeacherData, AssignClassTeacherVariables, CreateSubjectData, CreateSubjectVariables, AssignTeacherSubjectData, AssignTeacherSubjectVariables, ClearTeacherSubjectsData, ClearTeacherSubjectsVariables, CreateAccountantData, CreateAccountantVariables, ClearTeacherWingRestrictionsData, ClearTeacherWingRestrictionsVariables, EnsureCoordinatorTeacherProfileData, EnsureCoordinatorTeacherProfileVariables, UpdateClassTeacherAssignmentData, UpdateClassTeacherAssignmentVariables, RemoveClassTeacherAssignmentData, RemoveClassTeacherAssignmentVariables, RemoveLegacyClassTeacherAssignmentData, RemoveLegacyClassTeacherAssignmentVariables, UpdateAccountantData, UpdateAccountantVariables, CreateFeeCategoryData, CreateFeeCategoryVariables, UpdateFeeCategoryData, UpdateFeeCategoryVariables, CreateClassFeeData, CreateClassFeeVariables, UpdateClassFeeData, UpdateClassFeeVariables, CreateFeePlanData, CreateFeePlanVariables, UpdateFeePlanData, UpdateFeePlanVariables, ClearFeePlanItemsData, ClearFeePlanItemsVariables, CreateFeePlanItemData, CreateFeePlanItemVariables, RecordPaymentData, RecordPaymentVariables, UpdatePaymentData, UpdatePaymentVariables, ReversePaymentData, ReversePaymentVariables, RecordAuditLogData, RecordAuditLogVariables, CreateNoticeData, CreateNoticeVariables, UpdateNoticeData, UpdateNoticeVariables, DeleteNoticeData, DeleteNoticeVariables, ToggleNoticePinData, ToggleNoticePinVariables, UpsertTimetablePeriodData, UpsertTimetablePeriodVariables, ClearTimetableForSectionData, ClearTimetableForSectionVariables, UpsertTimetablePeriodFullData, UpsertTimetablePeriodFullVariables, PublishTimetableSectionData, PublishTimetableSectionVariables, UnpublishTimetableSectionData, UnpublishTimetableSectionVariables, CreateSuggestionData, CreateSuggestionVariables, RespondToSuggestionData, RespondToSuggestionVariables, CreateNotificationData, CreateNotificationVariables, DeleteNotificationData, DeleteNotificationVariables, MarkNotificationReadData, MarkNotificationReadVariables, MarkAllNotificationsReadData, MarkAllNotificationsReadVariables, ChangeUserPrimaryRoleData, ChangeUserPrimaryRoleVariables, AddAdditionalRoleData, AddAdditionalRoleVariables, CleanUserRolesToPrimaryData, CleanUserRolesToPrimaryVariables, CreateAcademicYearData, CreateAcademicYearVariables, UpdateAcademicYearData, UpdateAcademicYearVariables, ActivateAcademicYearData, ActivateAcademicYearVariables, CloseAcademicYearData, CloseAcademicYearVariables, RecordStudentPromotionData, RecordStudentPromotionVariables, ApplyStudentPromotionData, ApplyStudentPromotionVariables, CreateHolidayData, CreateHolidayVariables, UpdateHolidayData, UpdateHolidayVariables, DeleteHolidayData, DeleteHolidayVariables, CorrectAttendanceData, CorrectAttendanceVariables, UpsertAttendanceSummaryData, UpsertAttendanceSummaryVariables, CreateAttendanceAlertLogData, CreateAttendanceAlertLogVariables, CreatePublicHolidayData, CreatePublicHolidayVariables, CreateExamData, CreateExamVariables, UpdateExamData, UpdateExamVariables, ArchiveExamData, ArchiveExamVariables, DeleteExamData, DeleteExamVariables, AddExamSectionData, AddExamSectionVariables, UpsertExamSubjectConfigData, UpsertExamSubjectConfigVariables, UpsertStudentMarkData, UpsertStudentMarkVariables, PublishExamSectionData, PublishExamSectionVariables, UnpublishExamSectionData, UnpublishExamSectionVariables, RecordMarksAuditLogData, RecordMarksAuditLogVariables, UpdateStudentStatusData, UpdateStudentStatusVariables, UpdateStudentSectionData, UpdateStudentSectionVariables } from '../';
+import { UseDataConnectQueryResult, useDataConnectQueryOptions, UseDataConnectMutationResult, useDataConnectMutationOptions} from '@tanstack-query-firebase/react/data-connect';
+import { UseQueryResult, UseMutationResult} from '@tanstack/react-query';
+import { DataConnect } from 'firebase/data-connect';
+import { FirebaseError } from 'firebase/app';
+
+
+export function useGetCurrentUser(vars: GetCurrentUserVariables, options?: useDataConnectQueryOptions<GetCurrentUserData>): UseDataConnectQueryResult<GetCurrentUserData, GetCurrentUserVariables>;
+export function useGetCurrentUser(dc: DataConnect, vars: GetCurrentUserVariables, options?: useDataConnectQueryOptions<GetCurrentUserData>): UseDataConnectQueryResult<GetCurrentUserData, GetCurrentUserVariables>;
+
+export function useGetUserByPhone(vars: GetUserByPhoneVariables, options?: useDataConnectQueryOptions<GetUserByPhoneData>): UseDataConnectQueryResult<GetUserByPhoneData, GetUserByPhoneVariables>;
+export function useGetUserByPhone(dc: DataConnect, vars: GetUserByPhoneVariables, options?: useDataConnectQueryOptions<GetUserByPhoneData>): UseDataConnectQueryResult<GetUserByPhoneData, GetUserByPhoneVariables>;
+
+export function useGetUserRoles(vars: GetUserRolesVariables, options?: useDataConnectQueryOptions<GetUserRolesData>): UseDataConnectQueryResult<GetUserRolesData, GetUserRolesVariables>;
+export function useGetUserRoles(dc: DataConnect, vars: GetUserRolesVariables, options?: useDataConnectQueryOptions<GetUserRolesData>): UseDataConnectQueryResult<GetUserRolesData, GetUserRolesVariables>;
+
+export function useGetStudentsByBranch(vars: GetStudentsByBranchVariables, options?: useDataConnectQueryOptions<GetStudentsByBranchData>): UseDataConnectQueryResult<GetStudentsByBranchData, GetStudentsByBranchVariables>;
+export function useGetStudentsByBranch(dc: DataConnect, vars: GetStudentsByBranchVariables, options?: useDataConnectQueryOptions<GetStudentsByBranchData>): UseDataConnectQueryResult<GetStudentsByBranchData, GetStudentsByBranchVariables>;
+
+export function useGetStudentsBySection(vars: GetStudentsBySectionVariables, options?: useDataConnectQueryOptions<GetStudentsBySectionData>): UseDataConnectQueryResult<GetStudentsBySectionData, GetStudentsBySectionVariables>;
+export function useGetStudentsBySection(dc: DataConnect, vars: GetStudentsBySectionVariables, options?: useDataConnectQueryOptions<GetStudentsBySectionData>): UseDataConnectQueryResult<GetStudentsBySectionData, GetStudentsBySectionVariables>;
+
+export function useGetParentChildren(vars: GetParentChildrenVariables, options?: useDataConnectQueryOptions<GetParentChildrenData>): UseDataConnectQueryResult<GetParentChildrenData, GetParentChildrenVariables>;
+export function useGetParentChildren(dc: DataConnect, vars: GetParentChildrenVariables, options?: useDataConnectQueryOptions<GetParentChildrenData>): UseDataConnectQueryResult<GetParentChildrenData, GetParentChildrenVariables>;
+
+export function useGetParentChildrenByUser(vars: GetParentChildrenByUserVariables, options?: useDataConnectQueryOptions<GetParentChildrenByUserData>): UseDataConnectQueryResult<GetParentChildrenByUserData, GetParentChildrenByUserVariables>;
+export function useGetParentChildrenByUser(dc: DataConnect, vars: GetParentChildrenByUserVariables, options?: useDataConnectQueryOptions<GetParentChildrenByUserData>): UseDataConnectQueryResult<GetParentChildrenByUserData, GetParentChildrenByUserVariables>;
+
+export function useGetStudentParents(vars: GetStudentParentsVariables, options?: useDataConnectQueryOptions<GetStudentParentsData>): UseDataConnectQueryResult<GetStudentParentsData, GetStudentParentsVariables>;
+export function useGetStudentParents(dc: DataConnect, vars: GetStudentParentsVariables, options?: useDataConnectQueryOptions<GetStudentParentsData>): UseDataConnectQueryResult<GetStudentParentsData, GetStudentParentsVariables>;
+
+export function useGetParentByUser(vars: GetParentByUserVariables, options?: useDataConnectQueryOptions<GetParentByUserData>): UseDataConnectQueryResult<GetParentByUserData, GetParentByUserVariables>;
+export function useGetParentByUser(dc: DataConnect, vars: GetParentByUserVariables, options?: useDataConnectQueryOptions<GetParentByUserData>): UseDataConnectQueryResult<GetParentByUserData, GetParentByUserVariables>;
+
+export function useGetParentByPhone(vars: GetParentByPhoneVariables, options?: useDataConnectQueryOptions<GetParentByPhoneData>): UseDataConnectQueryResult<GetParentByPhoneData, GetParentByPhoneVariables>;
+export function useGetParentByPhone(dc: DataConnect, vars: GetParentByPhoneVariables, options?: useDataConnectQueryOptions<GetParentByPhoneData>): UseDataConnectQueryResult<GetParentByPhoneData, GetParentByPhoneVariables>;
+
+export function useGetBranches(vars?: GetBranchesVariables, options?: useDataConnectQueryOptions<GetBranchesData>): UseDataConnectQueryResult<GetBranchesData, GetBranchesVariables>;
+export function useGetBranches(dc: DataConnect, vars?: GetBranchesVariables, options?: useDataConnectQueryOptions<GetBranchesData>): UseDataConnectQueryResult<GetBranchesData, GetBranchesVariables>;
+
+export function useGetBranchDetails(vars: GetBranchDetailsVariables, options?: useDataConnectQueryOptions<GetBranchDetailsData>): UseDataConnectQueryResult<GetBranchDetailsData, GetBranchDetailsVariables>;
+export function useGetBranchDetails(dc: DataConnect, vars: GetBranchDetailsVariables, options?: useDataConnectQueryOptions<GetBranchDetailsData>): UseDataConnectQueryResult<GetBranchDetailsData, GetBranchDetailsVariables>;
+
+export function useGetUsersByRole(vars: GetUsersByRoleVariables, options?: useDataConnectQueryOptions<GetUsersByRoleData>): UseDataConnectQueryResult<GetUsersByRoleData, GetUsersByRoleVariables>;
+export function useGetUsersByRole(dc: DataConnect, vars: GetUsersByRoleVariables, options?: useDataConnectQueryOptions<GetUsersByRoleData>): UseDataConnectQueryResult<GetUsersByRoleData, GetUsersByRoleVariables>;
+
+export function useGetAssignmentConflicts(vars: GetAssignmentConflictsVariables, options?: useDataConnectQueryOptions<GetAssignmentConflictsData>): UseDataConnectQueryResult<GetAssignmentConflictsData, GetAssignmentConflictsVariables>;
+export function useGetAssignmentConflicts(dc: DataConnect, vars: GetAssignmentConflictsVariables, options?: useDataConnectQueryOptions<GetAssignmentConflictsData>): UseDataConnectQueryResult<GetAssignmentConflictsData, GetAssignmentConflictsVariables>;
+
+export function useGetGlobalClasses(vars?: GetGlobalClassesVariables, options?: useDataConnectQueryOptions<GetGlobalClassesData>): UseDataConnectQueryResult<GetGlobalClassesData, GetGlobalClassesVariables>;
+export function useGetGlobalClasses(dc: DataConnect, vars?: GetGlobalClassesVariables, options?: useDataConnectQueryOptions<GetGlobalClassesData>): UseDataConnectQueryResult<GetGlobalClassesData, GetGlobalClassesVariables>;
+
+export function useGetClassDetails(vars: GetClassDetailsVariables, options?: useDataConnectQueryOptions<GetClassDetailsData>): UseDataConnectQueryResult<GetClassDetailsData, GetClassDetailsVariables>;
+export function useGetClassDetails(dc: DataConnect, vars: GetClassDetailsVariables, options?: useDataConnectQueryOptions<GetClassDetailsData>): UseDataConnectQueryResult<GetClassDetailsData, GetClassDetailsVariables>;
+
+export function useGetGlobalStudents(vars?: GetGlobalStudentsVariables, options?: useDataConnectQueryOptions<GetGlobalStudentsData>): UseDataConnectQueryResult<GetGlobalStudentsData, GetGlobalStudentsVariables>;
+export function useGetGlobalStudents(dc: DataConnect, vars?: GetGlobalStudentsVariables, options?: useDataConnectQueryOptions<GetGlobalStudentsData>): UseDataConnectQueryResult<GetGlobalStudentsData, GetGlobalStudentsVariables>;
+
+export function useGetStudentProfile(vars: GetStudentProfileVariables, options?: useDataConnectQueryOptions<GetStudentProfileData>): UseDataConnectQueryResult<GetStudentProfileData, GetStudentProfileVariables>;
+export function useGetStudentProfile(dc: DataConnect, vars: GetStudentProfileVariables, options?: useDataConnectQueryOptions<GetStudentProfileData>): UseDataConnectQueryResult<GetStudentProfileData, GetStudentProfileVariables>;
+
+export function useGetStudentAttendance(vars: GetStudentAttendanceVariables, options?: useDataConnectQueryOptions<GetStudentAttendanceData>): UseDataConnectQueryResult<GetStudentAttendanceData, GetStudentAttendanceVariables>;
+export function useGetStudentAttendance(dc: DataConnect, vars: GetStudentAttendanceVariables, options?: useDataConnectQueryOptions<GetStudentAttendanceData>): UseDataConnectQueryResult<GetStudentAttendanceData, GetStudentAttendanceVariables>;
+
+export function useGetStudentFeeHistory(vars: GetStudentFeeHistoryVariables, options?: useDataConnectQueryOptions<GetStudentFeeHistoryData>): UseDataConnectQueryResult<GetStudentFeeHistoryData, GetStudentFeeHistoryVariables>;
+export function useGetStudentFeeHistory(dc: DataConnect, vars: GetStudentFeeHistoryVariables, options?: useDataConnectQueryOptions<GetStudentFeeHistoryData>): UseDataConnectQueryResult<GetStudentFeeHistoryData, GetStudentFeeHistoryVariables>;
+
+export function useGetDashboardStatistics(options?: useDataConnectQueryOptions<GetDashboardStatisticsData>): UseDataConnectQueryResult<GetDashboardStatisticsData, undefined>;
+export function useGetDashboardStatistics(dc: DataConnect, options?: useDataConnectQueryOptions<GetDashboardStatisticsData>): UseDataConnectQueryResult<GetDashboardStatisticsData, undefined>;
+
+export function useGetWingsByBranch(vars: GetWingsByBranchVariables, options?: useDataConnectQueryOptions<GetWingsByBranchData>): UseDataConnectQueryResult<GetWingsByBranchData, GetWingsByBranchVariables>;
+export function useGetWingsByBranch(dc: DataConnect, vars: GetWingsByBranchVariables, options?: useDataConnectQueryOptions<GetWingsByBranchData>): UseDataConnectQueryResult<GetWingsByBranchData, GetWingsByBranchVariables>;
+
+export function useGetClassesByWing(vars: GetClassesByWingVariables, options?: useDataConnectQueryOptions<GetClassesByWingData>): UseDataConnectQueryResult<GetClassesByWingData, GetClassesByWingVariables>;
+export function useGetClassesByWing(dc: DataConnect, vars: GetClassesByWingVariables, options?: useDataConnectQueryOptions<GetClassesByWingData>): UseDataConnectQueryResult<GetClassesByWingData, GetClassesByWingVariables>;
+
+export function useGetSectionsByClass(vars: GetSectionsByClassVariables, options?: useDataConnectQueryOptions<GetSectionsByClassData>): UseDataConnectQueryResult<GetSectionsByClassData, GetSectionsByClassVariables>;
+export function useGetSectionsByClass(dc: DataConnect, vars: GetSectionsByClassVariables, options?: useDataConnectQueryOptions<GetSectionsByClassData>): UseDataConnectQueryResult<GetSectionsByClassData, GetSectionsByClassVariables>;
+
+export function useGetTeacherAssignments(vars: GetTeacherAssignmentsVariables, options?: useDataConnectQueryOptions<GetTeacherAssignmentsData>): UseDataConnectQueryResult<GetTeacherAssignmentsData, GetTeacherAssignmentsVariables>;
+export function useGetTeacherAssignments(dc: DataConnect, vars: GetTeacherAssignmentsVariables, options?: useDataConnectQueryOptions<GetTeacherAssignmentsData>): UseDataConnectQueryResult<GetTeacherAssignmentsData, GetTeacherAssignmentsVariables>;
+
+export function useSearchStudents(vars: SearchStudentsVariables, options?: useDataConnectQueryOptions<SearchStudentsData>): UseDataConnectQueryResult<SearchStudentsData, SearchStudentsVariables>;
+export function useSearchStudents(dc: DataConnect, vars: SearchStudentsVariables, options?: useDataConnectQueryOptions<SearchStudentsData>): UseDataConnectQueryResult<SearchStudentsData, SearchStudentsVariables>;
+
+export function useGetStudentIdSequence(vars: GetStudentIdSequenceVariables, options?: useDataConnectQueryOptions<GetStudentIdSequenceData>): UseDataConnectQueryResult<GetStudentIdSequenceData, GetStudentIdSequenceVariables>;
+export function useGetStudentIdSequence(dc: DataConnect, vars: GetStudentIdSequenceVariables, options?: useDataConnectQueryOptions<GetStudentIdSequenceData>): UseDataConnectQueryResult<GetStudentIdSequenceData, GetStudentIdSequenceVariables>;
+
+export function useGetStudentDetails(vars: GetStudentDetailsVariables, options?: useDataConnectQueryOptions<GetStudentDetailsData>): UseDataConnectQueryResult<GetStudentDetailsData, GetStudentDetailsVariables>;
+export function useGetStudentDetails(dc: DataConnect, vars: GetStudentDetailsVariables, options?: useDataConnectQueryOptions<GetStudentDetailsData>): UseDataConnectQueryResult<GetStudentDetailsData, GetStudentDetailsVariables>;
+
+export function useGetStudents(vars: GetStudentsVariables, options?: useDataConnectQueryOptions<GetStudentsData>): UseDataConnectQueryResult<GetStudentsData, GetStudentsVariables>;
+export function useGetStudents(dc: DataConnect, vars: GetStudentsVariables, options?: useDataConnectQueryOptions<GetStudentsData>): UseDataConnectQueryResult<GetStudentsData, GetStudentsVariables>;
+
+export function useGetStaffIdSequence(vars: GetStaffIdSequenceVariables, options?: useDataConnectQueryOptions<GetStaffIdSequenceData>): UseDataConnectQueryResult<GetStaffIdSequenceData, GetStaffIdSequenceVariables>;
+export function useGetStaffIdSequence(dc: DataConnect, vars: GetStaffIdSequenceVariables, options?: useDataConnectQueryOptions<GetStaffIdSequenceData>): UseDataConnectQueryResult<GetStaffIdSequenceData, GetStaffIdSequenceVariables>;
+
+export function useGetEmployeeSequence(vars: GetEmployeeSequenceVariables, options?: useDataConnectQueryOptions<GetEmployeeSequenceData>): UseDataConnectQueryResult<GetEmployeeSequenceData, GetEmployeeSequenceVariables>;
+export function useGetEmployeeSequence(dc: DataConnect, vars: GetEmployeeSequenceVariables, options?: useDataConnectQueryOptions<GetEmployeeSequenceData>): UseDataConnectQueryResult<GetEmployeeSequenceData, GetEmployeeSequenceVariables>;
+
+export function useGetStaffIdsByPrefix(vars: GetStaffIdsByPrefixVariables, options?: useDataConnectQueryOptions<GetStaffIdsByPrefixData>): UseDataConnectQueryResult<GetStaffIdsByPrefixData, GetStaffIdsByPrefixVariables>;
+export function useGetStaffIdsByPrefix(dc: DataConnect, vars: GetStaffIdsByPrefixVariables, options?: useDataConnectQueryOptions<GetStaffIdsByPrefixData>): UseDataConnectQueryResult<GetStaffIdsByPrefixData, GetStaffIdsByPrefixVariables>;
+
+export function useGetAttendanceByMonth(vars: GetAttendanceByMonthVariables, options?: useDataConnectQueryOptions<GetAttendanceByMonthData>): UseDataConnectQueryResult<GetAttendanceByMonthData, GetAttendanceByMonthVariables>;
+export function useGetAttendanceByMonth(dc: DataConnect, vars: GetAttendanceByMonthVariables, options?: useDataConnectQueryOptions<GetAttendanceByMonthData>): UseDataConnectQueryResult<GetAttendanceByMonthData, GetAttendanceByMonthVariables>;
+
+export function useGetAttendanceBySection(vars: GetAttendanceBySectionVariables, options?: useDataConnectQueryOptions<GetAttendanceBySectionData>): UseDataConnectQueryResult<GetAttendanceBySectionData, GetAttendanceBySectionVariables>;
+export function useGetAttendanceBySection(dc: DataConnect, vars: GetAttendanceBySectionVariables, options?: useDataConnectQueryOptions<GetAttendanceBySectionData>): UseDataConnectQueryResult<GetAttendanceBySectionData, GetAttendanceBySectionVariables>;
+
+export function useGetAttendanceBySectionHistory(vars: GetAttendanceBySectionHistoryVariables, options?: useDataConnectQueryOptions<GetAttendanceBySectionHistoryData>): UseDataConnectQueryResult<GetAttendanceBySectionHistoryData, GetAttendanceBySectionHistoryVariables>;
+export function useGetAttendanceBySectionHistory(dc: DataConnect, vars: GetAttendanceBySectionHistoryVariables, options?: useDataConnectQueryOptions<GetAttendanceBySectionHistoryData>): UseDataConnectQueryResult<GetAttendanceBySectionHistoryData, GetAttendanceBySectionHistoryVariables>;
+
+export function useGetAttendanceByBranch(vars: GetAttendanceByBranchVariables, options?: useDataConnectQueryOptions<GetAttendanceByBranchData>): UseDataConnectQueryResult<GetAttendanceByBranchData, GetAttendanceByBranchVariables>;
+export function useGetAttendanceByBranch(dc: DataConnect, vars: GetAttendanceByBranchVariables, options?: useDataConnectQueryOptions<GetAttendanceByBranchData>): UseDataConnectQueryResult<GetAttendanceByBranchData, GetAttendanceByBranchVariables>;
+
+export function useGetAttendanceByWing(vars: GetAttendanceByWingVariables, options?: useDataConnectQueryOptions<GetAttendanceByWingData>): UseDataConnectQueryResult<GetAttendanceByWingData, GetAttendanceByWingVariables>;
+export function useGetAttendanceByWing(dc: DataConnect, vars: GetAttendanceByWingVariables, options?: useDataConnectQueryOptions<GetAttendanceByWingData>): UseDataConnectQueryResult<GetAttendanceByWingData, GetAttendanceByWingVariables>;
+
+export function useGetFeeDetails(vars: GetFeeDetailsVariables, options?: useDataConnectQueryOptions<GetFeeDetailsData>): UseDataConnectQueryResult<GetFeeDetailsData, GetFeeDetailsVariables>;
+export function useGetFeeDetails(dc: DataConnect, vars: GetFeeDetailsVariables, options?: useDataConnectQueryOptions<GetFeeDetailsData>): UseDataConnectQueryResult<GetFeeDetailsData, GetFeeDetailsVariables>;
+
+export function useGetFeeRecordsByBranch(vars: GetFeeRecordsByBranchVariables, options?: useDataConnectQueryOptions<GetFeeRecordsByBranchData>): UseDataConnectQueryResult<GetFeeRecordsByBranchData, GetFeeRecordsByBranchVariables>;
+export function useGetFeeRecordsByBranch(dc: DataConnect, vars: GetFeeRecordsByBranchVariables, options?: useDataConnectQueryOptions<GetFeeRecordsByBranchData>): UseDataConnectQueryResult<GetFeeRecordsByBranchData, GetFeeRecordsByBranchVariables>;
+
+export function useGetAllFeeRecords(vars?: GetAllFeeRecordsVariables, options?: useDataConnectQueryOptions<GetAllFeeRecordsData>): UseDataConnectQueryResult<GetAllFeeRecordsData, GetAllFeeRecordsVariables>;
+export function useGetAllFeeRecords(dc: DataConnect, vars?: GetAllFeeRecordsVariables, options?: useDataConnectQueryOptions<GetAllFeeRecordsData>): UseDataConnectQueryResult<GetAllFeeRecordsData, GetAllFeeRecordsVariables>;
+
+export function useGetDueStudents(vars: GetDueStudentsVariables, options?: useDataConnectQueryOptions<GetDueStudentsData>): UseDataConnectQueryResult<GetDueStudentsData, GetDueStudentsVariables>;
+export function useGetDueStudents(dc: DataConnect, vars: GetDueStudentsVariables, options?: useDataConnectQueryOptions<GetDueStudentsData>): UseDataConnectQueryResult<GetDueStudentsData, GetDueStudentsVariables>;
+
+export function useGetPaidStudents(vars: GetPaidStudentsVariables, options?: useDataConnectQueryOptions<GetPaidStudentsData>): UseDataConnectQueryResult<GetPaidStudentsData, GetPaidStudentsVariables>;
+export function useGetPaidStudents(dc: DataConnect, vars: GetPaidStudentsVariables, options?: useDataConnectQueryOptions<GetPaidStudentsData>): UseDataConnectQueryResult<GetPaidStudentsData, GetPaidStudentsVariables>;
+
+export function useGetBranchAnalytics(vars: GetBranchAnalyticsVariables, options?: useDataConnectQueryOptions<GetBranchAnalyticsData>): UseDataConnectQueryResult<GetBranchAnalyticsData, GetBranchAnalyticsVariables>;
+export function useGetBranchAnalytics(dc: DataConnect, vars: GetBranchAnalyticsVariables, options?: useDataConnectQueryOptions<GetBranchAnalyticsData>): UseDataConnectQueryResult<GetBranchAnalyticsData, GetBranchAnalyticsVariables>;
+
+export function useGetClassAnalytics(vars: GetClassAnalyticsVariables, options?: useDataConnectQueryOptions<GetClassAnalyticsData>): UseDataConnectQueryResult<GetClassAnalyticsData, GetClassAnalyticsVariables>;
+export function useGetClassAnalytics(dc: DataConnect, vars: GetClassAnalyticsVariables, options?: useDataConnectQueryOptions<GetClassAnalyticsData>): UseDataConnectQueryResult<GetClassAnalyticsData, GetClassAnalyticsVariables>;
+
+export function useGetAcademicClasses(vars?: GetAcademicClassesVariables, options?: useDataConnectQueryOptions<GetAcademicClassesData>): UseDataConnectQueryResult<GetAcademicClassesData, GetAcademicClassesVariables>;
+export function useGetAcademicClasses(dc: DataConnect, vars?: GetAcademicClassesVariables, options?: useDataConnectQueryOptions<GetAcademicClassesData>): UseDataConnectQueryResult<GetAcademicClassesData, GetAcademicClassesVariables>;
+
+export function useGetActiveAcademicClasses(vars?: GetActiveAcademicClassesVariables, options?: useDataConnectQueryOptions<GetActiveAcademicClassesData>): UseDataConnectQueryResult<GetActiveAcademicClassesData, GetActiveAcademicClassesVariables>;
+export function useGetActiveAcademicClasses(dc: DataConnect, vars?: GetActiveAcademicClassesVariables, options?: useDataConnectQueryOptions<GetActiveAcademicClassesData>): UseDataConnectQueryResult<GetActiveAcademicClassesData, GetActiveAcademicClassesVariables>;
+
+export function useGetClassesByWingCode(vars: GetClassesByWingCodeVariables, options?: useDataConnectQueryOptions<GetClassesByWingCodeData>): UseDataConnectQueryResult<GetClassesByWingCodeData, GetClassesByWingCodeVariables>;
+export function useGetClassesByWingCode(dc: DataConnect, vars: GetClassesByWingCodeVariables, options?: useDataConnectQueryOptions<GetClassesByWingCodeData>): UseDataConnectQueryResult<GetClassesByWingCodeData, GetClassesByWingCodeVariables>;
+
+export function useGetCoordinators(vars: GetCoordinatorsVariables, options?: useDataConnectQueryOptions<GetCoordinatorsData>): UseDataConnectQueryResult<GetCoordinatorsData, GetCoordinatorsVariables>;
+export function useGetCoordinators(dc: DataConnect, vars: GetCoordinatorsVariables, options?: useDataConnectQueryOptions<GetCoordinatorsData>): UseDataConnectQueryResult<GetCoordinatorsData, GetCoordinatorsVariables>;
+
+export function useGetCoordinatorDetails(vars: GetCoordinatorDetailsVariables, options?: useDataConnectQueryOptions<GetCoordinatorDetailsData>): UseDataConnectQueryResult<GetCoordinatorDetailsData, GetCoordinatorDetailsVariables>;
+export function useGetCoordinatorDetails(dc: DataConnect, vars: GetCoordinatorDetailsVariables, options?: useDataConnectQueryOptions<GetCoordinatorDetailsData>): UseDataConnectQueryResult<GetCoordinatorDetailsData, GetCoordinatorDetailsVariables>;
+
+export function useGetCoordinatorByUser(vars: GetCoordinatorByUserVariables, options?: useDataConnectQueryOptions<GetCoordinatorByUserData>): UseDataConnectQueryResult<GetCoordinatorByUserData, GetCoordinatorByUserVariables>;
+export function useGetCoordinatorByUser(dc: DataConnect, vars: GetCoordinatorByUserVariables, options?: useDataConnectQueryOptions<GetCoordinatorByUserData>): UseDataConnectQueryResult<GetCoordinatorByUserData, GetCoordinatorByUserVariables>;
+
+export function useGetSections(vars: GetSectionsVariables, options?: useDataConnectQueryOptions<GetSectionsData>): UseDataConnectQueryResult<GetSectionsData, GetSectionsVariables>;
+export function useGetSections(dc: DataConnect, vars: GetSectionsVariables, options?: useDataConnectQueryOptions<GetSectionsData>): UseDataConnectQueryResult<GetSectionsData, GetSectionsVariables>;
+
+export function useGetSectionsByClassAndYear(vars: GetSectionsByClassAndYearVariables, options?: useDataConnectQueryOptions<GetSectionsByClassAndYearData>): UseDataConnectQueryResult<GetSectionsByClassAndYearData, GetSectionsByClassAndYearVariables>;
+export function useGetSectionsByClassAndYear(dc: DataConnect, vars: GetSectionsByClassAndYearVariables, options?: useDataConnectQueryOptions<GetSectionsByClassAndYearData>): UseDataConnectQueryResult<GetSectionsByClassAndYearData, GetSectionsByClassAndYearVariables>;
+
+export function useGetPrincipalDashboard(vars: GetPrincipalDashboardVariables, options?: useDataConnectQueryOptions<GetPrincipalDashboardData>): UseDataConnectQueryResult<GetPrincipalDashboardData, GetPrincipalDashboardVariables>;
+export function useGetPrincipalDashboard(dc: DataConnect, vars: GetPrincipalDashboardVariables, options?: useDataConnectQueryOptions<GetPrincipalDashboardData>): UseDataConnectQueryResult<GetPrincipalDashboardData, GetPrincipalDashboardVariables>;
+
+export function useGetStudentsByWing(vars: GetStudentsByWingVariables, options?: useDataConnectQueryOptions<GetStudentsByWingData>): UseDataConnectQueryResult<GetStudentsByWingData, GetStudentsByWingVariables>;
+export function useGetStudentsByWing(dc: DataConnect, vars: GetStudentsByWingVariables, options?: useDataConnectQueryOptions<GetStudentsByWingData>): UseDataConnectQueryResult<GetStudentsByWingData, GetStudentsByWingVariables>;
+
+export function useGetCoordinatorStudentsByWing(vars: GetCoordinatorStudentsByWingVariables, options?: useDataConnectQueryOptions<GetCoordinatorStudentsByWingData>): UseDataConnectQueryResult<GetCoordinatorStudentsByWingData, GetCoordinatorStudentsByWingVariables>;
+export function useGetCoordinatorStudentsByWing(dc: DataConnect, vars: GetCoordinatorStudentsByWingVariables, options?: useDataConnectQueryOptions<GetCoordinatorStudentsByWingData>): UseDataConnectQueryResult<GetCoordinatorStudentsByWingData, GetCoordinatorStudentsByWingVariables>;
+
+export function useGetPromotionHistory(vars?: GetPromotionHistoryVariables, options?: useDataConnectQueryOptions<GetPromotionHistoryData>): UseDataConnectQueryResult<GetPromotionHistoryData, GetPromotionHistoryVariables>;
+export function useGetPromotionHistory(dc: DataConnect, vars?: GetPromotionHistoryVariables, options?: useDataConnectQueryOptions<GetPromotionHistoryData>): UseDataConnectQueryResult<GetPromotionHistoryData, GetPromotionHistoryVariables>;
+
+export function useGetStudentSequence(vars: GetStudentSequenceVariables, options?: useDataConnectQueryOptions<GetStudentSequenceData>): UseDataConnectQueryResult<GetStudentSequenceData, GetStudentSequenceVariables>;
+export function useGetStudentSequence(dc: DataConnect, vars: GetStudentSequenceVariables, options?: useDataConnectQueryOptions<GetStudentSequenceData>): UseDataConnectQueryResult<GetStudentSequenceData, GetStudentSequenceVariables>;
+
+export function useGenerateAdmissionNumber(vars: GenerateAdmissionNumberVariables, options?: useDataConnectQueryOptions<GenerateAdmissionNumberData>): UseDataConnectQueryResult<GenerateAdmissionNumberData, GenerateAdmissionNumberVariables>;
+export function useGenerateAdmissionNumber(dc: DataConnect, vars: GenerateAdmissionNumberVariables, options?: useDataConnectQueryOptions<GenerateAdmissionNumberData>): UseDataConnectQueryResult<GenerateAdmissionNumberData, GenerateAdmissionNumberVariables>;
+
+export function useGetLastStudentSerial(vars: GetLastStudentSerialVariables, options?: useDataConnectQueryOptions<GetLastStudentSerialData>): UseDataConnectQueryResult<GetLastStudentSerialData, GetLastStudentSerialVariables>;
+export function useGetLastStudentSerial(dc: DataConnect, vars: GetLastStudentSerialVariables, options?: useDataConnectQueryOptions<GetLastStudentSerialData>): UseDataConnectQueryResult<GetLastStudentSerialData, GetLastStudentSerialVariables>;
+
+export function useGetTeachers(vars: GetTeachersVariables, options?: useDataConnectQueryOptions<GetTeachersData>): UseDataConnectQueryResult<GetTeachersData, GetTeachersVariables>;
+export function useGetTeachers(dc: DataConnect, vars: GetTeachersVariables, options?: useDataConnectQueryOptions<GetTeachersData>): UseDataConnectQueryResult<GetTeachersData, GetTeachersVariables>;
+
+export function useGetTeachersByBranch(vars: GetTeachersByBranchVariables, options?: useDataConnectQueryOptions<GetTeachersByBranchData>): UseDataConnectQueryResult<GetTeachersByBranchData, GetTeachersByBranchVariables>;
+export function useGetTeachersByBranch(dc: DataConnect, vars: GetTeachersByBranchVariables, options?: useDataConnectQueryOptions<GetTeachersByBranchData>): UseDataConnectQueryResult<GetTeachersByBranchData, GetTeachersByBranchVariables>;
+
+export function useGetTeachersByWing(vars: GetTeachersByWingVariables, options?: useDataConnectQueryOptions<GetTeachersByWingData>): UseDataConnectQueryResult<GetTeachersByWingData, GetTeachersByWingVariables>;
+export function useGetTeachersByWing(dc: DataConnect, vars: GetTeachersByWingVariables, options?: useDataConnectQueryOptions<GetTeachersByWingData>): UseDataConnectQueryResult<GetTeachersByWingData, GetTeachersByWingVariables>;
+
+export function useGetCoordinatorTeachersByWing(vars: GetCoordinatorTeachersByWingVariables, options?: useDataConnectQueryOptions<GetCoordinatorTeachersByWingData>): UseDataConnectQueryResult<GetCoordinatorTeachersByWingData, GetCoordinatorTeachersByWingVariables>;
+export function useGetCoordinatorTeachersByWing(dc: DataConnect, vars: GetCoordinatorTeachersByWingVariables, options?: useDataConnectQueryOptions<GetCoordinatorTeachersByWingData>): UseDataConnectQueryResult<GetCoordinatorTeachersByWingData, GetCoordinatorTeachersByWingVariables>;
+
+export function useGetTeacherProfile(vars: GetTeacherProfileVariables, options?: useDataConnectQueryOptions<GetTeacherProfileData>): UseDataConnectQueryResult<GetTeacherProfileData, GetTeacherProfileVariables>;
+export function useGetTeacherProfile(dc: DataConnect, vars: GetTeacherProfileVariables, options?: useDataConnectQueryOptions<GetTeacherProfileData>): UseDataConnectQueryResult<GetTeacherProfileData, GetTeacherProfileVariables>;
+
+export function useGetTeacherProfileByUser(vars: GetTeacherProfileByUserVariables, options?: useDataConnectQueryOptions<GetTeacherProfileByUserData>): UseDataConnectQueryResult<GetTeacherProfileByUserData, GetTeacherProfileByUserVariables>;
+export function useGetTeacherProfileByUser(dc: DataConnect, vars: GetTeacherProfileByUserVariables, options?: useDataConnectQueryOptions<GetTeacherProfileByUserData>): UseDataConnectQueryResult<GetTeacherProfileByUserData, GetTeacherProfileByUserVariables>;
+
+export function useGetTeacherDashboard(vars: GetTeacherDashboardVariables, options?: useDataConnectQueryOptions<GetTeacherDashboardData>): UseDataConnectQueryResult<GetTeacherDashboardData, GetTeacherDashboardVariables>;
+export function useGetTeacherDashboard(dc: DataConnect, vars: GetTeacherDashboardVariables, options?: useDataConnectQueryOptions<GetTeacherDashboardData>): UseDataConnectQueryResult<GetTeacherDashboardData, GetTeacherDashboardVariables>;
+
+export function useGetSubjects(vars?: GetSubjectsVariables, options?: useDataConnectQueryOptions<GetSubjectsData>): UseDataConnectQueryResult<GetSubjectsData, GetSubjectsVariables>;
+export function useGetSubjects(dc: DataConnect, vars?: GetSubjectsVariables, options?: useDataConnectQueryOptions<GetSubjectsData>): UseDataConnectQueryResult<GetSubjectsData, GetSubjectsVariables>;
+
+export function useGetSectionsForTeacherAssignment(vars: GetSectionsForTeacherAssignmentVariables, options?: useDataConnectQueryOptions<GetSectionsForTeacherAssignmentData>): UseDataConnectQueryResult<GetSectionsForTeacherAssignmentData, GetSectionsForTeacherAssignmentVariables>;
+export function useGetSectionsForTeacherAssignment(dc: DataConnect, vars: GetSectionsForTeacherAssignmentVariables, options?: useDataConnectQueryOptions<GetSectionsForTeacherAssignmentData>): UseDataConnectQueryResult<GetSectionsForTeacherAssignmentData, GetSectionsForTeacherAssignmentVariables>;
+
+export function useGetAccountants(vars: GetAccountantsVariables, options?: useDataConnectQueryOptions<GetAccountantsData>): UseDataConnectQueryResult<GetAccountantsData, GetAccountantsVariables>;
+export function useGetAccountants(dc: DataConnect, vars: GetAccountantsVariables, options?: useDataConnectQueryOptions<GetAccountantsData>): UseDataConnectQueryResult<GetAccountantsData, GetAccountantsVariables>;
+
+export function useGetAccountantProfile(vars: GetAccountantProfileVariables, options?: useDataConnectQueryOptions<GetAccountantProfileData>): UseDataConnectQueryResult<GetAccountantProfileData, GetAccountantProfileVariables>;
+export function useGetAccountantProfile(dc: DataConnect, vars: GetAccountantProfileVariables, options?: useDataConnectQueryOptions<GetAccountantProfileData>): UseDataConnectQueryResult<GetAccountantProfileData, GetAccountantProfileVariables>;
+
+export function useGetAccountantByUser(vars: GetAccountantByUserVariables, options?: useDataConnectQueryOptions<GetAccountantByUserData>): UseDataConnectQueryResult<GetAccountantByUserData, GetAccountantByUserVariables>;
+export function useGetAccountantByUser(dc: DataConnect, vars: GetAccountantByUserVariables, options?: useDataConnectQueryOptions<GetAccountantByUserData>): UseDataConnectQueryResult<GetAccountantByUserData, GetAccountantByUserVariables>;
+
+export function useGetFeeCategories(vars?: GetFeeCategoriesVariables, options?: useDataConnectQueryOptions<GetFeeCategoriesData>): UseDataConnectQueryResult<GetFeeCategoriesData, GetFeeCategoriesVariables>;
+export function useGetFeeCategories(dc: DataConnect, vars?: GetFeeCategoriesVariables, options?: useDataConnectQueryOptions<GetFeeCategoriesData>): UseDataConnectQueryResult<GetFeeCategoriesData, GetFeeCategoriesVariables>;
+
+export function useGetClassTeacherAssignments(vars: GetClassTeacherAssignmentsVariables, options?: useDataConnectQueryOptions<GetClassTeacherAssignmentsData>): UseDataConnectQueryResult<GetClassTeacherAssignmentsData, GetClassTeacherAssignmentsVariables>;
+export function useGetClassTeacherAssignments(dc: DataConnect, vars: GetClassTeacherAssignmentsVariables, options?: useDataConnectQueryOptions<GetClassTeacherAssignmentsData>): UseDataConnectQueryResult<GetClassTeacherAssignmentsData, GetClassTeacherAssignmentsVariables>;
+
+export function useGetClassFees(vars: GetClassFeesVariables, options?: useDataConnectQueryOptions<GetClassFeesData>): UseDataConnectQueryResult<GetClassFeesData, GetClassFeesVariables>;
+export function useGetClassFees(dc: DataConnect, vars: GetClassFeesVariables, options?: useDataConnectQueryOptions<GetClassFeesData>): UseDataConnectQueryResult<GetClassFeesData, GetClassFeesVariables>;
+
+export function useGetStudentFeeProfile(vars: GetStudentFeeProfileVariables, options?: useDataConnectQueryOptions<GetStudentFeeProfileData>): UseDataConnectQueryResult<GetStudentFeeProfileData, GetStudentFeeProfileVariables>;
+export function useGetStudentFeeProfile(dc: DataConnect, vars: GetStudentFeeProfileVariables, options?: useDataConnectQueryOptions<GetStudentFeeProfileData>): UseDataConnectQueryResult<GetStudentFeeProfileData, GetStudentFeeProfileVariables>;
+
+export function useGetPaymentHistory(vars: GetPaymentHistoryVariables, options?: useDataConnectQueryOptions<GetPaymentHistoryData>): UseDataConnectQueryResult<GetPaymentHistoryData, GetPaymentHistoryVariables>;
+export function useGetPaymentHistory(dc: DataConnect, vars: GetPaymentHistoryVariables, options?: useDataConnectQueryOptions<GetPaymentHistoryData>): UseDataConnectQueryResult<GetPaymentHistoryData, GetPaymentHistoryVariables>;
+
+export function useGetReceiptSequence(vars: GetReceiptSequenceVariables, options?: useDataConnectQueryOptions<GetReceiptSequenceData>): UseDataConnectQueryResult<GetReceiptSequenceData, GetReceiptSequenceVariables>;
+export function useGetReceiptSequence(dc: DataConnect, vars: GetReceiptSequenceVariables, options?: useDataConnectQueryOptions<GetReceiptSequenceData>): UseDataConnectQueryResult<GetReceiptSequenceData, GetReceiptSequenceVariables>;
+
+export function useGetFeeReports(vars: GetFeeReportsVariables, options?: useDataConnectQueryOptions<GetFeeReportsData>): UseDataConnectQueryResult<GetFeeReportsData, GetFeeReportsVariables>;
+export function useGetFeeReports(dc: DataConnect, vars: GetFeeReportsVariables, options?: useDataConnectQueryOptions<GetFeeReportsData>): UseDataConnectQueryResult<GetFeeReportsData, GetFeeReportsVariables>;
+
+export function useGetGlobalStudentExplorer(vars?: GetGlobalStudentExplorerVariables, options?: useDataConnectQueryOptions<GetGlobalStudentExplorerData>): UseDataConnectQueryResult<GetGlobalStudentExplorerData, GetGlobalStudentExplorerVariables>;
+export function useGetGlobalStudentExplorer(dc: DataConnect, vars?: GetGlobalStudentExplorerVariables, options?: useDataConnectQueryOptions<GetGlobalStudentExplorerData>): UseDataConnectQueryResult<GetGlobalStudentExplorerData, GetGlobalStudentExplorerVariables>;
+
+export function useGetGlobalReports(options?: useDataConnectQueryOptions<GetGlobalReportsData>): UseDataConnectQueryResult<GetGlobalReportsData, undefined>;
+export function useGetGlobalReports(dc: DataConnect, options?: useDataConnectQueryOptions<GetGlobalReportsData>): UseDataConnectQueryResult<GetGlobalReportsData, undefined>;
+
+export function useGetAuditLogs(vars?: GetAuditLogsVariables, options?: useDataConnectQueryOptions<GetAuditLogsData>): UseDataConnectQueryResult<GetAuditLogsData, GetAuditLogsVariables>;
+export function useGetAuditLogs(dc: DataConnect, vars?: GetAuditLogsVariables, options?: useDataConnectQueryOptions<GetAuditLogsData>): UseDataConnectQueryResult<GetAuditLogsData, GetAuditLogsVariables>;
+
+export function useGetClassFeeReport(vars: GetClassFeeReportVariables, options?: useDataConnectQueryOptions<GetClassFeeReportData>): UseDataConnectQueryResult<GetClassFeeReportData, GetClassFeeReportVariables>;
+export function useGetClassFeeReport(dc: DataConnect, vars: GetClassFeeReportVariables, options?: useDataConnectQueryOptions<GetClassFeeReportData>): UseDataConnectQueryResult<GetClassFeeReportData, GetClassFeeReportVariables>;
+
+export function useGetClassStudentsFeeStatus(vars: GetClassStudentsFeeStatusVariables, options?: useDataConnectQueryOptions<GetClassStudentsFeeStatusData>): UseDataConnectQueryResult<GetClassStudentsFeeStatusData, GetClassStudentsFeeStatusVariables>;
+export function useGetClassStudentsFeeStatus(dc: DataConnect, vars: GetClassStudentsFeeStatusVariables, options?: useDataConnectQueryOptions<GetClassStudentsFeeStatusData>): UseDataConnectQueryResult<GetClassStudentsFeeStatusData, GetClassStudentsFeeStatusVariables>;
+
+export function useGetClassCollectionSummary(vars: GetClassCollectionSummaryVariables, options?: useDataConnectQueryOptions<GetClassCollectionSummaryData>): UseDataConnectQueryResult<GetClassCollectionSummaryData, GetClassCollectionSummaryVariables>;
+export function useGetClassCollectionSummary(dc: DataConnect, vars: GetClassCollectionSummaryVariables, options?: useDataConnectQueryOptions<GetClassCollectionSummaryData>): UseDataConnectQueryResult<GetClassCollectionSummaryData, GetClassCollectionSummaryVariables>;
+
+export function useGetClassOutstandingSummary(vars: GetClassOutstandingSummaryVariables, options?: useDataConnectQueryOptions<GetClassOutstandingSummaryData>): UseDataConnectQueryResult<GetClassOutstandingSummaryData, GetClassOutstandingSummaryVariables>;
+export function useGetClassOutstandingSummary(dc: DataConnect, vars: GetClassOutstandingSummaryVariables, options?: useDataConnectQueryOptions<GetClassOutstandingSummaryData>): UseDataConnectQueryResult<GetClassOutstandingSummaryData, GetClassOutstandingSummaryVariables>;
+
+export function useGetUsersByPhone(vars: GetUsersByPhoneVariables, options?: useDataConnectQueryOptions<GetUsersByPhoneData>): UseDataConnectQueryResult<GetUsersByPhoneData, GetUsersByPhoneVariables>;
+export function useGetUsersByPhone(dc: DataConnect, vars: GetUsersByPhoneVariables, options?: useDataConnectQueryOptions<GetUsersByPhoneData>): UseDataConnectQueryResult<GetUsersByPhoneData, GetUsersByPhoneVariables>;
+
+export function useGetNoticesByBranch(vars: GetNoticesByBranchVariables, options?: useDataConnectQueryOptions<GetNoticesByBranchData>): UseDataConnectQueryResult<GetNoticesByBranchData, GetNoticesByBranchVariables>;
+export function useGetNoticesByBranch(dc: DataConnect, vars: GetNoticesByBranchVariables, options?: useDataConnectQueryOptions<GetNoticesByBranchData>): UseDataConnectQueryResult<GetNoticesByBranchData, GetNoticesByBranchVariables>;
+
+export function useGetNoticesByBranchCategory(vars: GetNoticesByBranchCategoryVariables, options?: useDataConnectQueryOptions<GetNoticesByBranchCategoryData>): UseDataConnectQueryResult<GetNoticesByBranchCategoryData, GetNoticesByBranchCategoryVariables>;
+export function useGetNoticesByBranchCategory(dc: DataConnect, vars: GetNoticesByBranchCategoryVariables, options?: useDataConnectQueryOptions<GetNoticesByBranchCategoryData>): UseDataConnectQueryResult<GetNoticesByBranchCategoryData, GetNoticesByBranchCategoryVariables>;
+
+export function useGetTimetableForSection(vars: GetTimetableForSectionVariables, options?: useDataConnectQueryOptions<GetTimetableForSectionData>): UseDataConnectQueryResult<GetTimetableForSectionData, GetTimetableForSectionVariables>;
+export function useGetTimetableForSection(dc: DataConnect, vars: GetTimetableForSectionVariables, options?: useDataConnectQueryOptions<GetTimetableForSectionData>): UseDataConnectQueryResult<GetTimetableForSectionData, GetTimetableForSectionVariables>;
+
+export function useGetTimetablesForBranch(vars: GetTimetablesForBranchVariables, options?: useDataConnectQueryOptions<GetTimetablesForBranchData>): UseDataConnectQueryResult<GetTimetablesForBranchData, GetTimetablesForBranchVariables>;
+export function useGetTimetablesForBranch(dc: DataConnect, vars: GetTimetablesForBranchVariables, options?: useDataConnectQueryOptions<GetTimetablesForBranchData>): UseDataConnectQueryResult<GetTimetablesForBranchData, GetTimetablesForBranchVariables>;
+
+export function useGetTimetablesForWing(vars: GetTimetablesForWingVariables, options?: useDataConnectQueryOptions<GetTimetablesForWingData>): UseDataConnectQueryResult<GetTimetablesForWingData, GetTimetablesForWingVariables>;
+export function useGetTimetablesForWing(dc: DataConnect, vars: GetTimetablesForWingVariables, options?: useDataConnectQueryOptions<GetTimetablesForWingData>): UseDataConnectQueryResult<GetTimetablesForWingData, GetTimetablesForWingVariables>;
+
+export function useGetTimetableForTeacher(vars: GetTimetableForTeacherVariables, options?: useDataConnectQueryOptions<GetTimetableForTeacherData>): UseDataConnectQueryResult<GetTimetableForTeacherData, GetTimetableForTeacherVariables>;
+export function useGetTimetableForTeacher(dc: DataConnect, vars: GetTimetableForTeacherVariables, options?: useDataConnectQueryOptions<GetTimetableForTeacherData>): UseDataConnectQueryResult<GetTimetableForTeacherData, GetTimetableForTeacherVariables>;
+
+export function useGetSuggestionsByParent(vars: GetSuggestionsByParentVariables, options?: useDataConnectQueryOptions<GetSuggestionsByParentData>): UseDataConnectQueryResult<GetSuggestionsByParentData, GetSuggestionsByParentVariables>;
+export function useGetSuggestionsByParent(dc: DataConnect, vars: GetSuggestionsByParentVariables, options?: useDataConnectQueryOptions<GetSuggestionsByParentData>): UseDataConnectQueryResult<GetSuggestionsByParentData, GetSuggestionsByParentVariables>;
+
+export function useGetSuggestionsByBranch(vars: GetSuggestionsByBranchVariables, options?: useDataConnectQueryOptions<GetSuggestionsByBranchData>): UseDataConnectQueryResult<GetSuggestionsByBranchData, GetSuggestionsByBranchVariables>;
+export function useGetSuggestionsByBranch(dc: DataConnect, vars: GetSuggestionsByBranchVariables, options?: useDataConnectQueryOptions<GetSuggestionsByBranchData>): UseDataConnectQueryResult<GetSuggestionsByBranchData, GetSuggestionsByBranchVariables>;
+
+export function useGetNotificationsByUser(vars: GetNotificationsByUserVariables, options?: useDataConnectQueryOptions<GetNotificationsByUserData>): UseDataConnectQueryResult<GetNotificationsByUserData, GetNotificationsByUserVariables>;
+export function useGetNotificationsByUser(dc: DataConnect, vars: GetNotificationsByUserVariables, options?: useDataConnectQueryOptions<GetNotificationsByUserData>): UseDataConnectQueryResult<GetNotificationsByUserData, GetNotificationsByUserVariables>;
+
+export function useGetUnreadNotificationCount(vars: GetUnreadNotificationCountVariables, options?: useDataConnectQueryOptions<GetUnreadNotificationCountData>): UseDataConnectQueryResult<GetUnreadNotificationCountData, GetUnreadNotificationCountVariables>;
+export function useGetUnreadNotificationCount(dc: DataConnect, vars: GetUnreadNotificationCountVariables, options?: useDataConnectQueryOptions<GetUnreadNotificationCountData>): UseDataConnectQueryResult<GetUnreadNotificationCountData, GetUnreadNotificationCountVariables>;
+
+export function useGetBranchStaffUserIds(vars: GetBranchStaffUserIdsVariables, options?: useDataConnectQueryOptions<GetBranchStaffUserIdsData>): UseDataConnectQueryResult<GetBranchStaffUserIdsData, GetBranchStaffUserIdsVariables>;
+export function useGetBranchStaffUserIds(dc: DataConnect, vars: GetBranchStaffUserIdsVariables, options?: useDataConnectQueryOptions<GetBranchStaffUserIdsData>): UseDataConnectQueryResult<GetBranchStaffUserIdsData, GetBranchStaffUserIdsVariables>;
+
+export function useGetBranchStudentsWithParents(vars: GetBranchStudentsWithParentsVariables, options?: useDataConnectQueryOptions<GetBranchStudentsWithParentsData>): UseDataConnectQueryResult<GetBranchStudentsWithParentsData, GetBranchStudentsWithParentsVariables>;
+export function useGetBranchStudentsWithParents(dc: DataConnect, vars: GetBranchStudentsWithParentsVariables, options?: useDataConnectQueryOptions<GetBranchStudentsWithParentsData>): UseDataConnectQueryResult<GetBranchStudentsWithParentsData, GetBranchStudentsWithParentsVariables>;
+
+export function useGetUserForRoleChange(vars: GetUserForRoleChangeVariables, options?: useDataConnectQueryOptions<GetUserForRoleChangeData>): UseDataConnectQueryResult<GetUserForRoleChangeData, GetUserForRoleChangeVariables>;
+export function useGetUserForRoleChange(dc: DataConnect, vars: GetUserForRoleChangeVariables, options?: useDataConnectQueryOptions<GetUserForRoleChangeData>): UseDataConnectQueryResult<GetUserForRoleChangeData, GetUserForRoleChangeVariables>;
+
+export function useGetAcademicYears(vars: GetAcademicYearsVariables, options?: useDataConnectQueryOptions<GetAcademicYearsData>): UseDataConnectQueryResult<GetAcademicYearsData, GetAcademicYearsVariables>;
+export function useGetAcademicYears(dc: DataConnect, vars: GetAcademicYearsVariables, options?: useDataConnectQueryOptions<GetAcademicYearsData>): UseDataConnectQueryResult<GetAcademicYearsData, GetAcademicYearsVariables>;
+
+export function useGetActiveAcademicYear(vars: GetActiveAcademicYearVariables, options?: useDataConnectQueryOptions<GetActiveAcademicYearData>): UseDataConnectQueryResult<GetActiveAcademicYearData, GetActiveAcademicYearVariables>;
+export function useGetActiveAcademicYear(dc: DataConnect, vars: GetActiveAcademicYearVariables, options?: useDataConnectQueryOptions<GetActiveAcademicYearData>): UseDataConnectQueryResult<GetActiveAcademicYearData, GetActiveAcademicYearVariables>;
+
+export function useGetBranchPromotionHistory(vars: GetBranchPromotionHistoryVariables, options?: useDataConnectQueryOptions<GetBranchPromotionHistoryData>): UseDataConnectQueryResult<GetBranchPromotionHistoryData, GetBranchPromotionHistoryVariables>;
+export function useGetBranchPromotionHistory(dc: DataConnect, vars: GetBranchPromotionHistoryVariables, options?: useDataConnectQueryOptions<GetBranchPromotionHistoryData>): UseDataConnectQueryResult<GetBranchPromotionHistoryData, GetBranchPromotionHistoryVariables>;
+
+export function useGetHolidaysByBranch(vars: GetHolidaysByBranchVariables, options?: useDataConnectQueryOptions<GetHolidaysByBranchData>): UseDataConnectQueryResult<GetHolidaysByBranchData, GetHolidaysByBranchVariables>;
+export function useGetHolidaysByBranch(dc: DataConnect, vars: GetHolidaysByBranchVariables, options?: useDataConnectQueryOptions<GetHolidaysByBranchData>): UseDataConnectQueryResult<GetHolidaysByBranchData, GetHolidaysByBranchVariables>;
+
+export function useGetHolidaysByMonth(vars: GetHolidaysByMonthVariables, options?: useDataConnectQueryOptions<GetHolidaysByMonthData>): UseDataConnectQueryResult<GetHolidaysByMonthData, GetHolidaysByMonthVariables>;
+export function useGetHolidaysByMonth(dc: DataConnect, vars: GetHolidaysByMonthVariables, options?: useDataConnectQueryOptions<GetHolidaysByMonthData>): UseDataConnectQueryResult<GetHolidaysByMonthData, GetHolidaysByMonthVariables>;
+
+export function useGetAttendanceLockStatus(vars: GetAttendanceLockStatusVariables, options?: useDataConnectQueryOptions<GetAttendanceLockStatusData>): UseDataConnectQueryResult<GetAttendanceLockStatusData, GetAttendanceLockStatusVariables>;
+export function useGetAttendanceLockStatus(dc: DataConnect, vars: GetAttendanceLockStatusVariables, options?: useDataConnectQueryOptions<GetAttendanceLockStatusData>): UseDataConnectQueryResult<GetAttendanceLockStatusData, GetAttendanceLockStatusVariables>;
+
+export function useGetAttendanceAuditLog(vars: GetAttendanceAuditLogVariables, options?: useDataConnectQueryOptions<GetAttendanceAuditLogData>): UseDataConnectQueryResult<GetAttendanceAuditLogData, GetAttendanceAuditLogVariables>;
+export function useGetAttendanceAuditLog(dc: DataConnect, vars: GetAttendanceAuditLogVariables, options?: useDataConnectQueryOptions<GetAttendanceAuditLogData>): UseDataConnectQueryResult<GetAttendanceAuditLogData, GetAttendanceAuditLogVariables>;
+
+export function useGetAttendanceAuditLogByBranch(vars: GetAttendanceAuditLogByBranchVariables, options?: useDataConnectQueryOptions<GetAttendanceAuditLogByBranchData>): UseDataConnectQueryResult<GetAttendanceAuditLogByBranchData, GetAttendanceAuditLogByBranchVariables>;
+export function useGetAttendanceAuditLogByBranch(dc: DataConnect, vars: GetAttendanceAuditLogByBranchVariables, options?: useDataConnectQueryOptions<GetAttendanceAuditLogByBranchData>): UseDataConnectQueryResult<GetAttendanceAuditLogByBranchData, GetAttendanceAuditLogByBranchVariables>;
+
+export function useGetAttendanceAuditLogBySection(vars: GetAttendanceAuditLogBySectionVariables, options?: useDataConnectQueryOptions<GetAttendanceAuditLogBySectionData>): UseDataConnectQueryResult<GetAttendanceAuditLogBySectionData, GetAttendanceAuditLogBySectionVariables>;
+export function useGetAttendanceAuditLogBySection(dc: DataConnect, vars: GetAttendanceAuditLogBySectionVariables, options?: useDataConnectQueryOptions<GetAttendanceAuditLogBySectionData>): UseDataConnectQueryResult<GetAttendanceAuditLogBySectionData, GetAttendanceAuditLogBySectionVariables>;
+
+export function useGetAttendanceSummaryByStudent(vars: GetAttendanceSummaryByStudentVariables, options?: useDataConnectQueryOptions<GetAttendanceSummaryByStudentData>): UseDataConnectQueryResult<GetAttendanceSummaryByStudentData, GetAttendanceSummaryByStudentVariables>;
+export function useGetAttendanceSummaryByStudent(dc: DataConnect, vars: GetAttendanceSummaryByStudentVariables, options?: useDataConnectQueryOptions<GetAttendanceSummaryByStudentData>): UseDataConnectQueryResult<GetAttendanceSummaryByStudentData, GetAttendanceSummaryByStudentVariables>;
+
+export function useGetAttendanceSummaryBySection(vars: GetAttendanceSummaryBySectionVariables, options?: useDataConnectQueryOptions<GetAttendanceSummaryBySectionData>): UseDataConnectQueryResult<GetAttendanceSummaryBySectionData, GetAttendanceSummaryBySectionVariables>;
+export function useGetAttendanceSummaryBySection(dc: DataConnect, vars: GetAttendanceSummaryBySectionVariables, options?: useDataConnectQueryOptions<GetAttendanceSummaryBySectionData>): UseDataConnectQueryResult<GetAttendanceSummaryBySectionData, GetAttendanceSummaryBySectionVariables>;
+
+export function useGetLowAttendanceStudents(vars: GetLowAttendanceStudentsVariables, options?: useDataConnectQueryOptions<GetLowAttendanceStudentsData>): UseDataConnectQueryResult<GetLowAttendanceStudentsData, GetLowAttendanceStudentsVariables>;
+export function useGetLowAttendanceStudents(dc: DataConnect, vars: GetLowAttendanceStudentsVariables, options?: useDataConnectQueryOptions<GetLowAttendanceStudentsData>): UseDataConnectQueryResult<GetLowAttendanceStudentsData, GetLowAttendanceStudentsVariables>;
+
+export function useGetDailyAttendanceReport(vars: GetDailyAttendanceReportVariables, options?: useDataConnectQueryOptions<GetDailyAttendanceReportData>): UseDataConnectQueryResult<GetDailyAttendanceReportData, GetDailyAttendanceReportVariables>;
+export function useGetDailyAttendanceReport(dc: DataConnect, vars: GetDailyAttendanceReportVariables, options?: useDataConnectQueryOptions<GetDailyAttendanceReportData>): UseDataConnectQueryResult<GetDailyAttendanceReportData, GetDailyAttendanceReportVariables>;
+
+export function useGetMonthlyAttendanceReport(vars: GetMonthlyAttendanceReportVariables, options?: useDataConnectQueryOptions<GetMonthlyAttendanceReportData>): UseDataConnectQueryResult<GetMonthlyAttendanceReportData, GetMonthlyAttendanceReportVariables>;
+export function useGetMonthlyAttendanceReport(dc: DataConnect, vars: GetMonthlyAttendanceReportVariables, options?: useDataConnectQueryOptions<GetMonthlyAttendanceReportData>): UseDataConnectQueryResult<GetMonthlyAttendanceReportData, GetMonthlyAttendanceReportVariables>;
+
+export function useGetAttendanceAlertLog(vars: GetAttendanceAlertLogVariables, options?: useDataConnectQueryOptions<GetAttendanceAlertLogData>): UseDataConnectQueryResult<GetAttendanceAlertLogData, GetAttendanceAlertLogVariables>;
+export function useGetAttendanceAlertLog(dc: DataConnect, vars: GetAttendanceAlertLogVariables, options?: useDataConnectQueryOptions<GetAttendanceAlertLogData>): UseDataConnectQueryResult<GetAttendanceAlertLogData, GetAttendanceAlertLogVariables>;
+
+export function useGetExamsByBranch(vars: GetExamsByBranchVariables, options?: useDataConnectQueryOptions<GetExamsByBranchData>): UseDataConnectQueryResult<GetExamsByBranchData, GetExamsByBranchVariables>;
+export function useGetExamsByBranch(dc: DataConnect, vars: GetExamsByBranchVariables, options?: useDataConnectQueryOptions<GetExamsByBranchData>): UseDataConnectQueryResult<GetExamsByBranchData, GetExamsByBranchVariables>;
+
+export function useGetExamDetails(vars: GetExamDetailsVariables, options?: useDataConnectQueryOptions<GetExamDetailsData>): UseDataConnectQueryResult<GetExamDetailsData, GetExamDetailsVariables>;
+export function useGetExamDetails(dc: DataConnect, vars: GetExamDetailsVariables, options?: useDataConnectQueryOptions<GetExamDetailsData>): UseDataConnectQueryResult<GetExamDetailsData, GetExamDetailsVariables>;
+
+export function useGetMarksForSection(vars: GetMarksForSectionVariables, options?: useDataConnectQueryOptions<GetMarksForSectionData>): UseDataConnectQueryResult<GetMarksForSectionData, GetMarksForSectionVariables>;
+export function useGetMarksForSection(dc: DataConnect, vars: GetMarksForSectionVariables, options?: useDataConnectQueryOptions<GetMarksForSectionData>): UseDataConnectQueryResult<GetMarksForSectionData, GetMarksForSectionVariables>;
+
+export function useGetStudentResultsForParent(vars: GetStudentResultsForParentVariables, options?: useDataConnectQueryOptions<GetStudentResultsForParentData>): UseDataConnectQueryResult<GetStudentResultsForParentData, GetStudentResultsForParentVariables>;
+export function useGetStudentResultsForParent(dc: DataConnect, vars: GetStudentResultsForParentVariables, options?: useDataConnectQueryOptions<GetStudentResultsForParentData>): UseDataConnectQueryResult<GetStudentResultsForParentData, GetStudentResultsForParentVariables>;
+
+export function useGetStudentResultDetail(vars: GetStudentResultDetailVariables, options?: useDataConnectQueryOptions<GetStudentResultDetailData>): UseDataConnectQueryResult<GetStudentResultDetailData, GetStudentResultDetailVariables>;
+export function useGetStudentResultDetail(dc: DataConnect, vars: GetStudentResultDetailVariables, options?: useDataConnectQueryOptions<GetStudentResultDetailData>): UseDataConnectQueryResult<GetStudentResultDetailData, GetStudentResultDetailVariables>;
+
+export function useGetExamAnalytics(vars: GetExamAnalyticsVariables, options?: useDataConnectQueryOptions<GetExamAnalyticsData>): UseDataConnectQueryResult<GetExamAnalyticsData, GetExamAnalyticsVariables>;
+export function useGetExamAnalytics(dc: DataConnect, vars: GetExamAnalyticsVariables, options?: useDataConnectQueryOptions<GetExamAnalyticsData>): UseDataConnectQueryResult<GetExamAnalyticsData, GetExamAnalyticsVariables>;
+
+export function useGetPublishedExamsForSection(vars: GetPublishedExamsForSectionVariables, options?: useDataConnectQueryOptions<GetPublishedExamsForSectionData>): UseDataConnectQueryResult<GetPublishedExamsForSectionData, GetPublishedExamsForSectionVariables>;
+export function useGetPublishedExamsForSection(dc: DataConnect, vars: GetPublishedExamsForSectionVariables, options?: useDataConnectQueryOptions<GetPublishedExamsForSectionData>): UseDataConnectQueryResult<GetPublishedExamsForSectionData, GetPublishedExamsForSectionVariables>;
+
+export function useGetExamsBySection(vars: GetExamsBySectionVariables, options?: useDataConnectQueryOptions<GetExamsBySectionData>): UseDataConnectQueryResult<GetExamsBySectionData, GetExamsBySectionVariables>;
+export function useGetExamsBySection(dc: DataConnect, vars: GetExamsBySectionVariables, options?: useDataConnectQueryOptions<GetExamsBySectionData>): UseDataConnectQueryResult<GetExamsBySectionData, GetExamsBySectionVariables>;
+
+export function useCreateBranch(options?: useDataConnectMutationOptions<CreateBranchData, FirebaseError, CreateBranchVariables>): UseDataConnectMutationResult<CreateBranchData, CreateBranchVariables>;
+export function useCreateBranch(dc: DataConnect, options?: useDataConnectMutationOptions<CreateBranchData, FirebaseError, CreateBranchVariables>): UseDataConnectMutationResult<CreateBranchData, CreateBranchVariables>;
+
+export function useUpdateBranch(options?: useDataConnectMutationOptions<UpdateBranchData, FirebaseError, UpdateBranchVariables>): UseDataConnectMutationResult<UpdateBranchData, UpdateBranchVariables>;
+export function useUpdateBranch(dc: DataConnect, options?: useDataConnectMutationOptions<UpdateBranchData, FirebaseError, UpdateBranchVariables>): UseDataConnectMutationResult<UpdateBranchData, UpdateBranchVariables>;
+
+export function useAssignBranchAdmin(options?: useDataConnectMutationOptions<AssignBranchAdminData, FirebaseError, AssignBranchAdminVariables>): UseDataConnectMutationResult<AssignBranchAdminData, AssignBranchAdminVariables>;
+export function useAssignBranchAdmin(dc: DataConnect, options?: useDataConnectMutationOptions<AssignBranchAdminData, FirebaseError, AssignBranchAdminVariables>): UseDataConnectMutationResult<AssignBranchAdminData, AssignBranchAdminVariables>;
+
+export function useAssignPrincipal(options?: useDataConnectMutationOptions<AssignPrincipalData, FirebaseError, AssignPrincipalVariables>): UseDataConnectMutationResult<AssignPrincipalData, AssignPrincipalVariables>;
+export function useAssignPrincipal(dc: DataConnect, options?: useDataConnectMutationOptions<AssignPrincipalData, FirebaseError, AssignPrincipalVariables>): UseDataConnectMutationResult<AssignPrincipalData, AssignPrincipalVariables>;
+
+export function useCreateClass(options?: useDataConnectMutationOptions<CreateClassData, FirebaseError, CreateClassVariables>): UseDataConnectMutationResult<CreateClassData, CreateClassVariables>;
+export function useCreateClass(dc: DataConnect, options?: useDataConnectMutationOptions<CreateClassData, FirebaseError, CreateClassVariables>): UseDataConnectMutationResult<CreateClassData, CreateClassVariables>;
+
+export function useActivateClass(options?: useDataConnectMutationOptions<ActivateClassData, FirebaseError, ActivateClassVariables>): UseDataConnectMutationResult<ActivateClassData, ActivateClassVariables>;
+export function useActivateClass(dc: DataConnect, options?: useDataConnectMutationOptions<ActivateClassData, FirebaseError, ActivateClassVariables>): UseDataConnectMutationResult<ActivateClassData, ActivateClassVariables>;
+
+export function useDeactivateClass(options?: useDataConnectMutationOptions<DeactivateClassData, FirebaseError, DeactivateClassVariables>): UseDataConnectMutationResult<DeactivateClassData, DeactivateClassVariables>;
+export function useDeactivateClass(dc: DataConnect, options?: useDataConnectMutationOptions<DeactivateClassData, FirebaseError, DeactivateClassVariables>): UseDataConnectMutationResult<DeactivateClassData, DeactivateClassVariables>;
+
+export function useSeedAcademicClass(options?: useDataConnectMutationOptions<SeedAcademicClassData, FirebaseError, SeedAcademicClassVariables>): UseDataConnectMutationResult<SeedAcademicClassData, SeedAcademicClassVariables>;
+export function useSeedAcademicClass(dc: DataConnect, options?: useDataConnectMutationOptions<SeedAcademicClassData, FirebaseError, SeedAcademicClassVariables>): UseDataConnectMutationResult<SeedAcademicClassData, SeedAcademicClassVariables>;
+
+export function useCreateWing(options?: useDataConnectMutationOptions<CreateWingData, FirebaseError, CreateWingVariables>): UseDataConnectMutationResult<CreateWingData, CreateWingVariables>;
+export function useCreateWing(dc: DataConnect, options?: useDataConnectMutationOptions<CreateWingData, FirebaseError, CreateWingVariables>): UseDataConnectMutationResult<CreateWingData, CreateWingVariables>;
+
+export function useCreateSection(options?: useDataConnectMutationOptions<CreateSectionData, FirebaseError, CreateSectionVariables>): UseDataConnectMutationResult<CreateSectionData, CreateSectionVariables>;
+export function useCreateSection(dc: DataConnect, options?: useDataConnectMutationOptions<CreateSectionData, FirebaseError, CreateSectionVariables>): UseDataConnectMutationResult<CreateSectionData, CreateSectionVariables>;
+
+export function useRemoveSection(options?: useDataConnectMutationOptions<RemoveSectionData, FirebaseError, RemoveSectionVariables>): UseDataConnectMutationResult<RemoveSectionData, RemoveSectionVariables>;
+export function useRemoveSection(dc: DataConnect, options?: useDataConnectMutationOptions<RemoveSectionData, FirebaseError, RemoveSectionVariables>): UseDataConnectMutationResult<RemoveSectionData, RemoveSectionVariables>;
+
+export function useCreateUser(options?: useDataConnectMutationOptions<CreateUserData, FirebaseError, CreateUserVariables>): UseDataConnectMutationResult<CreateUserData, CreateUserVariables>;
+export function useCreateUser(dc: DataConnect, options?: useDataConnectMutationOptions<CreateUserData, FirebaseError, CreateUserVariables>): UseDataConnectMutationResult<CreateUserData, CreateUserVariables>;
+
+export function useClaimUserFirebaseUid(options?: useDataConnectMutationOptions<ClaimUserFirebaseUidData, FirebaseError, ClaimUserFirebaseUidVariables>): UseDataConnectMutationResult<ClaimUserFirebaseUidData, ClaimUserFirebaseUidVariables>;
+export function useClaimUserFirebaseUid(dc: DataConnect, options?: useDataConnectMutationOptions<ClaimUserFirebaseUidData, FirebaseError, ClaimUserFirebaseUidVariables>): UseDataConnectMutationResult<ClaimUserFirebaseUidData, ClaimUserFirebaseUidVariables>;
+
+export function useEnsureCurrentUserLegacyRole(options?: useDataConnectMutationOptions<EnsureCurrentUserLegacyRoleData, FirebaseError, void>): UseDataConnectMutationResult<EnsureCurrentUserLegacyRoleData, undefined>;
+export function useEnsureCurrentUserLegacyRole(dc: DataConnect, options?: useDataConnectMutationOptions<EnsureCurrentUserLegacyRoleData, FirebaseError, void>): UseDataConnectMutationResult<EnsureCurrentUserLegacyRoleData, undefined>;
+
+export function useAddParentRole(options?: useDataConnectMutationOptions<AddParentRoleData, FirebaseError, AddParentRoleVariables>): UseDataConnectMutationResult<AddParentRoleData, AddParentRoleVariables>;
+export function useAddParentRole(dc: DataConnect, options?: useDataConnectMutationOptions<AddParentRoleData, FirebaseError, AddParentRoleVariables>): UseDataConnectMutationResult<AddParentRoleData, AddParentRoleVariables>;
+
+export function useSwitchRole(options?: useDataConnectMutationOptions<SwitchRoleData, FirebaseError, SwitchRoleVariables>): UseDataConnectMutationResult<SwitchRoleData, SwitchRoleVariables>;
+export function useSwitchRole(dc: DataConnect, options?: useDataConnectMutationOptions<SwitchRoleData, FirebaseError, SwitchRoleVariables>): UseDataConnectMutationResult<SwitchRoleData, SwitchRoleVariables>;
+
+export function useLinkParentUser(options?: useDataConnectMutationOptions<LinkParentUserData, FirebaseError, LinkParentUserVariables>): UseDataConnectMutationResult<LinkParentUserData, LinkParentUserVariables>;
+export function useLinkParentUser(dc: DataConnect, options?: useDataConnectMutationOptions<LinkParentUserData, FirebaseError, LinkParentUserVariables>): UseDataConnectMutationResult<LinkParentUserData, LinkParentUserVariables>;
+
+export function useLinkStudentParent(options?: useDataConnectMutationOptions<LinkStudentParentData, FirebaseError, LinkStudentParentVariables>): UseDataConnectMutationResult<LinkStudentParentData, LinkStudentParentVariables>;
+export function useLinkStudentParent(dc: DataConnect, options?: useDataConnectMutationOptions<LinkStudentParentData, FirebaseError, LinkStudentParentVariables>): UseDataConnectMutationResult<LinkStudentParentData, LinkStudentParentVariables>;
+
+export function useCreateParent(options?: useDataConnectMutationOptions<CreateParentData, FirebaseError, CreateParentVariables>): UseDataConnectMutationResult<CreateParentData, CreateParentVariables>;
+export function useCreateParent(dc: DataConnect, options?: useDataConnectMutationOptions<CreateParentData, FirebaseError, CreateParentVariables>): UseDataConnectMutationResult<CreateParentData, CreateParentVariables>;
+
+export function useCreateParentWithoutUser(options?: useDataConnectMutationOptions<CreateParentWithoutUserData, FirebaseError, CreateParentWithoutUserVariables>): UseDataConnectMutationResult<CreateParentWithoutUserData, CreateParentWithoutUserVariables>;
+export function useCreateParentWithoutUser(dc: DataConnect, options?: useDataConnectMutationOptions<CreateParentWithoutUserData, FirebaseError, CreateParentWithoutUserVariables>): UseDataConnectMutationResult<CreateParentWithoutUserData, CreateParentWithoutUserVariables>;
+
+export function useCreateStudent(options?: useDataConnectMutationOptions<CreateStudentData, FirebaseError, CreateStudentVariables>): UseDataConnectMutationResult<CreateStudentData, CreateStudentVariables>;
+export function useCreateStudent(dc: DataConnect, options?: useDataConnectMutationOptions<CreateStudentData, FirebaseError, CreateStudentVariables>): UseDataConnectMutationResult<CreateStudentData, CreateStudentVariables>;
+
+export function useUpdateStudent(options?: useDataConnectMutationOptions<UpdateStudentData, FirebaseError, UpdateStudentVariables>): UseDataConnectMutationResult<UpdateStudentData, UpdateStudentVariables>;
+export function useUpdateStudent(dc: DataConnect, options?: useDataConnectMutationOptions<UpdateStudentData, FirebaseError, UpdateStudentVariables>): UseDataConnectMutationResult<UpdateStudentData, UpdateStudentVariables>;
+
+export function useCreateAttendance(options?: useDataConnectMutationOptions<CreateAttendanceData, FirebaseError, CreateAttendanceVariables>): UseDataConnectMutationResult<CreateAttendanceData, CreateAttendanceVariables>;
+export function useCreateAttendance(dc: DataConnect, options?: useDataConnectMutationOptions<CreateAttendanceData, FirebaseError, CreateAttendanceVariables>): UseDataConnectMutationResult<CreateAttendanceData, CreateAttendanceVariables>;
+
+export function useUpdateAttendance(options?: useDataConnectMutationOptions<UpdateAttendanceData, FirebaseError, UpdateAttendanceVariables>): UseDataConnectMutationResult<UpdateAttendanceData, UpdateAttendanceVariables>;
+export function useUpdateAttendance(dc: DataConnect, options?: useDataConnectMutationOptions<UpdateAttendanceData, FirebaseError, UpdateAttendanceVariables>): UseDataConnectMutationResult<UpdateAttendanceData, UpdateAttendanceVariables>;
+
+export function useUploadFeePayment(options?: useDataConnectMutationOptions<UploadFeePaymentData, FirebaseError, UploadFeePaymentVariables>): UseDataConnectMutationResult<UploadFeePaymentData, UploadFeePaymentVariables>;
+export function useUploadFeePayment(dc: DataConnect, options?: useDataConnectMutationOptions<UploadFeePaymentData, FirebaseError, UploadFeePaymentVariables>): UseDataConnectMutationResult<UploadFeePaymentData, UploadFeePaymentVariables>;
+
+export function useAssignTeacher(options?: useDataConnectMutationOptions<AssignTeacherData, FirebaseError, AssignTeacherVariables>): UseDataConnectMutationResult<AssignTeacherData, AssignTeacherVariables>;
+export function useAssignTeacher(dc: DataConnect, options?: useDataConnectMutationOptions<AssignTeacherData, FirebaseError, AssignTeacherVariables>): UseDataConnectMutationResult<AssignTeacherData, AssignTeacherVariables>;
+
+export function useCreateCoordinator(options?: useDataConnectMutationOptions<CreateCoordinatorData, FirebaseError, CreateCoordinatorVariables>): UseDataConnectMutationResult<CreateCoordinatorData, CreateCoordinatorVariables>;
+export function useCreateCoordinator(dc: DataConnect, options?: useDataConnectMutationOptions<CreateCoordinatorData, FirebaseError, CreateCoordinatorVariables>): UseDataConnectMutationResult<CreateCoordinatorData, CreateCoordinatorVariables>;
+
+export function useCreateTeacher(options?: useDataConnectMutationOptions<CreateTeacherData, FirebaseError, CreateTeacherVariables>): UseDataConnectMutationResult<CreateTeacherData, CreateTeacherVariables>;
+export function useCreateTeacher(dc: DataConnect, options?: useDataConnectMutationOptions<CreateTeacherData, FirebaseError, CreateTeacherVariables>): UseDataConnectMutationResult<CreateTeacherData, CreateTeacherVariables>;
+
+export function useAssignTeacherClassTeacher(options?: useDataConnectMutationOptions<AssignTeacherClassTeacherData, FirebaseError, AssignTeacherClassTeacherVariables>): UseDataConnectMutationResult<AssignTeacherClassTeacherData, AssignTeacherClassTeacherVariables>;
+export function useAssignTeacherClassTeacher(dc: DataConnect, options?: useDataConnectMutationOptions<AssignTeacherClassTeacherData, FirebaseError, AssignTeacherClassTeacherVariables>): UseDataConnectMutationResult<AssignTeacherClassTeacherData, AssignTeacherClassTeacherVariables>;
+
+export function useUpdateTeacher(options?: useDataConnectMutationOptions<UpdateTeacherData, FirebaseError, UpdateTeacherVariables>): UseDataConnectMutationResult<UpdateTeacherData, UpdateTeacherVariables>;
+export function useUpdateTeacher(dc: DataConnect, options?: useDataConnectMutationOptions<UpdateTeacherData, FirebaseError, UpdateTeacherVariables>): UseDataConnectMutationResult<UpdateTeacherData, UpdateTeacherVariables>;
+
+export function useAssignClassTeacher(options?: useDataConnectMutationOptions<AssignClassTeacherData, FirebaseError, AssignClassTeacherVariables>): UseDataConnectMutationResult<AssignClassTeacherData, AssignClassTeacherVariables>;
+export function useAssignClassTeacher(dc: DataConnect, options?: useDataConnectMutationOptions<AssignClassTeacherData, FirebaseError, AssignClassTeacherVariables>): UseDataConnectMutationResult<AssignClassTeacherData, AssignClassTeacherVariables>;
+
+export function useCreateSubject(options?: useDataConnectMutationOptions<CreateSubjectData, FirebaseError, CreateSubjectVariables>): UseDataConnectMutationResult<CreateSubjectData, CreateSubjectVariables>;
+export function useCreateSubject(dc: DataConnect, options?: useDataConnectMutationOptions<CreateSubjectData, FirebaseError, CreateSubjectVariables>): UseDataConnectMutationResult<CreateSubjectData, CreateSubjectVariables>;
+
+export function useAssignTeacherSubject(options?: useDataConnectMutationOptions<AssignTeacherSubjectData, FirebaseError, AssignTeacherSubjectVariables>): UseDataConnectMutationResult<AssignTeacherSubjectData, AssignTeacherSubjectVariables>;
+export function useAssignTeacherSubject(dc: DataConnect, options?: useDataConnectMutationOptions<AssignTeacherSubjectData, FirebaseError, AssignTeacherSubjectVariables>): UseDataConnectMutationResult<AssignTeacherSubjectData, AssignTeacherSubjectVariables>;
+
+export function useClearTeacherSubjects(options?: useDataConnectMutationOptions<ClearTeacherSubjectsData, FirebaseError, ClearTeacherSubjectsVariables>): UseDataConnectMutationResult<ClearTeacherSubjectsData, ClearTeacherSubjectsVariables>;
+export function useClearTeacherSubjects(dc: DataConnect, options?: useDataConnectMutationOptions<ClearTeacherSubjectsData, FirebaseError, ClearTeacherSubjectsVariables>): UseDataConnectMutationResult<ClearTeacherSubjectsData, ClearTeacherSubjectsVariables>;
+
+export function useCreateAccountant(options?: useDataConnectMutationOptions<CreateAccountantData, FirebaseError, CreateAccountantVariables>): UseDataConnectMutationResult<CreateAccountantData, CreateAccountantVariables>;
+export function useCreateAccountant(dc: DataConnect, options?: useDataConnectMutationOptions<CreateAccountantData, FirebaseError, CreateAccountantVariables>): UseDataConnectMutationResult<CreateAccountantData, CreateAccountantVariables>;
+
+export function useClearTeacherWingRestrictions(options?: useDataConnectMutationOptions<ClearTeacherWingRestrictionsData, FirebaseError, ClearTeacherWingRestrictionsVariables>): UseDataConnectMutationResult<ClearTeacherWingRestrictionsData, ClearTeacherWingRestrictionsVariables>;
+export function useClearTeacherWingRestrictions(dc: DataConnect, options?: useDataConnectMutationOptions<ClearTeacherWingRestrictionsData, FirebaseError, ClearTeacherWingRestrictionsVariables>): UseDataConnectMutationResult<ClearTeacherWingRestrictionsData, ClearTeacherWingRestrictionsVariables>;
+
+export function useEnsureCoordinatorTeacherProfile(options?: useDataConnectMutationOptions<EnsureCoordinatorTeacherProfileData, FirebaseError, EnsureCoordinatorTeacherProfileVariables>): UseDataConnectMutationResult<EnsureCoordinatorTeacherProfileData, EnsureCoordinatorTeacherProfileVariables>;
+export function useEnsureCoordinatorTeacherProfile(dc: DataConnect, options?: useDataConnectMutationOptions<EnsureCoordinatorTeacherProfileData, FirebaseError, EnsureCoordinatorTeacherProfileVariables>): UseDataConnectMutationResult<EnsureCoordinatorTeacherProfileData, EnsureCoordinatorTeacherProfileVariables>;
+
+export function useUpdateClassTeacherAssignment(options?: useDataConnectMutationOptions<UpdateClassTeacherAssignmentData, FirebaseError, UpdateClassTeacherAssignmentVariables>): UseDataConnectMutationResult<UpdateClassTeacherAssignmentData, UpdateClassTeacherAssignmentVariables>;
+export function useUpdateClassTeacherAssignment(dc: DataConnect, options?: useDataConnectMutationOptions<UpdateClassTeacherAssignmentData, FirebaseError, UpdateClassTeacherAssignmentVariables>): UseDataConnectMutationResult<UpdateClassTeacherAssignmentData, UpdateClassTeacherAssignmentVariables>;
+
+export function useRemoveClassTeacherAssignment(options?: useDataConnectMutationOptions<RemoveClassTeacherAssignmentData, FirebaseError, RemoveClassTeacherAssignmentVariables>): UseDataConnectMutationResult<RemoveClassTeacherAssignmentData, RemoveClassTeacherAssignmentVariables>;
+export function useRemoveClassTeacherAssignment(dc: DataConnect, options?: useDataConnectMutationOptions<RemoveClassTeacherAssignmentData, FirebaseError, RemoveClassTeacherAssignmentVariables>): UseDataConnectMutationResult<RemoveClassTeacherAssignmentData, RemoveClassTeacherAssignmentVariables>;
+
+export function useRemoveLegacyClassTeacherAssignment(options?: useDataConnectMutationOptions<RemoveLegacyClassTeacherAssignmentData, FirebaseError, RemoveLegacyClassTeacherAssignmentVariables>): UseDataConnectMutationResult<RemoveLegacyClassTeacherAssignmentData, RemoveLegacyClassTeacherAssignmentVariables>;
+export function useRemoveLegacyClassTeacherAssignment(dc: DataConnect, options?: useDataConnectMutationOptions<RemoveLegacyClassTeacherAssignmentData, FirebaseError, RemoveLegacyClassTeacherAssignmentVariables>): UseDataConnectMutationResult<RemoveLegacyClassTeacherAssignmentData, RemoveLegacyClassTeacherAssignmentVariables>;
+
+export function useUpdateAccountant(options?: useDataConnectMutationOptions<UpdateAccountantData, FirebaseError, UpdateAccountantVariables>): UseDataConnectMutationResult<UpdateAccountantData, UpdateAccountantVariables>;
+export function useUpdateAccountant(dc: DataConnect, options?: useDataConnectMutationOptions<UpdateAccountantData, FirebaseError, UpdateAccountantVariables>): UseDataConnectMutationResult<UpdateAccountantData, UpdateAccountantVariables>;
+
+export function useCreateFeeCategory(options?: useDataConnectMutationOptions<CreateFeeCategoryData, FirebaseError, CreateFeeCategoryVariables>): UseDataConnectMutationResult<CreateFeeCategoryData, CreateFeeCategoryVariables>;
+export function useCreateFeeCategory(dc: DataConnect, options?: useDataConnectMutationOptions<CreateFeeCategoryData, FirebaseError, CreateFeeCategoryVariables>): UseDataConnectMutationResult<CreateFeeCategoryData, CreateFeeCategoryVariables>;
+
+export function useUpdateFeeCategory(options?: useDataConnectMutationOptions<UpdateFeeCategoryData, FirebaseError, UpdateFeeCategoryVariables>): UseDataConnectMutationResult<UpdateFeeCategoryData, UpdateFeeCategoryVariables>;
+export function useUpdateFeeCategory(dc: DataConnect, options?: useDataConnectMutationOptions<UpdateFeeCategoryData, FirebaseError, UpdateFeeCategoryVariables>): UseDataConnectMutationResult<UpdateFeeCategoryData, UpdateFeeCategoryVariables>;
+
+export function useCreateClassFee(options?: useDataConnectMutationOptions<CreateClassFeeData, FirebaseError, CreateClassFeeVariables>): UseDataConnectMutationResult<CreateClassFeeData, CreateClassFeeVariables>;
+export function useCreateClassFee(dc: DataConnect, options?: useDataConnectMutationOptions<CreateClassFeeData, FirebaseError, CreateClassFeeVariables>): UseDataConnectMutationResult<CreateClassFeeData, CreateClassFeeVariables>;
+
+export function useUpdateClassFee(options?: useDataConnectMutationOptions<UpdateClassFeeData, FirebaseError, UpdateClassFeeVariables>): UseDataConnectMutationResult<UpdateClassFeeData, UpdateClassFeeVariables>;
+export function useUpdateClassFee(dc: DataConnect, options?: useDataConnectMutationOptions<UpdateClassFeeData, FirebaseError, UpdateClassFeeVariables>): UseDataConnectMutationResult<UpdateClassFeeData, UpdateClassFeeVariables>;
+
+export function useCreateFeePlan(options?: useDataConnectMutationOptions<CreateFeePlanData, FirebaseError, CreateFeePlanVariables>): UseDataConnectMutationResult<CreateFeePlanData, CreateFeePlanVariables>;
+export function useCreateFeePlan(dc: DataConnect, options?: useDataConnectMutationOptions<CreateFeePlanData, FirebaseError, CreateFeePlanVariables>): UseDataConnectMutationResult<CreateFeePlanData, CreateFeePlanVariables>;
+
+export function useUpdateFeePlan(options?: useDataConnectMutationOptions<UpdateFeePlanData, FirebaseError, UpdateFeePlanVariables>): UseDataConnectMutationResult<UpdateFeePlanData, UpdateFeePlanVariables>;
+export function useUpdateFeePlan(dc: DataConnect, options?: useDataConnectMutationOptions<UpdateFeePlanData, FirebaseError, UpdateFeePlanVariables>): UseDataConnectMutationResult<UpdateFeePlanData, UpdateFeePlanVariables>;
+
+export function useClearFeePlanItems(options?: useDataConnectMutationOptions<ClearFeePlanItemsData, FirebaseError, ClearFeePlanItemsVariables>): UseDataConnectMutationResult<ClearFeePlanItemsData, ClearFeePlanItemsVariables>;
+export function useClearFeePlanItems(dc: DataConnect, options?: useDataConnectMutationOptions<ClearFeePlanItemsData, FirebaseError, ClearFeePlanItemsVariables>): UseDataConnectMutationResult<ClearFeePlanItemsData, ClearFeePlanItemsVariables>;
+
+export function useCreateFeePlanItem(options?: useDataConnectMutationOptions<CreateFeePlanItemData, FirebaseError, CreateFeePlanItemVariables>): UseDataConnectMutationResult<CreateFeePlanItemData, CreateFeePlanItemVariables>;
+export function useCreateFeePlanItem(dc: DataConnect, options?: useDataConnectMutationOptions<CreateFeePlanItemData, FirebaseError, CreateFeePlanItemVariables>): UseDataConnectMutationResult<CreateFeePlanItemData, CreateFeePlanItemVariables>;
+
+export function useRecordPayment(options?: useDataConnectMutationOptions<RecordPaymentData, FirebaseError, RecordPaymentVariables>): UseDataConnectMutationResult<RecordPaymentData, RecordPaymentVariables>;
+export function useRecordPayment(dc: DataConnect, options?: useDataConnectMutationOptions<RecordPaymentData, FirebaseError, RecordPaymentVariables>): UseDataConnectMutationResult<RecordPaymentData, RecordPaymentVariables>;
+
+export function useUpdatePayment(options?: useDataConnectMutationOptions<UpdatePaymentData, FirebaseError, UpdatePaymentVariables>): UseDataConnectMutationResult<UpdatePaymentData, UpdatePaymentVariables>;
+export function useUpdatePayment(dc: DataConnect, options?: useDataConnectMutationOptions<UpdatePaymentData, FirebaseError, UpdatePaymentVariables>): UseDataConnectMutationResult<UpdatePaymentData, UpdatePaymentVariables>;
+
+export function useReversePayment(options?: useDataConnectMutationOptions<ReversePaymentData, FirebaseError, ReversePaymentVariables>): UseDataConnectMutationResult<ReversePaymentData, ReversePaymentVariables>;
+export function useReversePayment(dc: DataConnect, options?: useDataConnectMutationOptions<ReversePaymentData, FirebaseError, ReversePaymentVariables>): UseDataConnectMutationResult<ReversePaymentData, ReversePaymentVariables>;
+
+export function useRecordAuditLog(options?: useDataConnectMutationOptions<RecordAuditLogData, FirebaseError, RecordAuditLogVariables>): UseDataConnectMutationResult<RecordAuditLogData, RecordAuditLogVariables>;
+export function useRecordAuditLog(dc: DataConnect, options?: useDataConnectMutationOptions<RecordAuditLogData, FirebaseError, RecordAuditLogVariables>): UseDataConnectMutationResult<RecordAuditLogData, RecordAuditLogVariables>;
+
+export function useCreateNotice(options?: useDataConnectMutationOptions<CreateNoticeData, FirebaseError, CreateNoticeVariables>): UseDataConnectMutationResult<CreateNoticeData, CreateNoticeVariables>;
+export function useCreateNotice(dc: DataConnect, options?: useDataConnectMutationOptions<CreateNoticeData, FirebaseError, CreateNoticeVariables>): UseDataConnectMutationResult<CreateNoticeData, CreateNoticeVariables>;
+
+export function useUpdateNotice(options?: useDataConnectMutationOptions<UpdateNoticeData, FirebaseError, UpdateNoticeVariables>): UseDataConnectMutationResult<UpdateNoticeData, UpdateNoticeVariables>;
+export function useUpdateNotice(dc: DataConnect, options?: useDataConnectMutationOptions<UpdateNoticeData, FirebaseError, UpdateNoticeVariables>): UseDataConnectMutationResult<UpdateNoticeData, UpdateNoticeVariables>;
+
+export function useDeleteNotice(options?: useDataConnectMutationOptions<DeleteNoticeData, FirebaseError, DeleteNoticeVariables>): UseDataConnectMutationResult<DeleteNoticeData, DeleteNoticeVariables>;
+export function useDeleteNotice(dc: DataConnect, options?: useDataConnectMutationOptions<DeleteNoticeData, FirebaseError, DeleteNoticeVariables>): UseDataConnectMutationResult<DeleteNoticeData, DeleteNoticeVariables>;
+
+export function useToggleNoticePin(options?: useDataConnectMutationOptions<ToggleNoticePinData, FirebaseError, ToggleNoticePinVariables>): UseDataConnectMutationResult<ToggleNoticePinData, ToggleNoticePinVariables>;
+export function useToggleNoticePin(dc: DataConnect, options?: useDataConnectMutationOptions<ToggleNoticePinData, FirebaseError, ToggleNoticePinVariables>): UseDataConnectMutationResult<ToggleNoticePinData, ToggleNoticePinVariables>;
+
+export function useUpsertTimetablePeriod(options?: useDataConnectMutationOptions<UpsertTimetablePeriodData, FirebaseError, UpsertTimetablePeriodVariables>): UseDataConnectMutationResult<UpsertTimetablePeriodData, UpsertTimetablePeriodVariables>;
+export function useUpsertTimetablePeriod(dc: DataConnect, options?: useDataConnectMutationOptions<UpsertTimetablePeriodData, FirebaseError, UpsertTimetablePeriodVariables>): UseDataConnectMutationResult<UpsertTimetablePeriodData, UpsertTimetablePeriodVariables>;
+
+export function useClearTimetableForSection(options?: useDataConnectMutationOptions<ClearTimetableForSectionData, FirebaseError, ClearTimetableForSectionVariables>): UseDataConnectMutationResult<ClearTimetableForSectionData, ClearTimetableForSectionVariables>;
+export function useClearTimetableForSection(dc: DataConnect, options?: useDataConnectMutationOptions<ClearTimetableForSectionData, FirebaseError, ClearTimetableForSectionVariables>): UseDataConnectMutationResult<ClearTimetableForSectionData, ClearTimetableForSectionVariables>;
+
+export function useUpsertTimetablePeriodFull(options?: useDataConnectMutationOptions<UpsertTimetablePeriodFullData, FirebaseError, UpsertTimetablePeriodFullVariables>): UseDataConnectMutationResult<UpsertTimetablePeriodFullData, UpsertTimetablePeriodFullVariables>;
+export function useUpsertTimetablePeriodFull(dc: DataConnect, options?: useDataConnectMutationOptions<UpsertTimetablePeriodFullData, FirebaseError, UpsertTimetablePeriodFullVariables>): UseDataConnectMutationResult<UpsertTimetablePeriodFullData, UpsertTimetablePeriodFullVariables>;
+
+export function usePublishTimetableSection(options?: useDataConnectMutationOptions<PublishTimetableSectionData, FirebaseError, PublishTimetableSectionVariables>): UseDataConnectMutationResult<PublishTimetableSectionData, PublishTimetableSectionVariables>;
+export function usePublishTimetableSection(dc: DataConnect, options?: useDataConnectMutationOptions<PublishTimetableSectionData, FirebaseError, PublishTimetableSectionVariables>): UseDataConnectMutationResult<PublishTimetableSectionData, PublishTimetableSectionVariables>;
+
+export function useUnpublishTimetableSection(options?: useDataConnectMutationOptions<UnpublishTimetableSectionData, FirebaseError, UnpublishTimetableSectionVariables>): UseDataConnectMutationResult<UnpublishTimetableSectionData, UnpublishTimetableSectionVariables>;
+export function useUnpublishTimetableSection(dc: DataConnect, options?: useDataConnectMutationOptions<UnpublishTimetableSectionData, FirebaseError, UnpublishTimetableSectionVariables>): UseDataConnectMutationResult<UnpublishTimetableSectionData, UnpublishTimetableSectionVariables>;
+
+export function useCreateSuggestion(options?: useDataConnectMutationOptions<CreateSuggestionData, FirebaseError, CreateSuggestionVariables>): UseDataConnectMutationResult<CreateSuggestionData, CreateSuggestionVariables>;
+export function useCreateSuggestion(dc: DataConnect, options?: useDataConnectMutationOptions<CreateSuggestionData, FirebaseError, CreateSuggestionVariables>): UseDataConnectMutationResult<CreateSuggestionData, CreateSuggestionVariables>;
+
+export function useRespondToSuggestion(options?: useDataConnectMutationOptions<RespondToSuggestionData, FirebaseError, RespondToSuggestionVariables>): UseDataConnectMutationResult<RespondToSuggestionData, RespondToSuggestionVariables>;
+export function useRespondToSuggestion(dc: DataConnect, options?: useDataConnectMutationOptions<RespondToSuggestionData, FirebaseError, RespondToSuggestionVariables>): UseDataConnectMutationResult<RespondToSuggestionData, RespondToSuggestionVariables>;
+
+export function useCreateNotification(options?: useDataConnectMutationOptions<CreateNotificationData, FirebaseError, CreateNotificationVariables>): UseDataConnectMutationResult<CreateNotificationData, CreateNotificationVariables>;
+export function useCreateNotification(dc: DataConnect, options?: useDataConnectMutationOptions<CreateNotificationData, FirebaseError, CreateNotificationVariables>): UseDataConnectMutationResult<CreateNotificationData, CreateNotificationVariables>;
+
+export function useDeleteNotification(options?: useDataConnectMutationOptions<DeleteNotificationData, FirebaseError, DeleteNotificationVariables>): UseDataConnectMutationResult<DeleteNotificationData, DeleteNotificationVariables>;
+export function useDeleteNotification(dc: DataConnect, options?: useDataConnectMutationOptions<DeleteNotificationData, FirebaseError, DeleteNotificationVariables>): UseDataConnectMutationResult<DeleteNotificationData, DeleteNotificationVariables>;
+
+export function useMarkNotificationRead(options?: useDataConnectMutationOptions<MarkNotificationReadData, FirebaseError, MarkNotificationReadVariables>): UseDataConnectMutationResult<MarkNotificationReadData, MarkNotificationReadVariables>;
+export function useMarkNotificationRead(dc: DataConnect, options?: useDataConnectMutationOptions<MarkNotificationReadData, FirebaseError, MarkNotificationReadVariables>): UseDataConnectMutationResult<MarkNotificationReadData, MarkNotificationReadVariables>;
+
+export function useMarkAllNotificationsRead(options?: useDataConnectMutationOptions<MarkAllNotificationsReadData, FirebaseError, MarkAllNotificationsReadVariables>): UseDataConnectMutationResult<MarkAllNotificationsReadData, MarkAllNotificationsReadVariables>;
+export function useMarkAllNotificationsRead(dc: DataConnect, options?: useDataConnectMutationOptions<MarkAllNotificationsReadData, FirebaseError, MarkAllNotificationsReadVariables>): UseDataConnectMutationResult<MarkAllNotificationsReadData, MarkAllNotificationsReadVariables>;
+
+export function useChangeUserPrimaryRole(options?: useDataConnectMutationOptions<ChangeUserPrimaryRoleData, FirebaseError, ChangeUserPrimaryRoleVariables>): UseDataConnectMutationResult<ChangeUserPrimaryRoleData, ChangeUserPrimaryRoleVariables>;
+export function useChangeUserPrimaryRole(dc: DataConnect, options?: useDataConnectMutationOptions<ChangeUserPrimaryRoleData, FirebaseError, ChangeUserPrimaryRoleVariables>): UseDataConnectMutationResult<ChangeUserPrimaryRoleData, ChangeUserPrimaryRoleVariables>;
+
+export function useAddAdditionalRole(options?: useDataConnectMutationOptions<AddAdditionalRoleData, FirebaseError, AddAdditionalRoleVariables>): UseDataConnectMutationResult<AddAdditionalRoleData, AddAdditionalRoleVariables>;
+export function useAddAdditionalRole(dc: DataConnect, options?: useDataConnectMutationOptions<AddAdditionalRoleData, FirebaseError, AddAdditionalRoleVariables>): UseDataConnectMutationResult<AddAdditionalRoleData, AddAdditionalRoleVariables>;
+
+export function useCleanUserRolesToPrimary(options?: useDataConnectMutationOptions<CleanUserRolesToPrimaryData, FirebaseError, CleanUserRolesToPrimaryVariables>): UseDataConnectMutationResult<CleanUserRolesToPrimaryData, CleanUserRolesToPrimaryVariables>;
+export function useCleanUserRolesToPrimary(dc: DataConnect, options?: useDataConnectMutationOptions<CleanUserRolesToPrimaryData, FirebaseError, CleanUserRolesToPrimaryVariables>): UseDataConnectMutationResult<CleanUserRolesToPrimaryData, CleanUserRolesToPrimaryVariables>;
+
+export function useCreateAcademicYear(options?: useDataConnectMutationOptions<CreateAcademicYearData, FirebaseError, CreateAcademicYearVariables>): UseDataConnectMutationResult<CreateAcademicYearData, CreateAcademicYearVariables>;
+export function useCreateAcademicYear(dc: DataConnect, options?: useDataConnectMutationOptions<CreateAcademicYearData, FirebaseError, CreateAcademicYearVariables>): UseDataConnectMutationResult<CreateAcademicYearData, CreateAcademicYearVariables>;
+
+export function useUpdateAcademicYear(options?: useDataConnectMutationOptions<UpdateAcademicYearData, FirebaseError, UpdateAcademicYearVariables>): UseDataConnectMutationResult<UpdateAcademicYearData, UpdateAcademicYearVariables>;
+export function useUpdateAcademicYear(dc: DataConnect, options?: useDataConnectMutationOptions<UpdateAcademicYearData, FirebaseError, UpdateAcademicYearVariables>): UseDataConnectMutationResult<UpdateAcademicYearData, UpdateAcademicYearVariables>;
+
+export function useActivateAcademicYear(options?: useDataConnectMutationOptions<ActivateAcademicYearData, FirebaseError, ActivateAcademicYearVariables>): UseDataConnectMutationResult<ActivateAcademicYearData, ActivateAcademicYearVariables>;
+export function useActivateAcademicYear(dc: DataConnect, options?: useDataConnectMutationOptions<ActivateAcademicYearData, FirebaseError, ActivateAcademicYearVariables>): UseDataConnectMutationResult<ActivateAcademicYearData, ActivateAcademicYearVariables>;
+
+export function useCloseAcademicYear(options?: useDataConnectMutationOptions<CloseAcademicYearData, FirebaseError, CloseAcademicYearVariables>): UseDataConnectMutationResult<CloseAcademicYearData, CloseAcademicYearVariables>;
+export function useCloseAcademicYear(dc: DataConnect, options?: useDataConnectMutationOptions<CloseAcademicYearData, FirebaseError, CloseAcademicYearVariables>): UseDataConnectMutationResult<CloseAcademicYearData, CloseAcademicYearVariables>;
+
+export function useRecordStudentPromotion(options?: useDataConnectMutationOptions<RecordStudentPromotionData, FirebaseError, RecordStudentPromotionVariables>): UseDataConnectMutationResult<RecordStudentPromotionData, RecordStudentPromotionVariables>;
+export function useRecordStudentPromotion(dc: DataConnect, options?: useDataConnectMutationOptions<RecordStudentPromotionData, FirebaseError, RecordStudentPromotionVariables>): UseDataConnectMutationResult<RecordStudentPromotionData, RecordStudentPromotionVariables>;
+
+export function useApplyStudentPromotion(options?: useDataConnectMutationOptions<ApplyStudentPromotionData, FirebaseError, ApplyStudentPromotionVariables>): UseDataConnectMutationResult<ApplyStudentPromotionData, ApplyStudentPromotionVariables>;
+export function useApplyStudentPromotion(dc: DataConnect, options?: useDataConnectMutationOptions<ApplyStudentPromotionData, FirebaseError, ApplyStudentPromotionVariables>): UseDataConnectMutationResult<ApplyStudentPromotionData, ApplyStudentPromotionVariables>;
+
+export function useCreateHoliday(options?: useDataConnectMutationOptions<CreateHolidayData, FirebaseError, CreateHolidayVariables>): UseDataConnectMutationResult<CreateHolidayData, CreateHolidayVariables>;
+export function useCreateHoliday(dc: DataConnect, options?: useDataConnectMutationOptions<CreateHolidayData, FirebaseError, CreateHolidayVariables>): UseDataConnectMutationResult<CreateHolidayData, CreateHolidayVariables>;
+
+export function useUpdateHoliday(options?: useDataConnectMutationOptions<UpdateHolidayData, FirebaseError, UpdateHolidayVariables>): UseDataConnectMutationResult<UpdateHolidayData, UpdateHolidayVariables>;
+export function useUpdateHoliday(dc: DataConnect, options?: useDataConnectMutationOptions<UpdateHolidayData, FirebaseError, UpdateHolidayVariables>): UseDataConnectMutationResult<UpdateHolidayData, UpdateHolidayVariables>;
+
+export function useDeleteHoliday(options?: useDataConnectMutationOptions<DeleteHolidayData, FirebaseError, DeleteHolidayVariables>): UseDataConnectMutationResult<DeleteHolidayData, DeleteHolidayVariables>;
+export function useDeleteHoliday(dc: DataConnect, options?: useDataConnectMutationOptions<DeleteHolidayData, FirebaseError, DeleteHolidayVariables>): UseDataConnectMutationResult<DeleteHolidayData, DeleteHolidayVariables>;
+
+export function useCorrectAttendance(options?: useDataConnectMutationOptions<CorrectAttendanceData, FirebaseError, CorrectAttendanceVariables>): UseDataConnectMutationResult<CorrectAttendanceData, CorrectAttendanceVariables>;
+export function useCorrectAttendance(dc: DataConnect, options?: useDataConnectMutationOptions<CorrectAttendanceData, FirebaseError, CorrectAttendanceVariables>): UseDataConnectMutationResult<CorrectAttendanceData, CorrectAttendanceVariables>;
+
+export function useUpsertAttendanceSummary(options?: useDataConnectMutationOptions<UpsertAttendanceSummaryData, FirebaseError, UpsertAttendanceSummaryVariables>): UseDataConnectMutationResult<UpsertAttendanceSummaryData, UpsertAttendanceSummaryVariables>;
+export function useUpsertAttendanceSummary(dc: DataConnect, options?: useDataConnectMutationOptions<UpsertAttendanceSummaryData, FirebaseError, UpsertAttendanceSummaryVariables>): UseDataConnectMutationResult<UpsertAttendanceSummaryData, UpsertAttendanceSummaryVariables>;
+
+export function useCreateAttendanceAlertLog(options?: useDataConnectMutationOptions<CreateAttendanceAlertLogData, FirebaseError, CreateAttendanceAlertLogVariables>): UseDataConnectMutationResult<CreateAttendanceAlertLogData, CreateAttendanceAlertLogVariables>;
+export function useCreateAttendanceAlertLog(dc: DataConnect, options?: useDataConnectMutationOptions<CreateAttendanceAlertLogData, FirebaseError, CreateAttendanceAlertLogVariables>): UseDataConnectMutationResult<CreateAttendanceAlertLogData, CreateAttendanceAlertLogVariables>;
+
+export function useCreatePublicHoliday(options?: useDataConnectMutationOptions<CreatePublicHolidayData, FirebaseError, CreatePublicHolidayVariables>): UseDataConnectMutationResult<CreatePublicHolidayData, CreatePublicHolidayVariables>;
+export function useCreatePublicHoliday(dc: DataConnect, options?: useDataConnectMutationOptions<CreatePublicHolidayData, FirebaseError, CreatePublicHolidayVariables>): UseDataConnectMutationResult<CreatePublicHolidayData, CreatePublicHolidayVariables>;
+
+export function useCreateExam(options?: useDataConnectMutationOptions<CreateExamData, FirebaseError, CreateExamVariables>): UseDataConnectMutationResult<CreateExamData, CreateExamVariables>;
+export function useCreateExam(dc: DataConnect, options?: useDataConnectMutationOptions<CreateExamData, FirebaseError, CreateExamVariables>): UseDataConnectMutationResult<CreateExamData, CreateExamVariables>;
+
+export function useUpdateExam(options?: useDataConnectMutationOptions<UpdateExamData, FirebaseError, UpdateExamVariables>): UseDataConnectMutationResult<UpdateExamData, UpdateExamVariables>;
+export function useUpdateExam(dc: DataConnect, options?: useDataConnectMutationOptions<UpdateExamData, FirebaseError, UpdateExamVariables>): UseDataConnectMutationResult<UpdateExamData, UpdateExamVariables>;
+
+export function useArchiveExam(options?: useDataConnectMutationOptions<ArchiveExamData, FirebaseError, ArchiveExamVariables>): UseDataConnectMutationResult<ArchiveExamData, ArchiveExamVariables>;
+export function useArchiveExam(dc: DataConnect, options?: useDataConnectMutationOptions<ArchiveExamData, FirebaseError, ArchiveExamVariables>): UseDataConnectMutationResult<ArchiveExamData, ArchiveExamVariables>;
+
+export function useDeleteExam(options?: useDataConnectMutationOptions<DeleteExamData, FirebaseError, DeleteExamVariables>): UseDataConnectMutationResult<DeleteExamData, DeleteExamVariables>;
+export function useDeleteExam(dc: DataConnect, options?: useDataConnectMutationOptions<DeleteExamData, FirebaseError, DeleteExamVariables>): UseDataConnectMutationResult<DeleteExamData, DeleteExamVariables>;
+
+export function useAddExamSection(options?: useDataConnectMutationOptions<AddExamSectionData, FirebaseError, AddExamSectionVariables>): UseDataConnectMutationResult<AddExamSectionData, AddExamSectionVariables>;
+export function useAddExamSection(dc: DataConnect, options?: useDataConnectMutationOptions<AddExamSectionData, FirebaseError, AddExamSectionVariables>): UseDataConnectMutationResult<AddExamSectionData, AddExamSectionVariables>;
+
+export function useUpsertExamSubjectConfig(options?: useDataConnectMutationOptions<UpsertExamSubjectConfigData, FirebaseError, UpsertExamSubjectConfigVariables>): UseDataConnectMutationResult<UpsertExamSubjectConfigData, UpsertExamSubjectConfigVariables>;
+export function useUpsertExamSubjectConfig(dc: DataConnect, options?: useDataConnectMutationOptions<UpsertExamSubjectConfigData, FirebaseError, UpsertExamSubjectConfigVariables>): UseDataConnectMutationResult<UpsertExamSubjectConfigData, UpsertExamSubjectConfigVariables>;
+
+export function useUpsertStudentMark(options?: useDataConnectMutationOptions<UpsertStudentMarkData, FirebaseError, UpsertStudentMarkVariables>): UseDataConnectMutationResult<UpsertStudentMarkData, UpsertStudentMarkVariables>;
+export function useUpsertStudentMark(dc: DataConnect, options?: useDataConnectMutationOptions<UpsertStudentMarkData, FirebaseError, UpsertStudentMarkVariables>): UseDataConnectMutationResult<UpsertStudentMarkData, UpsertStudentMarkVariables>;
+
+export function usePublishExamSection(options?: useDataConnectMutationOptions<PublishExamSectionData, FirebaseError, PublishExamSectionVariables>): UseDataConnectMutationResult<PublishExamSectionData, PublishExamSectionVariables>;
+export function usePublishExamSection(dc: DataConnect, options?: useDataConnectMutationOptions<PublishExamSectionData, FirebaseError, PublishExamSectionVariables>): UseDataConnectMutationResult<PublishExamSectionData, PublishExamSectionVariables>;
+
+export function useUnpublishExamSection(options?: useDataConnectMutationOptions<UnpublishExamSectionData, FirebaseError, UnpublishExamSectionVariables>): UseDataConnectMutationResult<UnpublishExamSectionData, UnpublishExamSectionVariables>;
+export function useUnpublishExamSection(dc: DataConnect, options?: useDataConnectMutationOptions<UnpublishExamSectionData, FirebaseError, UnpublishExamSectionVariables>): UseDataConnectMutationResult<UnpublishExamSectionData, UnpublishExamSectionVariables>;
+
+export function useRecordMarksAuditLog(options?: useDataConnectMutationOptions<RecordMarksAuditLogData, FirebaseError, RecordMarksAuditLogVariables>): UseDataConnectMutationResult<RecordMarksAuditLogData, RecordMarksAuditLogVariables>;
+export function useRecordMarksAuditLog(dc: DataConnect, options?: useDataConnectMutationOptions<RecordMarksAuditLogData, FirebaseError, RecordMarksAuditLogVariables>): UseDataConnectMutationResult<RecordMarksAuditLogData, RecordMarksAuditLogVariables>;
+
+export function useUpdateStudentStatus(options?: useDataConnectMutationOptions<UpdateStudentStatusData, FirebaseError, UpdateStudentStatusVariables>): UseDataConnectMutationResult<UpdateStudentStatusData, UpdateStudentStatusVariables>;
+export function useUpdateStudentStatus(dc: DataConnect, options?: useDataConnectMutationOptions<UpdateStudentStatusData, FirebaseError, UpdateStudentStatusVariables>): UseDataConnectMutationResult<UpdateStudentStatusData, UpdateStudentStatusVariables>;
+
+export function useUpdateStudentSection(options?: useDataConnectMutationOptions<UpdateStudentSectionData, FirebaseError, UpdateStudentSectionVariables>): UseDataConnectMutationResult<UpdateStudentSectionData, UpdateStudentSectionVariables>;
+export function useUpdateStudentSection(dc: DataConnect, options?: useDataConnectMutationOptions<UpdateStudentSectionData, FirebaseError, UpdateStudentSectionVariables>): UseDataConnectMutationResult<UpdateStudentSectionData, UpdateStudentSectionVariables>;
