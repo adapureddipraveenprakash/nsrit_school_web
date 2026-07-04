@@ -20,31 +20,22 @@ import Settings from './pages/mainAdmin/Settings';
 // Subpages / Configurations from school.docx
 import BranchContext from './pages/mainAdmin/subpages/BranchContext';
 import CreateBranch from './pages/mainAdmin/subpages/CreateBranch';
-import StudentRecords from './pages/shared/StudentRecords';
-import SearchStudents from './pages/shared/SearchStudents';
-import TransferStudent from './pages/shared/TransferStudent';
 import FeeSetup from './pages/mainAdmin/subpages/FeeSetup';
 import AuditLogs from './pages/mainAdmin/subpages/AuditLogs';
 import RevenueOverview from './pages/mainAdmin/subpages/RevenueOverview';
 import GlobalReports from './pages/mainAdmin/subpages/GlobalReports';
-import MyProfile from './pages/shared/MyProfile';
-import Notifications from './pages/shared/Notifications';
 import SendNotification from './pages/coordinator/subpages/SendNotification';
 import PostNotice from './pages/coordinator/subpages/PostNotice';
 import CreateStudent from './pages/branchAdmin/subpages/CreateStudent';
 import CreateFeePlan from './pages/branchAdmin/subpages/CreateFeePlan';
 import BulkUpload from './pages/branchAdmin/subpages/BulkUpload';
-import Teachers from './pages/shared/Teachers';
 import CreateTeacher from './pages/branchAdmin/subpages/CreateTeacher';
 import ClassTeachers from './pages/branchAdmin/subpages/ClassTeachers';
-import AttendanceOverview from './pages/shared/AttendanceOverview';
-import FeeOverview from './pages/shared/FeeOverview';
 import FeePlans from './pages/accountant/subpages/FeePlans';
 import FeeLedger from './pages/accountant/subpages/FeeLedger';
 import BranchAnalytics from './pages/branchAdmin/subpages/BranchAnalytics';
 import BranchSettings from './pages/branchAdmin/subpages/BranchSettings';
 import EditBranch from './pages/mainAdmin/subpages/EditBranch';
-import Timetable from './pages/shared/Timetable';
 import PromotionManagement from './pages/principal/subpages/PromotionManagement';
 import Suggestions from './pages/parent/subpages/Suggestions';
 import Homework from './pages/teacher/subpages/Homework';
@@ -67,7 +58,176 @@ import BranchReports from './pages/accountant/subpages/BranchReports';
 import Events from './pages/parent/subpages/Events';
 import CorrectAttendance from './pages/teacher/subpages/CorrectAttendance';
 import TakeAttendance from './pages/teacher/subpages/TakeAttendance';
-import NoticeBoard from './pages/shared/NoticeBoard';
+
+// Role-Specific Imports to separate shared pages
+import PrincipalProfile from './pages/principal/subpages/MyProfile';
+import BranchAdminProfile from './pages/branchAdmin/subpages/MyProfile';
+import CoordinatorProfile from './pages/coordinator/subpages/MyProfile';
+import TeacherProfile from './pages/teacher/subpages/MyProfile';
+import AccountantProfile from './pages/accountant/subpages/MyProfile';
+import ParentProfile from './pages/parent/subpages/MyProfile';
+import MainAdminProfile from './pages/mainAdmin/subpages/MyProfile';
+
+import PrincipalNotifications from './pages/principal/subpages/Notifications';
+import BranchAdminNotifications from './pages/branchAdmin/subpages/Notifications';
+import CoordinatorNotifications from './pages/coordinator/subpages/Notifications';
+import TeacherNotifications from './pages/teacher/subpages/Notifications';
+import AccountantNotifications from './pages/accountant/subpages/Notifications';
+import ParentNotifications from './pages/parent/subpages/Notifications';
+import MainAdminNotifications from './pages/mainAdmin/subpages/Notifications';
+
+import PrincipalNoticeBoard from './pages/principal/subpages/NoticeBoard';
+import BranchAdminNoticeBoard from './pages/branchAdmin/subpages/NoticeBoard';
+import CoordinatorNoticeBoard from './pages/coordinator/subpages/NoticeBoard';
+import TeacherNoticeBoard from './pages/teacher/subpages/NoticeBoard';
+import AccountantNoticeBoard from './pages/accountant/subpages/NoticeBoard';
+import ParentNoticeBoard from './pages/parent/subpages/NoticeBoard';
+import MainAdminNoticeBoard from './pages/mainAdmin/subpages/NoticeBoard';
+
+import PrincipalAttendance from './pages/principal/subpages/AttendanceOverview';
+import BranchAdminAttendance from './pages/branchAdmin/subpages/AttendanceOverview';
+import CoordinatorAttendance from './pages/coordinator/subpages/AttendanceOverview';
+import TeacherAttendance from './pages/teacher/subpages/AttendanceOverview';
+import ParentAttendance from './pages/parent/subpages/AttendanceOverview';
+
+import PrincipalFeeOverview from './pages/principal/subpages/FeeOverview';
+import BranchAdminFeeOverview from './pages/branchAdmin/subpages/FeeOverview';
+import CoordinatorFeeOverview from './pages/coordinator/subpages/FeeOverview';
+import TeacherFeeOverview from './pages/teacher/subpages/FeeOverview';
+import AccountantFeeOverview from './pages/accountant/subpages/FeeOverview';
+import ParentFeeOverview from './pages/parent/subpages/FeeOverview';
+
+import PrincipalTimetable from './pages/principal/subpages/Timetable';
+import BranchAdminTimetable from './pages/branchAdmin/subpages/Timetable';
+import CoordinatorTimetable from './pages/coordinator/subpages/Timetable';
+import TeacherTimetable from './pages/teacher/subpages/Timetable';
+import ParentTimetable from './pages/parent/subpages/Timetable';
+
+import PrincipalStudentRecords from './pages/principal/subpages/StudentRecords';
+import BranchAdminStudentRecords from './pages/branchAdmin/subpages/StudentRecords';
+import CoordinatorStudentRecords from './pages/coordinator/subpages/StudentRecords';
+import AccountantStudentRecords from './pages/accountant/subpages/StudentRecords';
+import ParentStudentRecords from './pages/parent/subpages/StudentRecords';
+
+import PrincipalSearchStudents from './pages/principal/subpages/SearchStudents';
+import BranchAdminSearchStudents from './pages/branchAdmin/subpages/SearchStudents';
+import CoordinatorSearchStudents from './pages/coordinator/subpages/SearchStudents';
+import ParentSearchStudents from './pages/parent/subpages/SearchStudents';
+
+import PrincipalTeachers from './pages/principal/subpages/Teachers';
+import BranchAdminTeachers from './pages/branchAdmin/subpages/Teachers';
+
+import PrincipalTransfer from './pages/principal/subpages/TransferStudent';
+import BranchAdminTransfer from './pages/branchAdmin/subpages/TransferStudent';
+
+// Role-Specific Wrappers
+const MyProfile = () => {
+  const { activeRole } = useApp();
+  const r = activeRole?.toUpperCase();
+  if (r === 'MAIN_ADMIN') return <MainAdminProfile />;
+  if (r === 'BRANCH_ADMIN') return <BranchAdminProfile />;
+  if (r === 'PRINCIPAL') return <PrincipalProfile />;
+  if (r === 'COORDINATOR') return <CoordinatorProfile />;
+  if (r === 'TEACHER' || r === 'CLASS_TEACHER') return <TeacherProfile />;
+  if (r === 'ACCOUNTANT') return <AccountantProfile />;
+  if (r === 'PARENT') return <ParentProfile />;
+  return <PrincipalProfile />;
+};
+
+const Notifications = () => {
+  const { activeRole } = useApp();
+  const r = activeRole?.toUpperCase();
+  if (r === 'MAIN_ADMIN') return <MainAdminNotifications />;
+  if (r === 'BRANCH_ADMIN') return <BranchAdminNotifications />;
+  if (r === 'PRINCIPAL') return <PrincipalNotifications />;
+  if (r === 'COORDINATOR') return <CoordinatorNotifications />;
+  if (r === 'TEACHER' || r === 'CLASS_TEACHER') return <TeacherNotifications />;
+  if (r === 'ACCOUNTANT') return <AccountantNotifications />;
+  if (r === 'PARENT') return <ParentNotifications />;
+  return <PrincipalNotifications />;
+};
+
+const NoticeBoard = () => {
+  const { activeRole } = useApp();
+  const r = activeRole?.toUpperCase();
+  if (r === 'MAIN_ADMIN') return <MainAdminNoticeBoard />;
+  if (r === 'BRANCH_ADMIN') return <BranchAdminNoticeBoard />;
+  if (r === 'PRINCIPAL') return <PrincipalNoticeBoard />;
+  if (r === 'COORDINATOR') return <CoordinatorNoticeBoard />;
+  if (r === 'TEACHER' || r === 'CLASS_TEACHER') return <TeacherNoticeBoard />;
+  if (r === 'ACCOUNTANT') return <AccountantNoticeBoard />;
+  if (r === 'PARENT') return <ParentNoticeBoard />;
+  return <PrincipalNoticeBoard />;
+};
+
+const AttendanceOverview = () => {
+  const { activeRole } = useApp();
+  const r = activeRole?.toUpperCase();
+  if (r === 'BRANCH_ADMIN') return <BranchAdminAttendance />;
+  if (r === 'PRINCIPAL') return <PrincipalAttendance />;
+  if (r === 'COORDINATOR') return <CoordinatorAttendance />;
+  if (r === 'TEACHER' || r === 'CLASS_TEACHER') return <TeacherAttendance />;
+  if (r === 'PARENT') return <ParentAttendance />;
+  return <PrincipalAttendance />;
+};
+
+const FeeOverview = () => {
+  const { activeRole } = useApp();
+  const r = activeRole?.toUpperCase();
+  if (r === 'BRANCH_ADMIN') return <BranchAdminFeeOverview />;
+  if (r === 'PRINCIPAL') return <PrincipalFeeOverview />;
+  if (r === 'COORDINATOR') return <CoordinatorFeeOverview />;
+  if (r === 'TEACHER' || r === 'CLASS_TEACHER') return <TeacherFeeOverview />;
+  if (r === 'ACCOUNTANT') return <AccountantFeeOverview />;
+  if (r === 'PARENT') return <ParentFeeOverview />;
+  return <PrincipalFeeOverview />;
+};
+
+const Timetable = () => {
+  const { activeRole } = useApp();
+  const r = activeRole?.toUpperCase();
+  if (r === 'BRANCH_ADMIN') return <BranchAdminTimetable />;
+  if (r === 'PRINCIPAL') return <PrincipalTimetable />;
+  if (r === 'COORDINATOR') return <CoordinatorTimetable />;
+  if (r === 'TEACHER' || r === 'CLASS_TEACHER') return <TeacherTimetable />;
+  if (r === 'PARENT') return <ParentTimetable />;
+  return <PrincipalTimetable />;
+};
+
+const StudentRecords = () => {
+  const { activeRole } = useApp();
+  const r = activeRole?.toUpperCase();
+  if (r === 'BRANCH_ADMIN') return <BranchAdminStudentRecords />;
+  if (r === 'PRINCIPAL') return <PrincipalStudentRecords />;
+  if (r === 'COORDINATOR') return <CoordinatorStudentRecords />;
+  if (r === 'ACCOUNTANT') return <AccountantStudentRecords />;
+  if (r === 'PARENT') return <ParentStudentRecords />;
+  return <PrincipalStudentRecords />;
+};
+
+const SearchStudents = () => {
+  const { activeRole } = useApp();
+  const r = activeRole?.toUpperCase();
+  if (r === 'BRANCH_ADMIN') return <BranchAdminSearchStudents />;
+  if (r === 'PRINCIPAL') return <PrincipalSearchStudents />;
+  if (r === 'COORDINATOR') return <CoordinatorSearchStudents />;
+  if (r === 'PARENT') return <ParentSearchStudents />;
+  return <PrincipalSearchStudents />;
+};
+
+const Teachers = () => {
+  const { activeRole } = useApp();
+  const r = activeRole?.toUpperCase();
+  if (r === 'BRANCH_ADMIN') return <BranchAdminTeachers />;
+  return <PrincipalTeachers />;
+};
+
+const TransferStudent = () => {
+  const { activeRole } = useApp();
+  const r = activeRole?.toUpperCase();
+  if (r === 'BRANCH_ADMIN') return <BranchAdminTransfer />;
+  return <PrincipalTransfer />;
+};
 
 
 
