@@ -8,9 +8,9 @@ import {
 import { BiReceipt } from 'react-icons/bi';
 import { useApp } from '../../../context/AppContext';
 import { useDataFetch } from '../../../hooks/useDataFetch';
-import { getFeeReports } from '../../../services/dataService';
+import { getFeeReports, reversePayment } from '../../../services/dataService';
 import { db } from '../../../services/firebase';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot, doc, setDoc } from 'firebase/firestore';
 
 const FeeOverview = () => {
   const { activeRole, user, feeRefreshTrigger } = useApp();
@@ -43,6 +43,38 @@ const FeeOverview = () => {
     });
     return () => unsub();
   }, []);
+
+  // Temporary one-time cleanup hook for XYZ / test student payment records
+  useEffect(() => {
+    if (studentsList.length > 0) {
+      const xyzStudent = studentsList.find(s => s.fullName && s.fullName.toLowerCase().includes('xyz'));
+      if (xyzStudent) {
+        console.log('[Cleanup] Found XYZ student:', xyzStudent);
+        
+        // 1. Delete Firestore payments document
+        const firestoreRef = doc(db, 'fee_payments', xyzStudent.id);
+        setDoc(firestoreRef, { list: [] })
+          .then(() => console.log('[Cleanup] Cleared XYZ Firestore payments successfully'))
+          .catch(err => console.error('[Cleanup] Firestore clear failed:', err));
+          
+        // 2. Reverse any PostgreSQL payments under their fee plans
+        (xyzStudent.reportFeePlans || []).forEach(plan => {
+          (plan.reportFeePayments || []).forEach(pay => {
+            if (pay.status !== 'REVERSED') {
+              console.log('[Cleanup] Reversing PostgreSQL payment:', pay.id);
+              reversePayment({
+                paymentId: pay.id,
+                studentId: xyzStudent.id,
+                branchId: branchId,
+                reversedById: user?.id || xyzStudent.id,
+                reason: 'Cleanup XYZ student payment record'
+              });
+            }
+          });
+        });
+      }
+    }
+  }, [studentsList, branchId, user]);
 
   // Parse actual student ledger records from DB
   const studentLedgers = useMemo(() => {
@@ -109,23 +141,15 @@ const FeeOverview = () => {
     let paidCount = 0;
     let pendingCount = 0;
 
-    const listToUse = studentLedgers.length > 0 ? studentLedgers : mockLedgers;
+    const listToUse = studentLedgers;
 
-    if (studentLedgers.length > 0) {
-      listToUse.forEach(item => {
-        total += item.totalAmount;
-        paid += item.paidAmount;
-        due += item.dueAmount;
-        if (item.dueAmount === 0) paidCount++;
-        else pendingCount++;
-      });
-    } else {
-      total = 4379000;
-      paid = 25000;
-      due = 4354000;
-      paidCount = 0;
-      pendingCount = 105;
-    }
+    listToUse.forEach(item => {
+      total += item.totalAmount;
+      paid += item.paidAmount;
+      due += item.dueAmount;
+      if (item.dueAmount === 0) paidCount++;
+      else pendingCount++;
+    });
 
     const rate = total > 0 ? Math.round((paid / total) * 100) : 0;
     return { total, paid, due, paidCount, pendingCount, rate, list: listToUse };

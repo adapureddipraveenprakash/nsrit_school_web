@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   FiArrowLeft, FiSearch, FiChevronRight, FiInbox,
@@ -80,7 +80,15 @@ const MOCK_STUDENTS = [
 
 const FeeCollection = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const studentIdParam = searchParams.get('studentId');
   const { user, feeRefreshTrigger } = useApp();
+
+  useEffect(() => {
+    if (studentIdParam) {
+      navigate(`/settings/record-payment?studentId=${studentIdParam}`, { replace: true });
+    }
+  }, [studentIdParam, navigate]);
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('All');
   const [selectedYear, setSelectedYear] = useState('AY 2026');

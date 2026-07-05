@@ -59,6 +59,7 @@ import ClassWiseReport from './pages/accountant/subpages/ClassWiseReport';
 import Events from './pages/parent/subpages/Events';
 import CorrectAttendance from './pages/teacher/subpages/CorrectAttendance';
 import TakeAttendance from './pages/teacher/subpages/TakeAttendance';
+import StudentFeeProfile from './pages/principal/subpages/StudentFeeProfile';
 
 // Role-Specific Imports to separate shared pages
 import PrincipalProfile from './pages/principal/subpages/MyProfile';
@@ -329,6 +330,9 @@ const AnimatedRoutes = () => {
           <Route path="/settings/fee-overview" element={<FeeOverview />} />
           <Route path="/settings/fee-plans" element={<FeePlans />} />
           <Route path="/settings/create-fee-plan" element={<CreateFeePlan />} />
+          <Route path="/settings/create-fee-plan/:studentId" element={<CreateFeePlan />} />
+          <Route path="/settings/edit-fee-plan/:studentId" element={<CreateFeePlan />} />
+          <Route path="/settings/fee-profile/:studentId" element={<StudentFeeProfile />} />
           <Route path="/settings/ledger" element={<FeeLedger />} />
           <Route path="/settings/branch-analytics" element={<BranchAnalytics />} />
           <Route path="/settings/branch-settings" element={<BranchSettings />} />

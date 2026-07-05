@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FiArrowLeft, FiSearch, FiCheck, FiChevronRight, FiChevronDown, 
@@ -13,6 +13,8 @@ import { getStudents, getStudentFeeProfile, recordPayment } from '../../../servi
 
 const RecordPayment = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const studentIdParam = searchParams.get('studentId');
   const { user } = useApp();
   const [search, setSearch] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -65,7 +67,7 @@ const RecordPayment = () => {
   ];
 
   // Combined students mapping
-  const displayStudents = useMemo(() => {
+  const allStudents = useMemo(() => {
     const uniqueDb = [];
     const seen = new Set();
 
@@ -87,14 +89,27 @@ const RecordPayment = () => {
         combined.push(ms);
       }
     });
+    return combined;
+  }, [dbStudents]);
 
+  const displayStudents = useMemo(() => {
     if (search.trim().length === 0) return [];
     
-    return combined.filter(s => 
+    return allStudents.filter(s => 
       s.fullName.toLowerCase().includes(search.toLowerCase()) ||
       s.studentId.toLowerCase().includes(search.toLowerCase())
     );
-  }, [dbStudents, search]);
+  }, [allStudents, search]);
+
+  // Auto-select student if studentId query param is provided
+  useEffect(() => {
+    if (studentIdParam && allStudents.length > 0 && !selectedStudent) {
+      const match = allStudents.find(s => s.id === studentIdParam);
+      if (match) {
+        handleSelectStudent(match);
+      }
+    }
+  }, [studentIdParam, allStudents, selectedStudent]);
 
   // Handle selecting a student
   const handleSelectStudent = async (student) => {

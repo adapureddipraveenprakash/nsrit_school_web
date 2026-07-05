@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { useDataFetch } from '../../hooks/useDataFetch';
-import { getPrincipalDashboard, getFeeReports } from '../../services/dataService';
+import { getPrincipalDashboard, getFeeReports, reversePayment } from '../../services/dataService';
 import { motion } from 'framer-motion';
 import {
   FiArrowLeft, FiArrowRight, FiUsers, FiCalendar, FiActivity,
@@ -15,7 +15,7 @@ import {
 import { BiReceipt } from 'react-icons/bi';
 import Drawer from '../../components/Drawer';
 import { db } from '../../services/firebase';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot, doc, setDoc } from 'firebase/firestore';
 
 const PrincipalDashboard = () => {
   const { user, feeRefreshTrigger } = useApp();
@@ -52,6 +52,38 @@ const PrincipalDashboard = () => {
     });
     return () => unsub();
   }, []);
+
+  // Temporary one-time cleanup hook for XYZ / test student payment records
+  useEffect(() => {
+    if (studentsList.length > 0) {
+      const xyzStudent = studentsList.find(s => s.fullName && s.fullName.toLowerCase().includes('xyz'));
+      if (xyzStudent) {
+        console.log('[Cleanup] Found XYZ student:', xyzStudent);
+        
+        // 1. Delete Firestore payments document
+        const firestoreRef = doc(db, 'fee_payments', xyzStudent.id);
+        setDoc(firestoreRef, { list: [] })
+          .then(() => console.log('[Cleanup] Cleared XYZ Firestore payments successfully'))
+          .catch(err => console.error('[Cleanup] Firestore clear failed:', err));
+          
+        // 2. Reverse any PostgreSQL payments under their fee plans
+        (xyzStudent.reportFeePlans || []).forEach(plan => {
+          (plan.reportFeePayments || []).forEach(pay => {
+            if (pay.status !== 'REVERSED') {
+              console.log('[Cleanup] Reversing PostgreSQL payment:', pay.id);
+              reversePayment({
+                paymentId: pay.id,
+                studentId: xyzStudent.id,
+                branchId: branchId,
+                reversedById: user?.id || xyzStudent.id,
+                reason: 'Cleanup XYZ student payment record'
+              });
+            }
+          });
+        });
+      }
+    }
+  }, [studentsList, branchId, user]);
 
   const feeStats = useMemo(() => {
     let collected = 0;
@@ -90,13 +122,13 @@ const PrincipalDashboard = () => {
       }
     });
 
-    // If database has no student records (empty/unseeded branch), fall back to screenshot default values
+    // Always show actual database values
     if (studentsList.length === 0) {
       return {
-        collected: 20000,
-        pending: 4359000,
+        collected: 0,
+        pending: 0,
         waiver: 0,
-        percent: 1 // 1% collection rate to match mockup
+        percent: 0
       };
     }
 

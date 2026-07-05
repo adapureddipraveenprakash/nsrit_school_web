@@ -227,6 +227,8 @@ This README will guide you through the process of using the generated JavaScript
   - [*PublishExamSection*](#publishexamsection)
   - [*UnpublishExamSection*](#unpublishexamsection)
   - [*RecordMarksAuditLog*](#recordmarksauditlog)
+  - [*UpdateStudentStatus*](#updatestudentstatus)
+  - [*UpdateStudentSection*](#updatestudentsection)
 
 # Accessing the connector
 A connector is a collection of Queries and Mutations. One SDK is generated for each connector - this SDK is generated for the connector `nsrit`. You can find more information about connectors in the [Data Connect documentation](https://firebase.google.com/docs/data-connect#how-does).
@@ -30140,6 +30142,233 @@ console.log(data.marksAuditLog_insert);
 executeMutation(ref).then((response) => {
   const data = response.data;
   console.log(data.marksAuditLog_insert);
+});
+```
+
+## UpdateStudentStatus
+You can execute the `UpdateStudentStatus` mutation using the following action shortcut function, or by calling `executeMutation()` after calling the following `MutationRef` function, both of which are defined in [dataconnect-generated/index.d.ts](./index.d.ts):
+```typescript
+updateStudentStatus(vars: UpdateStudentStatusVariables): MutationPromise<UpdateStudentStatusData, UpdateStudentStatusVariables>;
+
+interface UpdateStudentStatusRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: UpdateStudentStatusVariables): MutationRef<UpdateStudentStatusData, UpdateStudentStatusVariables>;
+}
+export const updateStudentStatusRef: UpdateStudentStatusRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `MutationRef` function.
+```typescript
+updateStudentStatus(dc: DataConnect, vars: UpdateStudentStatusVariables): MutationPromise<UpdateStudentStatusData, UpdateStudentStatusVariables>;
+
+interface UpdateStudentStatusRef {
+  ...
+  (dc: DataConnect, vars: UpdateStudentStatusVariables): MutationRef<UpdateStudentStatusData, UpdateStudentStatusVariables>;
+}
+export const updateStudentStatusRef: UpdateStudentStatusRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the updateStudentStatusRef:
+```typescript
+const name = updateStudentStatusRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `UpdateStudentStatus` mutation requires an argument of type `UpdateStudentStatusVariables`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+
+```typescript
+export interface UpdateStudentStatusVariables {
+  studentId: UUIDString;
+  status: string;
+}
+```
+### Return Type
+Recall that executing the `UpdateStudentStatus` mutation returns a `MutationPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `UpdateStudentStatusData`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface UpdateStudentStatusData {
+  student_update?: Student_Key | null;
+}
+```
+### Using `UpdateStudentStatus`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, updateStudentStatus, UpdateStudentStatusVariables } from '@dataconnect/generated';
+
+// The `UpdateStudentStatus` mutation requires an argument of type `UpdateStudentStatusVariables`:
+const updateStudentStatusVars: UpdateStudentStatusVariables = {
+  studentId: ..., 
+  status: ..., 
+};
+
+// Call the `updateStudentStatus()` function to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await updateStudentStatus(updateStudentStatusVars);
+// Variables can be defined inline as well.
+const { data } = await updateStudentStatus({ studentId: ..., status: ..., });
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await updateStudentStatus(dataConnect, updateStudentStatusVars);
+
+console.log(data.student_update);
+
+// Or, you can use the `Promise` API.
+updateStudentStatus(updateStudentStatusVars).then((response) => {
+  const data = response.data;
+  console.log(data.student_update);
+});
+```
+
+### Using `UpdateStudentStatus`'s `MutationRef` function
+
+```typescript
+import { getDataConnect, executeMutation } from 'firebase/data-connect';
+import { connectorConfig, updateStudentStatusRef, UpdateStudentStatusVariables } from '@dataconnect/generated';
+
+// The `UpdateStudentStatus` mutation requires an argument of type `UpdateStudentStatusVariables`:
+const updateStudentStatusVars: UpdateStudentStatusVariables = {
+  studentId: ..., 
+  status: ..., 
+};
+
+// Call the `updateStudentStatusRef()` function to get a reference to the mutation.
+const ref = updateStudentStatusRef(updateStudentStatusVars);
+// Variables can be defined inline as well.
+const ref = updateStudentStatusRef({ studentId: ..., status: ..., });
+
+// You can also pass in a `DataConnect` instance to the `MutationRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = updateStudentStatusRef(dataConnect, updateStudentStatusVars);
+
+// Call `executeMutation()` on the reference to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeMutation(ref);
+
+console.log(data.student_update);
+
+// Or, you can use the `Promise` API.
+executeMutation(ref).then((response) => {
+  const data = response.data;
+  console.log(data.student_update);
+});
+```
+
+## UpdateStudentSection
+You can execute the `UpdateStudentSection` mutation using the following action shortcut function, or by calling `executeMutation()` after calling the following `MutationRef` function, both of which are defined in [dataconnect-generated/index.d.ts](./index.d.ts):
+```typescript
+updateStudentSection(vars: UpdateStudentSectionVariables): MutationPromise<UpdateStudentSectionData, UpdateStudentSectionVariables>;
+
+interface UpdateStudentSectionRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: UpdateStudentSectionVariables): MutationRef<UpdateStudentSectionData, UpdateStudentSectionVariables>;
+}
+export const updateStudentSectionRef: UpdateStudentSectionRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `MutationRef` function.
+```typescript
+updateStudentSection(dc: DataConnect, vars: UpdateStudentSectionVariables): MutationPromise<UpdateStudentSectionData, UpdateStudentSectionVariables>;
+
+interface UpdateStudentSectionRef {
+  ...
+  (dc: DataConnect, vars: UpdateStudentSectionVariables): MutationRef<UpdateStudentSectionData, UpdateStudentSectionVariables>;
+}
+export const updateStudentSectionRef: UpdateStudentSectionRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the updateStudentSectionRef:
+```typescript
+const name = updateStudentSectionRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `UpdateStudentSection` mutation requires an argument of type `UpdateStudentSectionVariables`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+
+```typescript
+export interface UpdateStudentSectionVariables {
+  studentId: UUIDString;
+  classId: UUIDString;
+  sectionId: UUIDString;
+}
+```
+### Return Type
+Recall that executing the `UpdateStudentSection` mutation returns a `MutationPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `UpdateStudentSectionData`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface UpdateStudentSectionData {
+  student_update?: Student_Key | null;
+}
+```
+### Using `UpdateStudentSection`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, updateStudentSection, UpdateStudentSectionVariables } from '@dataconnect/generated';
+
+// The `UpdateStudentSection` mutation requires an argument of type `UpdateStudentSectionVariables`:
+const updateStudentSectionVars: UpdateStudentSectionVariables = {
+  studentId: ..., 
+  classId: ..., 
+  sectionId: ..., 
+};
+
+// Call the `updateStudentSection()` function to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await updateStudentSection(updateStudentSectionVars);
+// Variables can be defined inline as well.
+const { data } = await updateStudentSection({ studentId: ..., classId: ..., sectionId: ..., });
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await updateStudentSection(dataConnect, updateStudentSectionVars);
+
+console.log(data.student_update);
+
+// Or, you can use the `Promise` API.
+updateStudentSection(updateStudentSectionVars).then((response) => {
+  const data = response.data;
+  console.log(data.student_update);
+});
+```
+
+### Using `UpdateStudentSection`'s `MutationRef` function
+
+```typescript
+import { getDataConnect, executeMutation } from 'firebase/data-connect';
+import { connectorConfig, updateStudentSectionRef, UpdateStudentSectionVariables } from '@dataconnect/generated';
+
+// The `UpdateStudentSection` mutation requires an argument of type `UpdateStudentSectionVariables`:
+const updateStudentSectionVars: UpdateStudentSectionVariables = {
+  studentId: ..., 
+  classId: ..., 
+  sectionId: ..., 
+};
+
+// Call the `updateStudentSectionRef()` function to get a reference to the mutation.
+const ref = updateStudentSectionRef(updateStudentSectionVars);
+// Variables can be defined inline as well.
+const ref = updateStudentSectionRef({ studentId: ..., classId: ..., sectionId: ..., });
+
+// You can also pass in a `DataConnect` instance to the `MutationRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = updateStudentSectionRef(dataConnect, updateStudentSectionVars);
+
+// Call `executeMutation()` on the reference to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeMutation(ref);
+
+console.log(data.student_update);
+
+// Or, you can use the `Promise` API.
+executeMutation(ref).then((response) => {
+  const data = response.data;
+  console.log(data.student_update);
 });
 ```
 
