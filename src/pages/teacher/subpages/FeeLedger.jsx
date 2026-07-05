@@ -1,97 +1,16 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import html2pdf from 'html2pdf.js';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
-  FiArrowLeft, FiSearch, FiInbox, FiBookOpen,
-  FiX, FiPrinter, FiDownload, FiCopy, FiChevronRight, FiShare2
+  FiArrowLeft, FiSearch, FiInbox, FiBookOpen, FiShare2,
+  FiX, FiPrinter, FiDownload, FiCopy, FiChevronRight
 } from 'react-icons/fi';
-import { collection, onSnapshot, doc } from 'firebase/firestore';
+import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../../../services/firebase';
 import { useApp } from '../../../context/AppContext';
 import { useDataFetch } from '../../../hooks/useDataFetch';
 import { getFeeReports } from '../../../services/dataService';
-
-const MOCK_PROFILES = {
-  'mock-student-2': {
-    fullName: 'KORADA BHARGAVSAI',
-    academicClass: { name: '5' },
-    section: { name: 'A' },
-    profileFeePlans: [
-      {
-        isActive: true,
-        totalAmount: 52000,
-        profileFeePayments: [
-          {
-            id: 'mock-pay-3',
-            amount: 5000,
-            paymentMode: 'UPI',
-            paymentDate: '2026-06-29',
-            receiptNumber: 'RCPT-2026-SD-00004',
-            status: 'RECORDED'
-          }
-        ]
-      }
-    ]
-  },
-  'mock-student-3': {
-    fullName: 'GANDARDDI MANJUSHA',
-    academicClass: { name: '4' },
-    section: { name: 'A' },
-    profileFeePlans: [
-      {
-        isActive: true,
-        totalAmount: 50000,
-        profileFeePayments: []
-      }
-    ]
-  },
-  'mock-student-4': {
-    fullName: 'GONTHINA POORVESH',
-    academicClass: { name: '4' },
-    section: { name: 'A' },
-    profileFeePlans: [
-      {
-        isActive: true,
-        totalAmount: 50000,
-        profileFeePayments: []
-      }
-    ]
-  },
-  'mock-student-5': {
-    fullName: 'GANDARDDI HEAMANTH',
-    academicClass: { name: '6' },
-    section: { name: 'A' },
-    profileFeePlans: [
-      {
-        isActive: true,
-        totalAmount: 56000,
-        profileFeePayments: []
-      }
-    ]
-  },
-  'mock-student-1': {
-    fullName: 'KORADA KARTHIKEYA',
-    academicClass: { name: '7' },
-    section: { name: 'A' },
-    profileFeePlans: [
-      {
-        isActive: true,
-        totalAmount: 50000,
-        profileFeePayments: [
-          {
-            id: 'mock-pay-1',
-            amount: 50000,
-            paymentMode: 'CASH',
-            paymentDate: '2026-07-03',
-            receiptNumber: 'REC-SD-1783057145704-816',
-            status: 'RECORDED'
-          }
-        ]
-      }
-    ]
-  }
-};
 
 // Helper to convert numbers to words in Indian numbering system
 function numberToWords(num) {
@@ -148,341 +67,327 @@ function numberToWords(num) {
   return formattedWords + ' Rupees Only';
 }
 
-const getReceiptHtml = (payment) => {
-  const receiptNo = payment.receiptNo || 'N/A';
-  const paymentDateStr = payment.date || 'N/A';
-  const studentName = payment.studentName || 'N/A';
-  const className = payment.class || 'N/A';
-  const admissionNo = payment.admissionNo || 'N/A';
-  const amountCurrency = `Rs ${payment.amount.toLocaleString('en-IN')}`;
-  const amountWords = numberToWords(payment.amount);
-  
-  const installment = payment.remarks || 'School Fee';
-  const receivedFrom = payment.studentName || 'Student';
-  const receivedBy = payment.collectedByName || 'B. Geetha';
-
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <title>Fee Receipt - ${receiptNo}</title>
-      <style>
-        body {
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-          margin: 0;
-          padding: 20px;
-          background-color: #ffffff;
-          color: #333333;
-        }
-        .container {
-          max-width: 800px;
-          margin: 0 auto;
-          border: 4px double #0f5132;
-          border-radius: 8px;
-          padding: 24px;
-          box-sizing: border-box;
-        }
-        /* Header styling */
-        .header {
-          display: flex;
-          align-items: center;
-          border-bottom: 2px solid #0f5132;
-          padding-bottom: 12px;
-          margin-bottom: 16px;
-        }
-        .header-logo {
-          width: 80px;
-          height: 80px;
-          margin-right: 20px;
-        }
-        .header-center {
-          flex: 1;
-          text-align: center;
-        }
-        .school-name {
-          font-size: 26px;
-          font-weight: bold;
-          color: #0c2340;
-          margin: 0;
-          letter-spacing: 0.5px;
-        }
-        .school-sub {
-          font-size: 16px;
-          font-weight: bold;
-          color: #0c2340;
-          margin: 2px 0 5px 0;
-          letter-spacing: 1px;
-        }
-        .motto-bar {
-          font-size: 12px;
-          font-weight: bold;
-          color: #198754;
-          margin: 3px 0;
-          letter-spacing: 1px;
-        }
-        .motto-sanskrit {
-          font-size: 14px;
-          font-weight: bold;
-          color: #333;
-          margin: 3px 0;
-        }
-        .motto-translation {
-          font-size: 11px;
-          font-style: italic;
-          color: #198754;
-          margin: 2px 0 0 0;
-        }
-        
-        /* Meta styling (Receipt No & Date) */
-        .meta-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 16px;
-          font-size: 13px;
-        }
-        .meta-item {
-          font-weight: bold;
-        }
-        .meta-value {
-          font-weight: normal;
-          border-bottom: 1px dotted #333;
-          padding-bottom: 2px;
-          padding-left: 5px;
-          min-width: 150px;
-          display: inline-block;
-        }
-
-        /* Heading Pill */
-        .title-container {
-          text-align: center;
-          margin-bottom: 20px;
-        }
-        .title-badge {
-          background-color: #1a2d42;
-          color: white;
-          padding: 6px 24px;
-          border-radius: 20px;
-          font-size: 14px;
-          font-weight: bold;
-          display: inline-block;
-          letter-spacing: 1px;
-          text-transform: uppercase;
-        }
-
-        /* Details Section */
-        .details-table {
-          width: 100%;
-          border-collapse: collapse;
-          margin-bottom: 16px;
-        }
-        .details-row td {
-          padding: 6px 0;
-          vertical-align: bottom;
-        }
-        .details-label {
-          font-weight: bold;
-          font-size: 13px;
-          width: 180px;
-          white-space: nowrap;
-        }
-        .details-value {
-          border-bottom: 1px dashed #333;
-          padding-bottom: 2px;
-          padding-left: 10px;
-          font-size: 13px;
-          width: 100%;
-        }
-
-        /* Paragraph details */
-        .receipt-paragraph {
-          font-size: 13px;
-          line-height: 1.8;
-          text-align: justify;
-          margin-bottom: 20px;
-        }
-        .inline-underline {
-          border-bottom: 1px dashed #333;
-          padding: 0 10px;
-          font-weight: bold;
-          display: inline-block;
-        }
-
-        /* Signatures */
-        .signature-section {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-          margin-bottom: 15px;
-        }
-        .sig-row {
-          display: flex;
-          font-size: 13px;
-          font-weight: bold;
-          align-items: bottom;
-        }
-        .sig-label {
-          width: 120px;
-        }
-        .sig-value {
-          border-bottom: 1px dashed #333;
-          width: 220px;
-          display: inline-block;
-          padding-left: 10px;
-          font-weight: normal;
-        }
-
-        /* Footer Address and Contact */
-        .footer {
-          border-top: 2px solid #0f5132;
-          padding-top: 15px;
-          margin-top: 20px;
-        }
-        .address-row {
-          font-size: 11px;
-          color: #333;
-          text-align: center;
-          margin-bottom: 12px;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          gap: 5px;
-        }
-        .footer-bar {
-          background: linear-gradient(90deg, #0c2340 0%, #0c2340 85%, #198754 100%);
-          color: white;
-          padding: 8px;
-          border-radius: 4px;
-          display: flex;
-          justify-content: space-around;
-          font-size: 11px;
-          font-weight: bold;
-        }
-        .footer-item {
-          display: flex;
-          align-items: center;
-          gap: 5px;
-        }
-
-        @media print {
-          body {
-            padding: 0;
-          }
-          .container {
-            border: 4px double #0f5132;
-            box-shadow: none;
-          }
-        }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <svg class="header-logo" viewBox="0 0 24 24" fill="none" stroke="#0c2340" stroke-width="1.5" style="width:50px; height:50px; margin-right:15px;">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <div class="header-center">
-            <div class="school-name">NSRIT</div>
-            <div class="school-sub">ENGLISH MEDIUM SCHOOL</div>
-            <div class="motto-bar">UNITY · LEARNING · GROWTH</div>
-            <div class="motto-sanskrit">ज्ञानेन शीलम् बलम्</div>
-            <div class="motto-translation">Knowledge is the supreme strength</div>
-          </div>
-        </div>
-        
-        <div class="meta-row">
-          <div>
-            <span class="meta-item">Receipt No:</span>
-            <span class="meta-value">${receiptNo}</span>
-          </div>
-          <div>
-            <span class="meta-item">Date:</span>
-            <span class="meta-value">${paymentDateStr}</span>
-          </div>
-        </div>
-        
-        <div class="title-container">
-          <div class="title-badge">Fee Receipt</div>
-        </div>
-        
-        <table class="details-table">
-          <tr class="details-row">
-            <td class="details-label">Name of the student:</td>
-            <td class="details-value">${studentName}</td>
-          </tr>
-          <tr class="details-row">
-            <td class="details-label">Class:</td>
-            <td class="details-value">${className}</td>
-          </tr>
-          <tr class="details-row">
-            <td class="details-label">Admission no. :</td>
-            <td class="details-value">${admissionNo}</td>
-          </tr>
-        </table>
-        
-        <div class="receipt-paragraph">
-          Received the sum of rupees 
-          <span class="inline-underline" style="min-width: 320px;">${amountWords} (${amountCurrency})</span> 
-          for the 
-          <span class="inline-underline" style="min-width: 150px;">${installment}</span> 
-          installment from 
-          <span class="inline-underline" style="min-width: 150px;">${receivedFrom}</span> 
-          on 
-          <span class="inline-underline" style="min-width: 120px;">${paymentDateStr}</span>.
-        </div>
-        
-        <div class="footer">
-          <div class="signature-section">
-            <div class="sig-row">
-              <span class="sig-label">Received by:</span>
-              <span class="sig-value">${receivedBy}</span>
-            </div>
-          </div>
-
-          <div class="address-row">
-            NSRIT English Medium School, Sontyam village, Visakhapatnam, Andhra Pradesh - 531173
-          </div>
-          
-          <div class="footer-bar">
-            <div class="footer-item">
-              Phone: 9180046515
-            </div>
-            <div class="footer-item">
-              Email: nsritschoolprincipal@gmail.com
-            </div>
-          </div>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
-};
-
 const FeeLedger = () => {
   const { user, feeRefreshTrigger } = useApp();
   const navigate = useNavigate();
-  const location = useLocation();
   const [search, setSearch] = useState('');
   const [selectedStudentId, setSelectedStudentId] = useState(null);
-  const [firestorePayments, setFirestorePayments] = useState({});
   const [activeSharePayment, setActiveSharePayment] = useState(null);
 
-  const formatDDMMYYYY = (dateStr) => {
-    if (!dateStr) return '';
-    const parts = dateStr.split('-');
-    if (parts.length === 3) {
-      return `${parts[2]}-${parts[1]}-${parts[0]}`;
-    }
-    const d = new Date(dateStr);
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = d.getFullYear();
-    return `${day}-${month}-${year}`;
+  const getReceiptHtml = (payment) => {
+    const receiptNo = payment.receiptNo || 'N/A';
+    const paymentDateStr = payment.date || 'N/A';
+    const studentName = payment.studentName || 'N/A';
+    const className = payment.class || 'N/A';
+    const admissionNo = payment.admissionNo || 'N/A';
+    const amountCurrency = `Rs ${payment.amount.toLocaleString('en-IN')}`;
+    const amountWords = numberToWords(payment.amount);
+    
+    const installment = payment.remarks || 'School Fee';
+    const receivedFrom = payment.studentName || 'Student';
+    const receivedBy = payment.collectedByName || 'B. Geetha';
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Fee Receipt - ${receiptNo}</title>
+        <style>
+          body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #ffffff;
+            color: #333333;
+          }
+          .container {
+            max-width: 800px;
+            margin: 0 auto;
+            border: 4px double #0f5132;
+            border-radius: 8px;
+            padding: 24px;
+            box-sizing: border-box;
+          }
+          /* Header styling */
+          .header {
+            display: flex;
+            align-items: center;
+            border-bottom: 2px solid #0f5132;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+          }
+          .header-logo {
+            width: 80px;
+            height: 80px;
+            margin-right: 20px;
+          }
+          .header-center {
+            flex: 1;
+            text-align: center;
+          }
+          .school-name {
+            font-size: 26px;
+            font-weight: bold;
+            color: #0c2340;
+            margin: 0;
+            letter-spacing: 0.5px;
+          }
+          .school-sub {
+            font-size: 16px;
+            font-weight: bold;
+            color: #0c2340;
+            margin: 2px 0 5px 0;
+            letter-spacing: 1px;
+          }
+          .motto-bar {
+            font-size: 12px;
+            font-weight: bold;
+            color: #198754;
+            margin: 3px 0;
+            letter-spacing: 1px;
+          }
+          .motto-sanskrit {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            margin: 3px 0;
+          }
+          .motto-translation {
+            font-size: 11px;
+            font-style: italic;
+            color: #198754;
+            margin: 2px 0 0 0;
+          }
+          
+          /* Meta styling (Receipt No & Date) */
+          .meta-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            font-size: 13px;
+          }
+          .meta-item {
+            font-weight: bold;
+          }
+          .meta-value {
+            font-weight: normal;
+            border-bottom: 1px dotted #333;
+            padding-bottom: 2px;
+            padding-left: 5px;
+            min-width: 150px;
+            display: inline-block;
+          }
+
+          /* Heading Pill */
+          .title-container {
+            text-align: center;
+            margin-bottom: 20px;
+          }
+          .title-badge {
+            background-color: #1a2d42;
+            color: white;
+            padding: 6px 24px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            display: inline-block;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+          }
+
+          /* Details Section */
+          .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 16px;
+          }
+          .details-row td {
+            padding: 6px 0;
+            vertical-align: bottom;
+          }
+          .details-label {
+            font-weight: bold;
+            font-size: 13px;
+            width: 180px;
+            white-space: nowrap;
+          }
+          .details-value {
+            border-bottom: 1px dashed #333;
+            padding-bottom: 2px;
+            padding-left: 10px;
+            font-size: 13px;
+            width: 100%;
+          }
+
+          /* Paragraph details */
+          .receipt-paragraph {
+            font-size: 13px;
+            line-height: 1.8;
+            text-align: justify;
+            margin-bottom: 20px;
+          }
+          .inline-underline {
+            border-bottom: 1px dashed #333;
+            padding: 0 10px;
+            font-weight: bold;
+            display: inline-block;
+          }
+
+          /* Signatures */
+          .signature-section {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 15px;
+          }
+          .sig-row {
+            display: flex;
+            font-size: 13px;
+            font-weight: bold;
+            align-items: bottom;
+          }
+          .sig-label {
+            width: 120px;
+          }
+          .sig-value {
+            border-bottom: 1px dashed #333;
+            width: 220px;
+            display: inline-block;
+            padding-left: 10px;
+            font-weight: normal;
+          }
+
+          /* Footer Address and Contact */
+          .footer {
+            border-top: 2px solid #0f5132;
+            padding-top: 15px;
+            margin-top: 20px;
+          }
+          .address-row {
+            font-size: 11px;
+            color: #333;
+            text-align: center;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+          }
+          .footer-bar {
+            background: linear-gradient(90deg, #0c2340 0%, #0c2340 85%, #198754 100%);
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-around;
+            font-size: 11px;
+            font-weight: bold;
+          }
+          .footer-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+          }
+
+          @media print {
+            body {
+              padding: 0;
+            }
+            .container {
+              border: 4px double #0f5132;
+              box-shadow: none;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <svg class="header-logo" viewBox="0 0 24 24" fill="none" stroke="#0c2340" stroke-width="1.5" style="width:50px; height:50px; margin-right:15px;">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div class="header-center">
+              <div class="school-name">NSRIT</div>
+              <div class="school-sub">ENGLISH MEDIUM SCHOOL</div>
+              <div class="motto-bar">UNITY · LEARNING · GROWTH</div>
+              <div class="motto-sanskrit">ज्ञानेन शीलम् बलम्</div>
+              <div class="motto-translation">Knowledge is the supreme strength</div>
+            </div>
+          </div>
+          
+          <div class="meta-row">
+            <div>
+              <span class="meta-item">Receipt No:</span>
+              <span class="meta-value">${receiptNo}</span>
+            </div>
+            <div>
+              <span class="meta-item">Date:</span>
+              <span class="meta-value">${paymentDateStr}</span>
+            </div>
+          </div>
+          
+          <div class="title-container">
+            <div class="title-badge">Fee Receipt</div>
+          </div>
+          
+          <table class="details-table">
+            <tr class="details-row">
+              <td class="details-label">Name of the student:</td>
+              <td class="details-value">${studentName}</td>
+            </tr>
+            <tr class="details-row">
+              <td class="details-label">Class:</td>
+              <td class="details-value">${className}</td>
+            </tr>
+            <tr class="details-row">
+              <td class="details-label">Admission no. :</td>
+              <td class="details-value">${admissionNo}</td>
+            </tr>
+          </table>
+          
+          <div class="receipt-paragraph">
+            Received the sum of rupees 
+            <span class="inline-underline" style="min-width: 320px;">${amountWords} (${amountCurrency})</span> 
+            for the 
+            <span class="inline-underline" style="min-width: 150px;">${installment}</span> 
+            installment from 
+            <span class="inline-underline" style="min-width: 150px;">${receivedFrom}</span> 
+            on 
+            <span class="inline-underline" style="min-width: 120px;">${paymentDateStr}</span>.
+          </div>
+          
+          <div class="footer">
+            <div class="signature-section">
+              <div class="sig-row">
+                <span class="sig-label">Received by:</span>
+                <span class="sig-value">${receivedBy}</span>
+              </div>
+            </div>
+
+            <div class="address-row">
+              NSRIT English Medium School, Sontyam village, Visakhapatnam, Andhra Pradesh - 531173
+            </div>
+            
+            <div class="footer-bar">
+              <div class="footer-item">
+                Phone: 9180046515
+              </div>
+              <div class="footer-item">
+                Email: nsritschoolprincipal@gmail.com
+              </div>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
   };
 
   const triggerPrintReceipt = (payment) => {
     const htmlContent = getReceiptHtml(payment);
+
     const iframe = document.createElement('iframe');
     iframe.style.position = 'fixed';
     iframe.style.right = '0';
@@ -578,15 +483,12 @@ const FeeLedger = () => {
       });
   };
 
-  const branchId = user?.branchId || null;
+  const handleShareReceipt = (payment) => {
+    setActiveSharePayment(payment);
+  };
+  const [firestorePayments, setFirestorePayments] = useState({});
 
-  // Initialize selectedStudentId from location state if navigation passed it
-  useEffect(() => {
-    const routeStudentId = location.state?.studentId;
-    if (routeStudentId) {
-      setSelectedStudentId(routeStudentId);
-    }
-  }, [location.state?.studentId]);
+  const branchId = user?.branchId || null;
 
   // Fetch PostgreSQL fee data
   const { data: rawFeePlans, loading } = useDataFetch(
@@ -596,8 +498,6 @@ const FeeLedger = () => {
   );
 
   const studentsList = rawFeePlans?.students || [];
-
-  const [selectedStudentFsPayments, setSelectedStudentFsPayments] = useState([]);
 
   // Fetch Firestore payments in real-time
   useEffect(() => {
@@ -609,28 +509,10 @@ const FeeLedger = () => {
       });
       setFirestorePayments(mapping);
     }, (err) => {
-      console.warn('[FeeLedger] Firestore collection query failed (normal if rules restrict it):', err.message);
+      console.error('[FeeLedger] Firestore onSnapshot failed:', err);
     });
     return () => unsub();
   }, [branchId]);
-
-  // Fetch individual student Firestore payments to bypass collection permission limits
-  useEffect(() => {
-    if (!selectedStudentId || String(selectedStudentId).startsWith('mock-')) {
-      setSelectedStudentFsPayments([]);
-      return;
-    }
-    const unsub = onSnapshot(doc(db, 'fee_payments', selectedStudentId), (docSnap) => {
-      if (docSnap.exists()) {
-        setSelectedStudentFsPayments(docSnap.data().list || []);
-      } else {
-        setSelectedStudentFsPayments([]);
-      }
-    }, (err) => {
-      console.warn('[FeeLedger] Selected student Firestore query failed:', err.message);
-    });
-    return () => unsub();
-  }, [selectedStudentId]);
 
   // Normalize student records
   const normalizedLedgers = useMemo(() => {
@@ -672,6 +554,7 @@ const FeeLedger = () => {
         id: s.id,
         fullName: s.fullName || 'Unknown Student',
         className: `${s.academicClass?.name || ''} · ${s.section?.name || ''}`.trim().replace(/ · $|^ · /, ''),
+        studentId: s.studentId || '26SO0000',
         paidAmount: paidTotal,
         dueAmount: pending,
         totalAmount: total,
@@ -693,67 +576,11 @@ const FeeLedger = () => {
 
   const selectedStudent = useMemo(() => {
     if (!selectedStudentId) return null;
-    if (String(selectedStudentId).startsWith('mock-')) {
-      const mock = MOCK_PROFILES[selectedStudentId] || MOCK_PROFILES['mock-student-2'];
-      const plan = mock.profileFeePlans?.[0] || {};
-      const paid = plan.profileFeePayments?.reduce((sum, p) => sum + p.amount, 0) || 0;
-      const total = plan.totalAmount || 50000;
-      const due = Math.max(total - paid, 0);
-      const pct = total > 0 ? Math.round((paid / total) * 100) : 0;
-      
-      let status = 'DUE';
-      if (due === 0) {
-        status = 'PAID';
-      } else if (paid > 0) {
-        status = 'PARTIAL';
-      }
-      
-      return {
-        id: selectedStudentId,
-        fullName: mock.fullName,
-        className: `${mock.academicClass?.name || '5'}-${mock.section?.name || 'A'}`,
-        paidAmount: paid,
-        dueAmount: due,
-        totalAmount: total,
-        percent: pct,
-        status,
-        admissionNo: selectedStudentId === 'mock-student-2' ? '26SO0113' : '26SO0111',
-        isMock: true
-      };
-    }
-    const found = normalizedLedgers.find(s => s.id === selectedStudentId);
-    const student = studentsList.find(s => s.id === selectedStudentId);
-    return found ? {
-      ...found,
-      admissionNo: student?.studentId || 'N/A'
-    } : null;
-  }, [selectedStudentId, normalizedLedgers, studentsList]);
+    return normalizedLedgers.find(s => s.id === selectedStudentId);
+  }, [selectedStudentId, normalizedLedgers]);
 
   const selectedStudentPayments = useMemo(() => {
-    if (!selectedStudentId || !selectedStudent) return [];
-    
-    if (String(selectedStudentId).startsWith('mock-')) {
-      const mock = MOCK_PROFILES[selectedStudentId] || MOCK_PROFILES['mock-student-2'];
-      const plan = mock.profileFeePlans?.[0] || {};
-      return (plan.profileFeePayments || []).map(p => {
-        const dateObj = p.paymentDate ? new Date(p.paymentDate) : new Date();
-        const dateStr = formatDDMMYYYY(p.paymentDate);
-        return {
-          id: p.id,
-          amount: p.amount || 0,
-          date: dateStr,
-          displayDate: dateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
-          mode: p.paymentMode || 'CASH',
-          receiptNo: p.receiptNumber || p.id.slice(0, 8).toUpperCase(),
-          status: p.status,
-          studentName: selectedStudent.fullName,
-          class: selectedStudent.className,
-          admissionNo: selectedStudent.admissionNo,
-          remarks: p.remarks || 'School Fee',
-          collectedByName: 'B. Geetha'
-        };
-      });
-    }
+    if (!selectedStudentId) return [];
     
     const student = studentsList.find(s => s.id === selectedStudentId);
     let dbPaymentsList = [];
@@ -762,50 +589,36 @@ const FeeLedger = () => {
       if (activePlan) {
         dbPaymentsList = (activePlan.reportFeePayments || []).map(p => {
           const dateObj = p.paymentDate ? new Date(p.paymentDate) : new Date();
-          const dateStr = formatDDMMYYYY(p.paymentDate);
           return {
             id: p.id,
             amount: p.amount || 0,
-            date: dateStr,
-            displayDate: dateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+            date: dateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
             mode: p.paymentMode || 'CASH',
             receiptNo: p.receiptNumber || p.id.slice(0, 8).toUpperCase(),
             timestamp: dateObj.getTime(),
-            status: p.status,
-            studentName: selectedStudent.fullName,
-            class: selectedStudent.className,
-            admissionNo: selectedStudent.admissionNo,
-            remarks: p.remarks || 'School Fee',
-            collectedByName: p.collectedBy?.fullName || 'B. Geetha'
+            status: p.status
           };
         });
       }
     }
 
-    const fsList = selectedStudentFsPayments.map((p, idx) => {
+    const fsList = (firestorePayments[selectedStudentId] || []).map((p, idx) => {
       const dateObj = p.paymentDate ? new Date(p.paymentDate) : new Date();
-      const dateStr = formatDDMMYYYY(p.paymentDate);
       return {
         id: p.id || `fs-${idx}`,
         amount: p.amount || 0,
-        date: dateStr,
-        displayDate: dateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+        date: dateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
         mode: p.paymentMode || 'CASH',
         receiptNo: p.referenceNumber || `REC-FS-${String(p.id || '').slice(0, 6)}`.toUpperCase(),
         timestamp: dateObj.getTime(),
-        status: 'RECORDED',
-        studentName: selectedStudent.fullName,
-        class: selectedStudent.className,
-        admissionNo: selectedStudent.admissionNo,
-        remarks: p.remarks || 'School Fee',
-        collectedByName: 'B. Geetha'
+        status: 'RECORDED'
       };
     });
 
     return [...dbPaymentsList, ...fsList]
       .filter(p => String(p.status).toUpperCase() !== 'REVERSED')
       .sort((a, b) => b.timestamp - a.timestamp);
-  }, [selectedStudentId, selectedStudent, studentsList, selectedStudentFsPayments]);
+  }, [selectedStudentId, studentsList, firestorePayments]);
 
   const handleBack = () => {
     if (selectedStudentId) {
@@ -921,25 +734,35 @@ const FeeLedger = () => {
               {selectedStudentPayments.map((pay) => (
                 <div
                   key={pay.id}
-                  className="bg-white rounded-[20px] border border-[#e2e8f0]/45 p-4 shadow-sm flex items-center justify-between"
+                  className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 shadow-sm flex items-center justify-between hover:border-[#1597E5]/15 transition-all"
                 >
-                  <div>
-                    <h4 className="text-xs font-extrabold text-[#0F172A]">Rs {pay.amount.toLocaleString('en-IN')}</h4>
-                    <p className="text-[9px] text-[#A0AEC0] font-bold mt-1 uppercase">
-                      {pay.receiptNo} · {pay.mode}
-                    </p>
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-[#EBFDFA] text-[#14B8A6] flex items-center justify-center text-lg font-extrabold shadow-inner shrink-0">
+                      ?
+                    </div>
+                    <div>
+                      <h3 className="text-base font-black text-[#0F172A] tracking-tight">
+                        Rs {pay.amount.toLocaleString('en-IN')}
+                      </h3>
+                      <p className="text-[10px] text-[#4A5568] font-bold mt-0.5 uppercase tracking-wide">
+                        {selectedStudent.fullName} · {pay.mode}
+                      </p>
+                      <p className="text-[9px] text-[#A0AEC0] font-semibold mt-0.5">
+                        {pay.date} | {pay.receiptNo}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-[8.5px] font-black text-secondaryText bg-[#EEF5FB] px-3 py-1 rounded-full">
-                      {pay.displayDate}
-                    </span>
-                    <button
-                      onClick={() => setActiveSharePayment(pay)}
-                      className="w-8 h-8 rounded-full bg-[#EBF8FF] text-[#1597E5] flex items-center justify-center hover:bg-blue-100 transition-colors cursor-pointer active:scale-95 shadow-sm"
-                    >
-                      <FiShare2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => handleShareReceipt({
+                      ...pay,
+                      studentName: selectedStudent.fullName,
+                      class: selectedStudent.className,
+                      admissionNo: selectedStudent.studentId
+                    })}
+                    className="w-10 h-10 rounded-full bg-[#EBF8FF] hover:bg-[#BEE3F8] text-[#1597E5] flex items-center justify-center transition-colors cursor-pointer shrink-0 active:scale-90"
+                  >
+                    <FiShare2 className="w-4.5 h-4.5" />
+                  </button>
                 </div>
               ))}
             </div>
@@ -1105,10 +928,11 @@ const FeeLedger = () => {
           )}
         </div>
       )}
+
       {/* Share Options Modal */}
       {activeSharePayment && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in font-sans">
-          <div className="bg-white rounded-[32px] w-full max-w-sm p-6 card-shadow border border-[#e2e8f0]/60 space-y-6 relative animate-scale-in">
+          <div className="bg-white rounded-[32px] w-full max-w-sm p-6 card-shadow border border-[#e2e8f0]/60 space-y-6 relative">
             <button
               onClick={() => setActiveSharePayment(null)}
               className="absolute top-4 right-4 p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-all cursor-pointer"
@@ -1124,7 +948,7 @@ const FeeLedger = () => {
             </div>
 
             <div className="space-y-2.5">
-              {/* Option 1: Print or Save PDF */}
+              {/* Option 1: Save / Print PDF */}
               <button
                 onClick={() => {
                   triggerPrintReceipt(activeSharePayment);
@@ -1179,8 +1003,8 @@ const FeeLedger = () => {
                     <FiDownload className="w-4.5 h-4.5" />
                   </div>
                   <div className="text-left">
-                    <p className="text-xs font-bold text-dark group-hover:text-emerald-600 transition-colors">Download Receipt File</p>
-                    <p className="text-[9.5px] text-slate-500 font-bold mt-0.5">Save offline document directly</p>
+                    <p className="text-xs font-bold text-dark group-hover:text-emerald-600 transition-colors">Download PDF Receipt</p>
+                    <p className="text-[9.5px] text-slate-500 font-bold mt-0.5">Save offline PDF document directly</p>
                   </div>
                 </div>
                 <FiChevronRight className="w-4 h-4 text-slate-400 group-hover:text-emerald-600 transition-colors" />

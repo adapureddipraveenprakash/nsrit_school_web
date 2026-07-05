@@ -10,11 +10,13 @@ import { BiReceipt } from 'react-icons/bi';
 import { useApp } from '../../../context/AppContext';
 import { useDataFetch } from '../../../hooks/useDataFetch';
 import { getStudents, getStudentFeeProfile, recordPayment } from '../../../services/dataService';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db } from '../../../services/firebase';
 
 const RecordPayment = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const studentIdParam = searchParams.get('studentId');
+  const queryStudentId = searchParams.get('studentId');
   const { user } = useApp();
   const [search, setSearch] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -67,7 +69,7 @@ const RecordPayment = () => {
   ];
 
   // Combined students mapping
-  const allStudents = useMemo(() => {
+  const displayStudents = useMemo(() => {
     const uniqueDb = [];
     const seen = new Set();
 
@@ -89,27 +91,14 @@ const RecordPayment = () => {
         combined.push(ms);
       }
     });
-    return combined;
-  }, [dbStudents]);
 
-  const displayStudents = useMemo(() => {
     if (search.trim().length === 0) return [];
     
-    return allStudents.filter(s => 
+    return combined.filter(s => 
       s.fullName.toLowerCase().includes(search.toLowerCase()) ||
       s.studentId.toLowerCase().includes(search.toLowerCase())
     );
-  }, [allStudents, search]);
-
-  // Auto-select student if studentId query param is provided
-  useEffect(() => {
-    if (studentIdParam && allStudents.length > 0 && !selectedStudent) {
-      const match = allStudents.find(s => s.id === studentIdParam);
-      if (match) {
-        handleSelectStudent(match);
-      }
-    }
-  }, [studentIdParam, allStudents, selectedStudent]);
+  }, [dbStudents, search]);
 
   // Handle selecting a student
   const handleSelectStudent = async (student) => {
@@ -156,6 +145,27 @@ const RecordPayment = () => {
       setLoadingProfile(false);
     }
   };
+
+  // Pre-select student if studentId is passed in search params
+  useEffect(() => {
+    if (queryStudentId && dbStudents.length > 0) {
+      const student = dbStudents.find(s => s.id === queryStudentId);
+      if (student) {
+        handleSelectStudent({
+          id: student.id,
+          fullName: student.fullName || student.name || '',
+          studentId: student.studentId || student.admissionNumber || '',
+          className: `${student.academicClass?.name || ''}-${student.section?.name || ''}`.trim().replace(/^-|-$/, '') || '1-A',
+          branchId: student.branchId
+        });
+      } else {
+        const mockStudent = mockStudents.find(s => s.id === queryStudentId);
+        if (mockStudent) {
+          handleSelectStudent(mockStudent);
+        }
+      }
+    }
+  }, [queryStudentId, dbStudents]);
 
   // Date parsing utility
   const parseDateStr = (dStr) => {
@@ -247,6 +257,27 @@ const RecordPayment = () => {
       };
 
       await recordPayment(payload);
+
+      // Write to Firestore fee_payments list
+      try {
+        const docRef = doc(db, 'fee_payments', selectedStudent.id);
+        const snap = await getDoc(docRef);
+        const existing = snap.exists() ? snap.data().list || [] : [];
+        existing.push({
+          id: receiptNo,
+          amount: Number(paymentAmount),
+          paymentDate: formatDateForDb(paymentDate),
+          paymentMode: paymentMode.toUpperCase(),
+          installment: installment,
+          referenceNumber: referenceNumber || '',
+          remarks: remarks || '',
+          createdAt: new Date().toISOString()
+        });
+        await setDoc(docRef, { list: existing });
+        console.log('[RecordPayment] Firestore payment recorded successfully!');
+      } catch (fsErr) {
+        console.warn('[RecordPayment] Firestore write failed:', fsErr.message);
+      }
       
       setShowSuccessModal(true);
       setTimeout(() => {
@@ -259,6 +290,28 @@ const RecordPayment = () => {
       }, 2000);
     } catch (err) {
       console.warn('DB Mutation failed, fallback to simulation:', err.message);
+
+      // Write to Firestore fee_payments list on GQL failure as fallback
+      try {
+        const docRef = doc(db, 'fee_payments', selectedStudent.id);
+        const snap = await getDoc(docRef);
+        const existing = snap.exists() ? snap.data().list || [] : [];
+        existing.push({
+          id: receiptNo,
+          amount: Number(paymentAmount),
+          paymentDate: formatDateForDb(paymentDate),
+          paymentMode: paymentMode.toUpperCase(),
+          installment: installment,
+          referenceNumber: referenceNumber || '',
+          remarks: remarks || '',
+          createdAt: new Date().toISOString()
+        });
+        await setDoc(docRef, { list: existing });
+        console.log('[RecordPayment] Firestore fallback payment recorded successfully!');
+      } catch (fsErr) {
+        console.warn('[RecordPayment] Firestore fallback write failed:', fsErr.message);
+      }
+
       setShowSuccessModal(true);
       setTimeout(() => {
         setShowSuccessModal(false);

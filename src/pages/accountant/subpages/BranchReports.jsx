@@ -1,19 +1,47 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiArrowLeft, FiFileText, FiDownload, FiSearch, FiInbox } from 'react-icons/fi';
 import { useApp } from '../../../context/AppContext';
 import { useDataFetch } from '../../../hooks/useDataFetch';
 import { getFeeReports } from '../../../services/dataService';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../../../services/firebase';
 
 const BranchReports = () => {
   const navigate = useNavigate();
-  const { user } = useApp();
+  const { user, feeRefreshTrigger } = useApp();
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('All');
+  const [firestorePayments, setFirestorePayments] = useState([]);
 
   const branchId = user?.branchId || 'sontyam-branch-id';
   const tabs = ['All', 'Paid', 'Partial', 'Due'];
+
+  // Fetch Firestore payments
+  useEffect(() => {
+    const fetchFirestore = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, 'fee_payments'));
+        const list = [];
+        querySnapshot.forEach(docSnap => {
+          const studentId = docSnap.id;
+          const data = docSnap.data();
+          const items = data.list || [];
+          items.forEach(item => {
+            list.push({
+              ...item,
+              studentId
+            });
+          });
+        });
+        setFirestorePayments(list);
+      } catch (err) {
+        console.error('Error fetching firestore payments:', err);
+      }
+    };
+    fetchFirestore();
+  }, [feeRefreshTrigger]);
 
   // Fetch real fee structures
   const { data: rawFees, loading: feesLoading } = useDataFetch(
@@ -41,8 +69,13 @@ const BranchReports = () => {
           .reduce((sum, p) => sum + (p.amount || 0), 0);
       });
 
-      const due = Math.max(total - paid, 0);
-      const percent = total > 0 ? Math.round((paid / total) * 100) : 0;
+      // Integrate Firestore payments for this student
+      const fsList = firestorePayments.filter(p => p.studentId === s.id);
+      const fsPaid = fsList.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+      const paidTotal = paid + fsPaid;
+
+      const due = Math.max(total - paidTotal, 0);
+      const percent = total > 0 ? Math.round((paidTotal / total) * 100) : 0;
 
       let status = 'DUE';
       if (total > 0) {
@@ -58,14 +91,14 @@ const BranchReports = () => {
         class: `${s.academicClass?.name || '1'}-${s.section?.name || 'A'}`.toUpperCase(),
         admissionNo: s.studentId || 'N/A',
         total,
-        paid,
+        paid: paidTotal,
         due,
         concession,
         status
       };
     });
 
-    // Mock students from Screenshot 3 as fallbacks
+    // Mock students from Screenshot 3 as fallbacks (only if no live dbMapped records exist)
     const mockStudents = [
       { id: 'mock-student-1', name: 'KORADA KARTHIKEYA', class: '7-A', admissionNo: '26S00001', total: 50000, paid: 50000, due: 0, concession: 0, status: 'PAID' },
       { id: 'mock-student-2', name: 'KORADA BHARGAVSAI', class: '5-A', admissionNo: '26S00002', total: 52000, paid: 5000, due: 47000, concession: 0, status: 'PARTIAL' },
@@ -74,15 +107,11 @@ const BranchReports = () => {
       { id: 'mock-student-5', name: 'GANDARDDI HEAMANTH', class: '6-A', admissionNo: '26S00005', total: 56000, paid: 0, due: 56000, concession: 0, status: 'DUE' }
     ];
 
-    const combined = [...dbMapped];
-    mockStudents.forEach(ms => {
-      if (!combined.some(item => item.admissionNo === ms.admissionNo)) {
-        combined.push(ms);
-      }
-    });
-
-    return combined;
-  }, [feeStudents]);
+    if (dbMapped.length > 0) {
+      return dbMapped;
+    }
+    return mockStudents;
+  }, [feeStudents, firestorePayments]);
 
   // Parse and build dynamic CLASS-WISE report records, merging screenshot data as fallbacks
   const classRecords = useMemo(() => {
@@ -121,11 +150,14 @@ const BranchReports = () => {
       { className: 'UKG', studentCount: 12, collected: 20000, pending: 424000 }
     ];
 
-    mockClasses.forEach(mc => {
-      if (!list.some(item => item.className.toUpperCase() === mc.className.toUpperCase())) {
-        list.push(mc);
-      }
-    });
+    const isShowingMock = normalizedRecords.some(r => String(r.id).startsWith('mock-'));
+    if (isShowingMock || list.length === 0) {
+      mockClasses.forEach(mc => {
+        if (!list.some(item => item.className.toUpperCase() === mc.className.toUpperCase())) {
+          list.push(mc);
+        }
+      });
+    }
 
     const getSortWeight = (name) => {
       const upper = name.toUpperCase();
@@ -410,7 +442,7 @@ const BranchReports = () => {
                 {filteredStudents.map((r) => (
                   <div
                     key={r.id}
-                    onClick={() => navigate('/settings/ledger', { state: { studentId: r.id } })}
+                    onClick={() => navigate(`/settings/fee-profile/${r.id}`)}
                     className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-5 card-shadow flex items-center justify-between hover:border-blue-100 transition-all cursor-pointer group active:scale-[0.99]"
                   >
                     <div>

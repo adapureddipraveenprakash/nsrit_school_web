@@ -32,7 +32,12 @@ import BulkUpload from './pages/branchAdmin/subpages/BulkUpload';
 import CreateTeacher from './pages/branchAdmin/subpages/CreateTeacher';
 import ClassTeachers from './pages/branchAdmin/subpages/ClassTeachers';
 import FeePlans from './pages/accountant/subpages/FeePlans';
-import FeeLedger from './pages/accountant/subpages/FeeLedger';
+import AccountantFeeLedger from './pages/accountant/subpages/FeeLedger';
+import PrincipalFeeLedger from './pages/principal/subpages/FeeLedger';
+import BranchAdminFeeLedger from './pages/branchAdmin/subpages/FeeLedger';
+import CoordinatorFeeLedger from './pages/coordinator/subpages/FeeLedger';
+import ParentFeeLedger from './pages/parent/subpages/FeeLedger';
+import TeacherFeeLedger from './pages/teacher/subpages/FeeLedger';
 import BranchAnalytics from './pages/branchAdmin/subpages/BranchAnalytics';
 import BranchSettings from './pages/branchAdmin/subpages/BranchSettings';
 import EditBranch from './pages/mainAdmin/subpages/EditBranch';
@@ -48,9 +53,19 @@ import HolidayManagement from './pages/principal/subpages/HolidayManagement';
 import AcademicYear from './pages/principal/subpages/AcademicYear';
 import YearManagement from './pages/principal/subpages/YearManagement';
 import ExamsMarks from './pages/principal/subpages/ExamsMarks';
-import FeeCollection from './pages/accountant/subpages/FeeCollection';
+import AccountantFeeCollection from './pages/accountant/subpages/FeeCollection';
+import PrincipalFeeCollection from './pages/principal/subpages/FeeCollection';
+import BranchAdminFeeCollection from './pages/branchAdmin/subpages/FeeCollection';
+import CoordinatorFeeCollection from './pages/coordinator/subpages/FeeCollection';
+import ParentFeeCollection from './pages/parent/subpages/FeeCollection';
+import TeacherFeeCollection from './pages/teacher/subpages/FeeCollection';
 import FeeReports from './pages/accountant/subpages/FeeReports';
-import FeeHistory from './pages/accountant/subpages/FeeHistory';
+import AccountantFeeHistory from './pages/accountant/subpages/FeeHistory';
+import PrincipalFeeHistory from './pages/principal/subpages/FeeHistory';
+import BranchAdminFeeHistory from './pages/branchAdmin/subpages/FeeHistory';
+import CoordinatorFeeHistory from './pages/coordinator/subpages/FeeHistory';
+import ParentFeeHistory from './pages/parent/subpages/FeeHistory';
+import TeacherFeeHistory from './pages/teacher/subpages/FeeHistory';
 import TeacherStudents from './pages/teacher/subpages/TeacherStudents';
 import Expenses from './pages/accountant/subpages/Expenses';
 import RecordPayment from './pages/accountant/subpages/RecordPayment';
@@ -231,6 +246,42 @@ const TransferStudent = () => {
   return <PrincipalTransfer />;
 };
 
+const FeeCollection = () => {
+  const { activeRole } = useApp();
+  const r = activeRole?.toUpperCase();
+  if (r === 'BRANCH_ADMIN') return <BranchAdminFeeCollection />;
+  if (r === 'PRINCIPAL') return <PrincipalFeeCollection />;
+  if (r === 'COORDINATOR') return <CoordinatorFeeCollection />;
+  if (r === 'TEACHER' || r === 'CLASS_TEACHER') return <TeacherFeeCollection />;
+  if (r === 'ACCOUNTANT') return <AccountantFeeCollection />;
+  if (r === 'PARENT') return <ParentFeeCollection />;
+  return <PrincipalFeeCollection />;
+};
+
+const FeeHistory = () => {
+  const { activeRole } = useApp();
+  const r = activeRole?.toUpperCase();
+  if (r === 'BRANCH_ADMIN') return <BranchAdminFeeHistory />;
+  if (r === 'PRINCIPAL') return <PrincipalFeeHistory />;
+  if (r === 'COORDINATOR') return <CoordinatorFeeHistory />;
+  if (r === 'TEACHER' || r === 'CLASS_TEACHER') return <TeacherFeeHistory />;
+  if (r === 'ACCOUNTANT') return <AccountantFeeHistory />;
+  if (r === 'PARENT') return <ParentFeeHistory />;
+  return <PrincipalFeeHistory />;
+};
+
+const FeeLedger = () => {
+  const { activeRole } = useApp();
+  const r = activeRole?.toUpperCase();
+  if (r === 'BRANCH_ADMIN') return <BranchAdminFeeLedger />;
+  if (r === 'PRINCIPAL') return <PrincipalFeeLedger />;
+  if (r === 'COORDINATOR') return <CoordinatorFeeLedger />;
+  if (r === 'TEACHER' || r === 'CLASS_TEACHER') return <TeacherFeeLedger />;
+  if (r === 'ACCOUNTANT') return <AccountantFeeLedger />;
+  if (r === 'PARENT') return <ParentFeeLedger />;
+  return <PrincipalFeeLedger />;
+};
+
 
 
 
@@ -352,7 +403,7 @@ const AnimatedRoutes = () => {
           <Route path="/settings/year-management" element={<YearManagement />} />
           <Route path="/settings/exams-marks" element={<ExamsMarks />} />
           <Route path="/settings/collection" element={<FeeCollection />} />
-          <Route path="/settings/fee-reports" element={<ClassWiseReport />} />
+          <Route path="/settings/fee-reports" element={<BranchReports />} />
           <Route path="/settings/fee-history" element={<FeeHistory />} />
           <Route path="/settings/expenses" element={<Expenses />} />
           <Route path="/settings/record-payment" element={<RecordPayment />} />

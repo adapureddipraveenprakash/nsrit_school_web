@@ -339,7 +339,7 @@ const ClassWiseReport = () => {
               return (
                 <div
                   key={item.id}
-                  onClick={() => navigate('/settings/ledger', { state: { studentId: item.id } })}
+                  onClick={() => navigate(`/settings/fee-profile/${item.id}`)}
                   className="bg-white rounded-[24px] p-5 card-shadow border border-[#e2e8f0]/40 flex flex-col gap-4 hover:border-blue-100 transition-all cursor-pointer group active:scale-[0.99]"
                 >
                   {/* Card Header */}

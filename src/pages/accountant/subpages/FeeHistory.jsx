@@ -77,326 +77,325 @@ function numberToWords(num) {
   return formattedWords + ' Rupees Only';
 }
 
+const getReceiptHtml = (payment) => {
+  const receiptNo = payment.receiptNo || 'N/A';
+  const paymentDateStr = payment.date || 'N/A';
+  const studentName = payment.studentName || 'N/A';
+  const className = payment.class || 'N/A';
+  const admissionNo = payment.admissionNo || 'N/A';
+  const amountCurrency = `Rs ${payment.amount.toLocaleString('en-IN')}`;
+  const amountWords = numberToWords(payment.amount);
+  
+  const installment = payment.remarks || 'School Fee';
+  const receivedFrom = payment.studentName || 'Student';
+  const receivedBy = payment.collectedByName || 'B. Geetha';
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Fee Receipt - ${receiptNo}</title>
+      <style>
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          margin: 0;
+          padding: 20px;
+          background-color: #ffffff;
+          color: #333333;
+        }
+        .container {
+          max-width: 800px;
+          margin: 0 auto;
+          border: 4px double #0f5132;
+          border-radius: 8px;
+          padding: 24px;
+          box-sizing: border-box;
+        }
+        /* Header styling */
+        .header {
+          display: flex;
+          align-items: center;
+          border-bottom: 2px solid #0f5132;
+          padding-bottom: 12px;
+          margin-bottom: 16px;
+        }
+        .header-logo {
+          width: 80px;
+          height: 80px;
+          margin-right: 20px;
+        }
+        .header-center {
+          flex: 1;
+          text-align: center;
+        }
+        .school-name {
+          font-size: 26px;
+          font-weight: bold;
+          color: #0c2340;
+          margin: 0;
+          letter-spacing: 0.5px;
+        }
+        .school-sub {
+          font-size: 16px;
+          font-weight: bold;
+          color: #0c2340;
+          margin: 2px 0 5px 0;
+          letter-spacing: 1px;
+        }
+        .motto-bar {
+          font-size: 12px;
+          font-weight: bold;
+          color: #198754;
+          margin: 3px 0;
+          letter-spacing: 1px;
+        }
+        .motto-sanskrit {
+          font-size: 14px;
+          font-weight: bold;
+          color: #333;
+          margin: 3px 0;
+        }
+        .motto-translation {
+          font-size: 11px;
+          font-style: italic;
+          color: #198754;
+          margin: 2px 0 0 0;
+        }
+        
+        /* Meta styling (Receipt No & Date) */
+        .meta-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 16px;
+          font-size: 13px;
+        }
+        .meta-item {
+          font-weight: bold;
+        }
+        .meta-value {
+          font-weight: normal;
+          border-bottom: 1px dotted #333;
+          padding-bottom: 2px;
+          padding-left: 5px;
+          min-width: 150px;
+          display: inline-block;
+        }
+
+        /* Heading Pill */
+        .title-container {
+          text-align: center;
+          margin-bottom: 20px;
+        }
+        .title-badge {
+          background-color: #1a2d42;
+          color: white;
+          padding: 6px 24px;
+          border-radius: 20px;
+          font-size: 14px;
+          font-weight: bold;
+          display: inline-block;
+          letter-spacing: 1px;
+          text-transform: uppercase;
+        }
+
+        /* Details Section */
+        .details-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 16px;
+        }
+        .details-row td {
+          padding: 6px 0;
+          vertical-align: bottom;
+        }
+        .details-label {
+          font-weight: bold;
+          font-size: 13px;
+          width: 180px;
+          white-space: nowrap;
+        }
+        .details-value {
+          border-bottom: 1px dashed #333;
+          padding-bottom: 2px;
+          padding-left: 10px;
+          font-size: 13px;
+          width: 100%;
+        }
+
+        /* Paragraph details */
+        .receipt-paragraph {
+          font-size: 13px;
+          line-height: 1.8;
+          text-align: justify;
+          margin-bottom: 20px;
+        }
+        .inline-underline {
+          border-bottom: 1px dashed #333;
+          padding: 0 10px;
+          font-weight: bold;
+          display: inline-block;
+        }
+
+        /* Signatures */
+        .signature-section {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          margin-bottom: 15px;
+        }
+        .sig-row {
+          display: flex;
+          font-size: 13px;
+          font-weight: bold;
+          align-items: bottom;
+        }
+        .sig-label {
+          width: 120px;
+        }
+        .sig-value {
+          border-bottom: 1px dashed #333;
+          width: 220px;
+          display: inline-block;
+          padding-left: 10px;
+          font-weight: normal;
+        }
+
+        /* Footer Address and Contact */
+        .footer {
+          border-top: 2px solid #0f5132;
+          padding-top: 15px;
+          margin-top: 20px;
+        }
+        .address-row {
+          font-size: 11px;
+          color: #333;
+          text-align: center;
+          margin-bottom: 12px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 5px;
+        }
+        .footer-bar {
+          background: linear-gradient(90deg, #0c2340 0%, #0c2340 85%, #198754 100%);
+          color: white;
+          padding: 8px;
+          border-radius: 4px;
+          display: flex;
+          justify-content: space-around;
+          font-size: 11px;
+          font-weight: bold;
+        }
+        .footer-item {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+        }
+
+        @media print {
+          body {
+            padding: 0;
+          }
+          .container {
+            border: 4px double #0f5132;
+            box-shadow: none;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <svg class="header-logo" viewBox="0 0 24 24" fill="none" stroke="#0c2340" stroke-width="1.5" style="width:50px; height:50px; margin-right:15px;">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div class="header-center">
+            <div class="school-name">NSRIT</div>
+            <div class="school-sub">ENGLISH MEDIUM SCHOOL</div>
+            <div class="motto-bar">UNITY · LEARNING · GROWTH</div>
+            <div class="motto-sanskrit">ज्ञानेन शीलम् बलम्</div>
+            <div class="motto-translation">Knowledge is the supreme strength</div>
+          </div>
+        </div>
+        
+        <div class="meta-row">
+          <div>
+            <span class="meta-item">Receipt No:</span>
+            <span class="meta-value">${receiptNo}</span>
+          </div>
+          <div>
+            <span class="meta-item">Date:</span>
+            <span class="meta-value">${paymentDateStr}</span>
+          </div>
+        </div>
+        
+        <div class="title-container">
+          <div class="title-badge">Fee Receipt</div>
+        </div>
+        
+        <table class="details-table">
+          <tr class="details-row">
+            <td class="details-label">Name of the student:</td>
+            <td class="details-value">${studentName}</td>
+          </tr>
+          <tr class="details-row">
+            <td class="details-label">Class:</td>
+            <td class="details-value">${className}</td>
+          </tr>
+          <tr class="details-row">
+            <td class="details-label">Admission no. :</td>
+            <td class="details-value">${admissionNo}</td>
+          </tr>
+        </table>
+        
+        <div class="receipt-paragraph">
+          Received the sum of rupees 
+          <span class="inline-underline" style="min-width: 320px;">${amountWords} (${amountCurrency})</span> 
+          for the 
+          <span class="inline-underline" style="min-width: 150px;">${installment}</span> 
+          installment from 
+          <span class="inline-underline" style="min-width: 150px;">${receivedFrom}</span> 
+          on 
+          <span class="inline-underline" style="min-width: 120px;">${paymentDateStr}</span>.
+        </div>
+        
+        <div class="footer">
+          <div class="signature-section">
+            <div class="sig-row">
+              <span class="sig-label">Received by:</span>
+              <span class="sig-value">${receivedBy}</span>
+            </div>
+          </div>
+
+          <div class="address-row">
+            NSRIT English Medium School, Sontyam village, Visakhapatnam, Andhra Pradesh - 531173
+          </div>
+          
+          <div class="footer-bar">
+            <div class="footer-item">
+              Phone: 9180046515
+            </div>
+            <div class="footer-item">
+              Email: nsritschoolprincipal@gmail.com
+            </div>
+          </div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
 const FeeHistory = () => {
   const navigate = useNavigate();
   const { user, feeRefreshTrigger } = useApp();
   const [selectedYearTab, setSelectedYearTab] = useState('All'); // 'All' | '2026'
   const [activeSharePayment, setActiveSharePayment] = useState(null);
 
-  const getReceiptHtml = (payment) => {
-    const receiptNo = payment.receiptNo || 'N/A';
-    const paymentDateStr = payment.date || 'N/A';
-    const studentName = payment.studentName || 'N/A';
-    const className = payment.class || 'N/A';
-    const admissionNo = payment.admissionNo || 'N/A';
-    const amountCurrency = `Rs ${payment.amount.toLocaleString('en-IN')}`;
-    const amountWords = numberToWords(payment.amount);
-    
-    const installment = payment.remarks || 'School Fee';
-    const receivedFrom = payment.studentName || 'Student';
-    const receivedBy = payment.collectedByName || 'B. Geetha';
-
-    return `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <title>Fee Receipt - ${receiptNo}</title>
-        <style>
-          body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #ffffff;
-            color: #333333;
-          }
-          .container {
-            max-width: 800px;
-            margin: 0 auto;
-            border: 4px double #0f5132;
-            border-radius: 8px;
-            padding: 24px;
-            box-sizing: border-box;
-          }
-          /* Header styling */
-          .header {
-            display: flex;
-            align-items: center;
-            border-bottom: 2px solid #0f5132;
-            padding-bottom: 12px;
-            margin-bottom: 16px;
-          }
-          .header-logo {
-            width: 80px;
-            height: 80px;
-            margin-right: 20px;
-          }
-          .header-center {
-            flex: 1;
-            text-align: center;
-          }
-          .school-name {
-            font-size: 26px;
-            font-weight: bold;
-            color: #0c2340;
-            margin: 0;
-            letter-spacing: 0.5px;
-          }
-          .school-sub {
-            font-size: 16px;
-            font-weight: bold;
-            color: #0c2340;
-            margin: 2px 0 5px 0;
-            letter-spacing: 1px;
-          }
-          .motto-bar {
-            font-size: 12px;
-            font-weight: bold;
-            color: #198754;
-            margin: 3px 0;
-            letter-spacing: 1px;
-          }
-          .motto-sanskrit {
-            font-size: 14px;
-            font-weight: bold;
-            color: #333;
-            margin: 3px 0;
-          }
-          .motto-translation {
-            font-size: 11px;
-            font-style: italic;
-            color: #198754;
-            margin: 2px 0 0 0;
-          }
-          
-          /* Meta styling (Receipt No & Date) */
-          .meta-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-            font-size: 13px;
-          }
-          .meta-item {
-            font-weight: bold;
-          }
-          .meta-value {
-            font-weight: normal;
-            border-bottom: 1px dotted #333;
-            padding-bottom: 2px;
-            padding-left: 5px;
-            min-width: 150px;
-            display: inline-block;
-          }
-
-          /* Heading Pill */
-          .title-container {
-            text-align: center;
-            margin-bottom: 20px;
-          }
-          .title-badge {
-            background-color: #1a2d42;
-            color: white;
-            padding: 6px 24px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: bold;
-            display: inline-block;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-          }
-
-          /* Details Section */
-          .details-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 16px;
-          }
-          .details-row td {
-            padding: 6px 0;
-            vertical-align: bottom;
-          }
-          .details-label {
-            font-weight: bold;
-            font-size: 13px;
-            width: 180px;
-            white-space: nowrap;
-          }
-          .details-value {
-            border-bottom: 1px dashed #333;
-            padding-bottom: 2px;
-            padding-left: 10px;
-            font-size: 13px;
-            width: 100%;
-          }
-
-          /* Paragraph details */
-          .receipt-paragraph {
-            font-size: 13px;
-            line-height: 1.8;
-            text-align: justify;
-            margin-bottom: 20px;
-          }
-          .inline-underline {
-            border-bottom: 1px dashed #333;
-            padding: 0 10px;
-            font-weight: bold;
-            display: inline-block;
-          }
-
-          /* Signatures */
-          .signature-section {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            margin-bottom: 15px;
-          }
-          .sig-row {
-            display: flex;
-            font-size: 13px;
-            font-weight: bold;
-            align-items: bottom;
-          }
-          .sig-label {
-            width: 120px;
-          }
-          .sig-value {
-            border-bottom: 1px dashed #333;
-            width: 220px;
-            display: inline-block;
-            padding-left: 10px;
-            font-weight: normal;
-          }
-
-          /* Footer Address and Contact */
-          .footer {
-            border-top: 2px solid #0f5132;
-            padding-top: 15px;
-            margin-top: 20px;
-          }
-          .address-row {
-            font-size: 11px;
-            color: #333;
-            text-align: center;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 5px;
-          }
-          .footer-bar {
-            background: linear-gradient(90deg, #0c2340 0%, #0c2340 85%, #198754 100%);
-            color: white;
-            padding: 8px;
-            border-radius: 4px;
-            display: flex;
-            justify-content: space-around;
-            font-size: 11px;
-            font-weight: bold;
-          }
-          .footer-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-          }
-
-          @media print {
-            body {
-              padding: 0;
-            }
-            .container {
-              border: 4px double #0f5132;
-              box-shadow: none;
-            }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <svg class="header-logo" viewBox="0 0 24 24" fill="none" stroke="#0c2340" stroke-width="1.5" style="width:50px; height:50px; margin-right:15px;">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <div class="header-center">
-              <div class="school-name">NSRIT</div>
-              <div class="school-sub">ENGLISH MEDIUM SCHOOL</div>
-              <div class="motto-bar">UNITY · LEARNING · GROWTH</div>
-              <div class="motto-sanskrit">ज्ञानेन शीलम् बलम्</div>
-              <div class="motto-translation">Knowledge is the supreme strength</div>
-            </div>
-          </div>
-          
-          <div class="meta-row">
-            <div>
-              <span class="meta-item">Receipt No:</span>
-              <span class="meta-value">${receiptNo}</span>
-            </div>
-            <div>
-              <span class="meta-item">Date:</span>
-              <span class="meta-value">${paymentDateStr}</span>
-            </div>
-          </div>
-          
-          <div class="title-container">
-            <div class="title-badge">Fee Receipt</div>
-          </div>
-          
-          <table class="details-table">
-            <tr class="details-row">
-              <td class="details-label">Name of the student:</td>
-              <td class="details-value">${studentName}</td>
-            </tr>
-            <tr class="details-row">
-              <td class="details-label">Class:</td>
-              <td class="details-value">${className}</td>
-            </tr>
-            <tr class="details-row">
-              <td class="details-label">Admission no. :</td>
-              <td class="details-value">${admissionNo}</td>
-            </tr>
-          </table>
-          
-          <div class="receipt-paragraph">
-            Received the sum of rupees 
-            <span class="inline-underline" style="min-width: 320px;">${amountWords} (${amountCurrency})</span> 
-            for the 
-            <span class="inline-underline" style="min-width: 150px;">${installment}</span> 
-            installment from 
-            <span class="inline-underline" style="min-width: 150px;">${receivedFrom}</span> 
-            on 
-            <span class="inline-underline" style="min-width: 120px;">${paymentDateStr}</span>.
-          </div>
-          
-          <div class="footer">
-            <div class="signature-section">
-              <div class="sig-row">
-                <span class="sig-label">Received by:</span>
-                <span class="sig-value">${receivedBy}</span>
-              </div>
-            </div>
-
-            <div class="address-row">
-              NSRIT English Medium School, Sontyam village, Visakhapatnam, Andhra Pradesh - 531173
-            </div>
-            
-            <div class="footer-bar">
-              <div class="footer-item">
-                Phone: 9180046515
-              </div>
-              <div class="footer-item">
-                Email: nsritschoolprincipal@gmail.com
-              </div>
-            </div>
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
-  };
-
   const triggerPrintReceipt = (payment) => {
     const htmlContent = getReceiptHtml(payment);
-
     const iframe = document.createElement('iframe');
     iframe.style.position = 'fixed';
     iframe.style.right = '0';
@@ -492,10 +491,6 @@ const FeeHistory = () => {
       });
   };
 
-  const handleShareReceipt = (payment) => {
-    setActiveSharePayment(payment);
-  };
-
   const [firestorePayments, setFirestorePayments] = useState([]);
 
   const branchId = user?.branchId || 'sontyam-branch-id';
@@ -557,17 +552,19 @@ const FeeHistory = () => {
     // 1. Map Postgres payments
     const dbItems = dbPayments.map(p => {
       const student = dbStudents.find(s => s.id === p.studentId);
-      const modeStr = p.paymentMode ? ` · ${p.paymentMode.toUpperCase()}` : '';
       const dateObj = p.paymentDate ? new Date(p.paymentDate) : new Date();
       return {
         id: p.id,
-        studentName: `${student?.fullName || 'Unknown Student'}${modeStr}`,
+        studentName: student?.fullName || 'Unknown Student',
+        class: student ? `${student.academicClass?.name || ''}-${student.section?.name || ''}`.trim().replace(/^-|-$/, '') : 'N/A',
+        admissionNo: student?.studentId || 'N/A',
         amount: p.amount || 0,
         date: formatDDMMYYYY(p.paymentDate),
         year: dateObj.getFullYear(),
+        mode: p.paymentMode || 'CASH',
         receiptNo: p.receiptNumber || p.id.slice(0, 8).toUpperCase(),
         timestamp: dateObj.getTime(),
-        remarks: p.remarks || '',
+        remarks: p.remarks || 'School Fee',
         collectedByName: p.collectedBy?.fullName || 'B. Geetha'
       };
     });
@@ -576,17 +573,18 @@ const FeeHistory = () => {
     const fsItems = firestorePayments.map(p => {
       const student = dbStudents.find(s => s.id === p.studentId);
       const dateObj = p.paymentDate ? new Date(p.paymentDate) : new Date();
-      const modeStr = p.paymentMode ? ` · ${p.paymentMode.toUpperCase()}` : '';
       return {
         id: p.id,
-        studentName: `${student?.fullName || 'Unknown Student'}${modeStr}`,
+        studentName: student?.fullName || 'Unknown Student',
+        class: student ? `${student.academicClass?.name || ''}-${student.section?.name || ''}`.trim().replace(/^-|-$/, '') : 'N/A',
+        admissionNo: student?.studentId || 'N/A',
         amount: p.amount || 0,
         date: formatDDMMYYYY(p.paymentDate),
         year: dateObj.getFullYear(),
         mode: p.paymentMode || 'CASH',
         receiptNo: p.receiptNumber || p.referenceNumber || `REC-FS-${p.id.slice(0, 6)}`.toUpperCase(),
         timestamp: dateObj.getTime(),
-        remarks: p.remarks || '',
+        remarks: p.remarks || 'School Fee',
         collectedByName: 'B. Geetha'
       };
     });
@@ -608,21 +606,36 @@ const FeeHistory = () => {
       studentName: 'KORUKONDA NAGA VENKAT KALYAN',
       amount: 10000,
       date: '03-07-2026',
-      receiptNo: 'REC-SO-1783057145704-816'
+      receiptNo: 'REC-SO-1783057145704-816',
+      class: 'Nursery-A',
+      admissionNo: '26SO0111',
+      mode: 'CASH',
+      remarks: 'testing',
+      collectedByName: 'B. Geetha'
     },
     {
       id: 'mock-2',
-      studentName: 'BONTHU DAKSH RIHAAN · CASH',
+      studentName: 'BONTHU DAKSH RIHAAN',
       amount: 10000,
       date: '03-07-2026',
-      receiptNo: 'REC-SO-1783057792189-996'
+      receiptNo: 'REC-SO-1783057792189-996',
+      class: 'Nursery-A',
+      admissionNo: '26SO0112',
+      mode: 'CASH',
+      remarks: 'testing',
+      collectedByName: 'B. Geetha'
     },
     {
       id: 'mock-3',
-      studentName: 'KORADA BHARGAVSAI · UPI',
+      studentName: 'KORADA BHARGAVSAI',
       amount: 5000,
       date: '29-06-2026',
-      receiptNo: 'RCPT-2026-SO-00004'
+      receiptNo: 'RCPT-2026-SO-00004',
+      class: 'Nursery-A',
+      admissionNo: '26SO0113',
+      mode: 'UPI',
+      remarks: 'testing',
+      collectedByName: 'B. Geetha'
     }
   ];
 
@@ -638,15 +651,7 @@ const FeeHistory = () => {
   }, [normalizedPayments]);
 
   const handleShare = (payment) => {
-    if (navigator.share) {
-      navigator.share({
-        title: 'Fee Payment Receipt',
-        text: `Fee payment of Rs ${payment.amount.toLocaleString()} received for ${payment.studentName}. Receipt: ${payment.receiptNo}`,
-        url: window.location.href
-      }).catch(err => console.log(err));
-    } else {
-      alert(`Receipt Details:\nStudent: ${payment.studentName}\nAmount: Rs ${payment.amount}\nReceipt: ${payment.receiptNo}`);
-    }
+    setActiveSharePayment(payment);
   };
 
   return (
@@ -673,35 +678,48 @@ const FeeHistory = () => {
         <div className="absolute top-[-30px] right-[-30px] w-36 h-36 rounded-full bg-white/10" />
         <div className="absolute bottom-[-40px] left-[10%] w-48 h-48 rounded-full bg-white/5" />
 
-        <div className="mb-1 relative z-10 select-none">
-          <span className="text-[10px] text-white/70 font-semibold tracking-wider uppercase">FEES</span>
+        <div className="flex justify-between items-start relative z-10">
+          <div className="space-y-1.5">
+            <h2 className="text-base font-black tracking-tight leading-none">Payment Ledger</h2>
+            <p className="text-[10px] text-white/75 font-bold">Manage and trace fee payments</p>
+          </div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 border border-white/10 rounded-full text-[8.5px] font-black uppercase tracking-wider">
+            <span className="w-1.5 h-1.5 bg-[#23C16B] rounded-full animate-pulse" />
+            Live Database
+          </div>
         </div>
 
-        {/* Title */}
-        <h2 className="text-xl font-bold mb-1 relative z-10 font-sans">Payment History</h2>
-        <p className="text-[11px] text-white/80 font-bold relative z-10">
-          Cash, UPI, and ledger transactions
-        </p>
+        {/* Aggregate Stats */}
+        <div className="grid grid-cols-2 gap-4 mt-6 pt-5 border-t border-white/15 text-center font-sans relative z-10">
+          <div>
+            <p className="text-sm font-black">Rs {normalizedPayments.reduce((acc, p) => acc + (p.amount || 0), 0).toLocaleString('en-IN')}</p>
+            <p className="text-[8px] text-white/75 font-black uppercase tracking-wider mt-1">Total Collections</p>
+          </div>
+          <div>
+            <p className="text-sm font-black">{normalizedPayments.length}</p>
+            <p className="text-[8px] text-white/75 font-black uppercase tracking-wider mt-1">Transactions</p>
+          </div>
+        </div>
       </div>
 
-      {/* Year Selector Tabs */}
-      <div className="flex items-center gap-3 font-sans select-none">
+      {/* Tabs Row */}
+      <div className="flex gap-2.5 bg-slate-200/50 p-1.5 rounded-[22px] select-none">
         <button
           onClick={() => setSelectedYearTab('All')}
-          className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all border cursor-pointer ${
+          className={`flex-1 py-2 text-center text-[10.5px] font-extrabold rounded-[16px] transition-all cursor-pointer ${
             selectedYearTab === 'All'
-              ? 'bg-[#1597E5] text-white border-transparent shadow-sm'
-              : 'bg-white text-[#1597E5] border-[#1597E5]/30 hover:border-[#1597E5]/60'
+              ? 'bg-white text-dark shadow-sm'
+              : 'text-secondaryText hover:text-dark'
           }`}
         >
           All Years
         </button>
         <button
           onClick={() => setSelectedYearTab('2026')}
-          className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all border cursor-pointer ${
+          className={`flex-1 py-2 text-center text-[10.5px] font-extrabold rounded-[16px] transition-all cursor-pointer ${
             selectedYearTab === '2026'
-              ? 'bg-[#1597E5] text-white border-transparent shadow-sm'
-              : 'bg-white text-[#1597E5] border-[#1597E5]/30 hover:border-[#1597E5]/60'
+              ? 'bg-white text-dark shadow-sm'
+              : 'text-secondaryText hover:text-dark'
           }`}
         >
           AY 2026
@@ -732,7 +750,7 @@ const FeeHistory = () => {
                     Rs {p.amount.toLocaleString('en-IN')}
                   </h3>
                   <p className="text-[10px] text-[#0F172A] font-bold mt-1 uppercase">
-                    {p.studentName}
+                    {p.studentName}{p.mode ? ` · ${p.mode.toUpperCase()}` : ''}
                   </p>
                   <p className="text-[9px] text-[#A0AEC0] font-black mt-0.5 select-none uppercase tracking-wide">
                     {p.date} | {p.receiptNo}
@@ -740,7 +758,7 @@ const FeeHistory = () => {
                 </div>
               </div>
               <button
-                onClick={() => handleShareReceipt(p)}
+                onClick={() => handleShare(p)}
                 className="w-9 h-9 rounded-full bg-[#EBF8FF] text-[#1597E5] flex items-center justify-center hover:bg-blue-100 transition-colors cursor-pointer active:scale-95 shadow-sm"
               >
                 <FiShare2 className="w-4 h-4" />
@@ -767,7 +785,7 @@ const FeeHistory = () => {
       {/* Share Options Modal */}
       {activeSharePayment && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in font-sans">
-          <div className="bg-white rounded-[32px] w-full max-w-sm p-6 card-shadow border border-[#e2e8f0]/60 space-y-6 relative">
+          <div className="bg-white rounded-[32px] w-full max-w-sm p-6 card-shadow border border-[#e2e8f0]/60 space-y-6 relative animate-scale-in">
             <button
               onClick={() => setActiveSharePayment(null)}
               className="absolute top-4 right-4 p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-all cursor-pointer"
@@ -783,7 +801,7 @@ const FeeHistory = () => {
             </div>
 
             <div className="space-y-2.5">
-              {/* Option 1: Save / Print PDF */}
+              {/* Option 1: Print or Save PDF */}
               <button
                 onClick={() => {
                   triggerPrintReceipt(activeSharePayment);
@@ -838,8 +856,8 @@ const FeeHistory = () => {
                     <FiDownload className="w-4.5 h-4.5" />
                   </div>
                   <div className="text-left">
-                    <p className="text-xs font-bold text-dark group-hover:text-emerald-600 transition-colors">Download PDF Receipt</p>
-                    <p className="text-[9.5px] text-slate-500 font-bold mt-0.5">Save offline PDF document directly</p>
+                    <p className="text-xs font-bold text-dark group-hover:text-emerald-600 transition-colors">Download Receipt File</p>
+                    <p className="text-[9.5px] text-slate-500 font-bold mt-0.5">Save offline document directly</p>
                   </div>
                 </div>
                 <FiChevronRight className="w-4 h-4 text-slate-400 group-hover:text-emerald-600 transition-colors" />

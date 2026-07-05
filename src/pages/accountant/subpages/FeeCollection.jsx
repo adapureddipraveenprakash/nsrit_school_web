@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   FiArrowLeft, FiSearch, FiChevronRight, FiInbox,
@@ -80,15 +80,7 @@ const MOCK_STUDENTS = [
 
 const FeeCollection = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const studentIdParam = searchParams.get('studentId');
   const { user, feeRefreshTrigger } = useApp();
-
-  useEffect(() => {
-    if (studentIdParam) {
-      navigate(`/settings/record-payment?studentId=${studentIdParam}`, { replace: true });
-    }
-  }, [studentIdParam, navigate]);
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('All');
   const [selectedYear, setSelectedYear] = useState('AY 2026');
@@ -167,20 +159,16 @@ const FeeCollection = () => {
       };
     });
 
-    // Merge mock students if they are not already in the database
-    const combined = [...list];
-    MOCK_STUDENTS.forEach(ms => {
-      if (!combined.some(s => s.studentId === ms.studentId || s.id === ms.id)) {
-        combined.push(ms);
-      }
-    });
-
-    return combined;
+    if (list.length > 0) {
+      return list;
+    }
+    return MOCK_STUDENTS;
   }, [studentsList, firestorePayments]);
 
   // Calculate live overall stats
   const dashboardStats = useMemo(() => {
-    if (normalizedStudents.length === 0) return MOCK_DASHBOARD_STATS;
+    const isShowingMock = normalizedStudents.some(s => String(s.id).startsWith('mock-'));
+    if (isShowingMock || normalizedStudents.length === 0) return MOCK_DASHBOARD_STATS;
 
     let collected = 0;
     let pending = 0;
@@ -189,8 +177,6 @@ const FeeCollection = () => {
     let pendingCount = 0;
 
     normalizedStudents.forEach(s => {
-      // Exclude mock students from live calculations if they are placeholders without real values
-      // But keep Bhargavsai and Manjusha mock records since they align with image dashboard totals
       collected += s.paidAmount;
       pending += s.dueAmount;
       overall += s.totalAmount;
@@ -201,9 +187,6 @@ const FeeCollection = () => {
         pendingCount++;
       }
     });
-
-    // If live calculation yields 0 (e.g. empty branch), fall back to image values
-    if (overall === 0) return MOCK_DASHBOARD_STATS;
 
     const rate = overall > 0 ? Math.round((collected / overall) * 100) : 0;
 
