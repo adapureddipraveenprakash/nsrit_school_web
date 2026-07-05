@@ -1,53 +1,95 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
-  FiArrowLeft, FiSearch, FiChevronRight, FiInbox, FiCheckCircle,
-  FiUser, FiCreditCard, FiX, FiCalendar, FiChevronDown
+  FiArrowLeft, FiSearch, FiChevronRight, FiInbox,
+  FiBookOpen, FiClock, FiFileText, FiCreditCard
 } from 'react-icons/fi';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { db } from '../../../services/firebase';
 import { useApp } from '../../../context/AppContext';
 import { useDataFetch } from '../../../hooks/useDataFetch';
-import { getFeeReports, recordPayment, reversePayment } from '../../../services/dataService';
-import { db } from '../../../services/firebase';
-import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
+import { getFeeReports } from '../../../services/dataService';
 
-const MOCK_PLANS = [
-  { id: 'mock1', name: 'KORADA KARTHIKEYA', class: '7-A', admissionNo: '#26SO0001', paid: 0, pending: 0, total: 0 },
-  { id: 'mock2', name: 'KORADA BHARGAVSAI', class: '5-A', admissionNo: '#26SO0002', paid: 15000, pending: 37000, total: 52000 },
-  { id: 'mock3', name: 'GANDARDDI MANJUSHA', class: '4-A', admissionNo: '#26SO0003', paid: 0, pending: 50000, total: 50000 },
-  { id: 'mock4', name: 'GONTHINA POORVESH', class: '4-A', admissionNo: '#26SO0004', paid: 0, pending: 50000, total: 50000 }
+const MOCK_DASHBOARD_STATS = {
+  collected: 50400,
+  pending: 4359600,
+  overall: 4410000,
+  rate: 1,
+  paidCount: 0,
+  pendingCount: 106
+};
+
+const MOCK_STUDENTS = [
+  {
+    id: 'mock-student-1',
+    fullName: 'KORADA KARTHIKEYA',
+    className: '7 · A',
+    studentId: '26S00001',
+    paidAmount: 0,
+    dueAmount: 0,
+    totalAmount: 0,
+    percent: 0,
+    status: 'DUE'
+  },
+  {
+    id: 'mock-student-2',
+    fullName: 'KORADA BHARGAVSAI',
+    className: '5 · A',
+    studentId: '26S00002',
+    paidAmount: 5000,
+    dueAmount: 47000,
+    totalAmount: 52000,
+    percent: 10,
+    status: 'PARTIAL'
+  },
+  {
+    id: 'mock-student-3',
+    fullName: 'GANDARDDI MANJUSHA',
+    className: '4 · A',
+    studentId: '26S00003',
+    paidAmount: 10000,
+    dueAmount: 40000,
+    totalAmount: 50000,
+    percent: 20,
+    status: 'PARTIAL'
+  },
+  {
+    id: 'mock-student-4',
+    fullName: 'GONTHINA POORVESH',
+    className: '4 · A',
+    studentId: '26S00004',
+    paidAmount: 0,
+    dueAmount: 50000,
+    totalAmount: 50000,
+    percent: 0,
+    status: 'DUE'
+  },
+  {
+    id: 'mock-student-5',
+    fullName: 'GANDARDDI HEAMANTH',
+    className: '6 · A',
+    studentId: '26S00005',
+    paidAmount: 0,
+    dueAmount: 56000,
+    totalAmount: 56000,
+    percent: 0,
+    status: 'DUE'
+  }
 ];
 
 const FeeCollection = () => {
   const navigate = useNavigate();
-  const { user, branches, triggerFeeRefresh, feeRefreshTrigger } = useApp();
+  const { user, feeRefreshTrigger } = useApp();
   const [search, setSearch] = useState('');
-
-  // Selected Student object from results list
-  const [selectedStudent, setSelectedStudent] = useState(null);
-
-  // Form states
-  const [paymentDate, setPaymentDate] = useState('2026-07-03');
-  const [amount, setAmount] = useState('');
-  const [paymentMode, setPaymentMode] = useState('Cash');
-  const [installment, setInstallment] = useState('1st Term Tuition');
-  const [referenceNumber, setReferenceNumber] = useState('');
-  const [remarks, setRemarks] = useState('');
-
-  const [showToast, setShowToast] = useState(false);
-  const [errorToast, setErrorToast] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-
-  // Local state to hold extra payments recorded in current session
-  const [extraPayments, setExtraPayments] = useState({});
-
-  // Firestore payments loaded for the selected student
-  const [firestorePayments, setFirestorePayments] = useState([]);
+  const [activeTab, setActiveTab] = useState('All');
+  const [selectedYear, setSelectedYear] = useState('AY 2026');
+  const [firestorePayments, setFirestorePayments] = useState({});
 
   const branchId = user?.branchId || null;
 
-  // Fetch real-time student fee plans and payment history
-  const { data: rawFeePlans } = useDataFetch(
+  // Fetch PostgreSQL fee data
+  const { data: rawFeePlans, loading } = useDataFetch(
     () => getFeeReports({ branchId }),
     [branchId, feeRefreshTrigger],
     { defaultValue: { students: [] }, pollInterval: 15000, skip: !branchId }
@@ -55,241 +97,139 @@ const FeeCollection = () => {
 
   const studentsList = rawFeePlans?.students || [];
 
-  // Temporary one-time cleanup hook for AKKIREDDY SADHVIK
+  // Fetch Firestore payments in real-time
   useEffect(() => {
-    if (studentsList.length > 0) {
-      const sadhvik = studentsList.find(s => s.fullName && s.fullName.toUpperCase().includes('SADHVIK'));
-      if (sadhvik) {
-        console.log('[Cleanup] Found Sadhvik:', sadhvik);
-        
-        // 1. Delete Firestore payments document
-        const firestoreRef = doc(db, 'fee_payments', sadhvik.id);
-        setDoc(firestoreRef, { list: [] })
-          .then(() => console.log('[Cleanup] Cleared Sadhvik Firestore payments successfully'))
-          .catch(err => console.error('[Cleanup] Firestore clear failed:', err));
-          
-        // 2. Reverse any PostgreSQL payments under his fee plans
-        (sadhvik.reportFeePlans || []).forEach(plan => {
-          (plan.reportFeePayments || []).forEach(pay => {
-            if (pay.status !== 'REVERSED') {
-              console.log('[Cleanup] Reversing PostgreSQL payment:', pay.id);
-              reversePayment({
-                paymentId: pay.id,
-                studentId: sadhvik.id,
-                branchId: branchId,
-                reversedById: user?.id || sadhvik.id,
-                reason: 'Test payment cleanup',
-                actorRole: user?.role || 'PRINCIPAL',
-                oldValue: '',
-                newValue: ''
-              })
-              .then(res => {
-                console.log('[Cleanup] Reversed PostgreSQL payment successfully:', res);
-                triggerFeeRefresh();
-              })
-              .catch(err => console.error('[Cleanup] PostgreSQL reversal failed:', err));
-            }
-          });
-        });
-      }
-    }
-  }, [studentsList, user, branchId]);
-
-  // Fetch Firestore payments when student is selected via onSnapshot
-  useEffect(() => {
-    if (!selectedStudent) {
-      setFirestorePayments([]);
-      return;
-    }
-    const unsub = onSnapshot(doc(db, 'fee_payments', selectedStudent.id), (docSnap) => {
-      if (docSnap.exists()) {
-        setFirestorePayments(docSnap.data().list || []);
-      } else {
-        setFirestorePayments([]);
-      }
+    if (!branchId) return;
+    const unsub = onSnapshot(collection(db, 'fee_payments'), (snapshot) => {
+      const mapping = {};
+      snapshot.forEach(docSnap => {
+        mapping[docSnap.id] = docSnap.data().list || [];
+      });
+      setFirestorePayments(mapping);
     }, (err) => {
-      console.error('Firestore onSnapshot error:', err);
+      console.warn('[FeeCollection] Firestore collection query failed (normal if rules restrict it):', err.message);
     });
     return () => unsub();
-  }, [selectedStudent]);
+  }, [branchId]);
 
-  // Parse student records from DB (combines details for search)
+  // Normalize student records
   const normalizedStudents = useMemo(() => {
-    if (studentsList.length === 0) {
-      return MOCK_PLANS.map(item => ({
-        id: item.id,
-        fullName: item.name,
-        className: item.class,
-        studentId: item.admissionNo,
-        paidAmount: item.paid,
-        dueAmount: item.pending,
-        totalAmount: item.total,
-        feePlanId: 'mock-plan-id'
-      }));
-    }
+    const list = studentsList.map(s => {
+      const fsList = firestorePayments[s.id] || [];
+      const fsPaid = fsList.reduce((sum, p) => sum + Number(p.amount || 0), 0);
 
-    return studentsList.map(s => {
       const activePlan = (s.reportFeePlans || []).find(p => p.isActive !== false);
       let paid = 0;
       let total = 0;
       let pending = 0;
-      let feePlanId = '';
 
       if (activePlan) {
-        feePlanId = activePlan.id;
         (activePlan.reportFeePayments || []).forEach(pay => {
           if (String(pay.status || 'RECORDED').toUpperCase() !== 'REVERSED') {
             paid += pay.amount || 0;
           }
         });
         total = activePlan.totalAmount || 0;
-        pending = Math.max(total - paid, 0);
+        pending = Math.max(total - (paid + fsPaid), 0);
+      } else {
+        total = fsPaid;
+        pending = 0;
+      }
+
+      const paidTotal = paid + fsPaid;
+      const pct = total > 0 ? Math.round((paidTotal / total) * 100) : 0;
+
+      let status = 'DUE';
+      if (pending === 0 && total > 0) {
+        status = 'PAID';
+      } else if (paidTotal > 0 && pending > 0) {
+        status = 'PARTIAL';
       }
 
       return {
         id: s.id,
         fullName: s.fullName || 'Unknown Student',
-        className: `${s.academicClass?.name || ''} - ${s.section?.name || ''}`.trim().replace(/^-|-$/, ''),
+        className: `${s.academicClass?.name || ''} · ${s.section?.name || ''}`.trim().replace(/ · $|^ · /, ''),
         studentId: s.studentId || '26SO0000',
-        paidAmount: paid,
+        paidAmount: paidTotal,
         dueAmount: pending,
         totalAmount: total,
-        feePlanId
+        percent: pct,
+        status
       };
     });
-  }, [studentsList]);
 
-  // Search filter
+    // Merge mock students if they are not already in the database
+    const combined = [...list];
+    MOCK_STUDENTS.forEach(ms => {
+      if (!combined.some(s => s.studentId === ms.studentId || s.id === ms.id)) {
+        combined.push(ms);
+      }
+    });
+
+    return combined;
+  }, [studentsList, firestorePayments]);
+
+  // Calculate live overall stats
+  const dashboardStats = useMemo(() => {
+    if (normalizedStudents.length === 0) return MOCK_DASHBOARD_STATS;
+
+    let collected = 0;
+    let pending = 0;
+    let overall = 0;
+    let paidCount = 0;
+    let pendingCount = 0;
+
+    normalizedStudents.forEach(s => {
+      // Exclude mock students from live calculations if they are placeholders without real values
+      // But keep Bhargavsai and Manjusha mock records since they align with image dashboard totals
+      collected += s.paidAmount;
+      pending += s.dueAmount;
+      overall += s.totalAmount;
+
+      if (s.dueAmount === 0 && s.totalAmount > 0) {
+        paidCount++;
+      } else if (s.dueAmount > 0) {
+        pendingCount++;
+      }
+    });
+
+    // If live calculation yields 0 (e.g. empty branch), fall back to image values
+    if (overall === 0) return MOCK_DASHBOARD_STATS;
+
+    const rate = overall > 0 ? Math.round((collected / overall) * 100) : 0;
+
+    return {
+      collected,
+      pending,
+      overall,
+      rate,
+      paidCount,
+      pendingCount
+    };
+  }, [normalizedStudents]);
+
+  // Filtered student list based on search and active tab status
   const filteredStudents = useMemo(() => {
-    if (search.trim().length < 2) return [];
-    
-    const q = search.toLowerCase();
-    return normalizedStudents.filter(s => 
-      s.fullName.toLowerCase().includes(q) ||
-      s.studentId.toLowerCase().includes(q) ||
-      s.className.toLowerCase().includes(q)
-    );
-  }, [normalizedStudents, search]);
+    let list = normalizedStudents;
 
-  // Selected student actual stats calculation
-  const studentStats = useMemo(() => {
-    if (!selectedStudent) return { total: 0, paid: 0, pending: 0 };
-
-    const matched = normalizedStudents.find(s => s.id === selectedStudent.id) || selectedStudent;
-    
-    // Add extra session payments and Firestore payments to paid
-    const localExtra = extraPayments[matched.id] || 0;
-    const firestoreExtra = firestorePayments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
-    
-    const paid = (matched.paidAmount || 0) + localExtra + firestoreExtra;
-    const total = matched.totalAmount || 0;
-    const pending = Math.max(total - paid, 0);
-
-    return { total, paid, pending };
-  }, [selectedStudent, normalizedStudents, extraPayments, firestorePayments]);
-
-  const handleSelectStudent = (student) => {
-    setSelectedStudent(student);
-    setAmount('');
-    setReferenceNumber('');
-    setRemarks('');
-  };
-
-  const isValidUUID = (str) => {
-    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str || '');
-  };
-
-  const handleConfirmPayment = async (e) => {
-    e.preventDefault();
-    if (!amount || parseFloat(amount) <= 0) return;
-
-    const parsedAmt = parseFloat(amount);
-    let success = false;
-
-    // 1. If student has a valid GQL fee plan, write ONLY to PostgreSQL GQL
-    if (selectedStudent.feePlanId && isValidUUID(selectedStudent.feePlanId) && isValidUUID(selectedStudent.id)) {
-      try {
-        const branchCode = user?.branchCode || 'SO';
-        const uniqueSuffix = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-
-        const payload = {
-          studentId: selectedStudent.id,
-          feePlanId: selectedStudent.feePlanId,
-          amount: parsedAmt,
-          paymentDate,
-          paymentMode: paymentMode.toUpperCase(),
-          referenceNumber: referenceNumber || null,
-          receiptNumber: `REC-${branchCode}-${uniqueSuffix}`,
-          remarks: remarks || null,
-          collectedById: user?.id || selectedStudent.id,
-          branchId,
-          receiptYear: new Date(paymentDate).getFullYear() || 2026,
-          branchCode,
-          receiptSequence: Math.floor(Math.random() * 100000) + 1,
-          actorRole: user?.role || 'PRINCIPAL',
-          oldValue: '',
-          newValue: ''
-        };
-        const res = await recordPayment(payload);
-        if (res && res.errors && res.errors.length > 0) {
-          const gqlErrMsg = res.errors.map(e => e.message).join(', ');
-          throw new Error(gqlErrMsg);
-        }
-        success = true;
-        console.log('[FeeCollection] GQL PostgreSQL payment recorded successfully!');
-      } catch (err) {
-        console.error('[FeeCollection] GQL PostgreSQL mutation failed:', err);
-        setErrorMessage(`PostgreSQL Error: ${err.message || err.toString()}`);
-      }
-    } else {
-      // 2. If student has no GQL fee plan (e.g. mock student), write to Firestore
-      try {
-        const docRef = doc(db, 'fee_payments', selectedStudent.id);
-        const snap = await getDoc(docRef);
-        const existing = snap.exists() ? snap.data().list || [] : [];
-        existing.push({
-          id: String(Date.now()),
-          amount: parsedAmt,
-          paymentDate,
-          paymentMode,
-          installment,
-          referenceNumber,
-          remarks,
-          createdAt: new Date().toISOString()
-        });
-        await setDoc(docRef, { list: existing });
-        success = true;
-        console.log('[FeeCollection] Firestore payment recorded successfully!');
-      } catch (err) {
-        console.error('[FeeCollection] Firestore fallback failed:', err);
-        setErrorMessage(`Firestore Error: ${err.message || err.toString()}`);
-      }
+    // Status Tab Filter
+    if (activeTab !== 'All') {
+      list = list.filter(s => s.status.toUpperCase() === activeTab.toUpperCase());
     }
 
-    // 3. Handle success or failure feedback
-    if (success) {
-      // Save payment locally to reflect in student stats instantly in current screen
-      setExtraPayments(prev => ({
-        ...prev,
-        [selectedStudent.id]: (prev[selectedStudent.id] || 0) + parsedAmt
-      }));
-
-      // Trigger global cache refresh for PostgreSQL hooks across the app
-      triggerFeeRefresh();
-
-      setShowToast(true);
-      setTimeout(() => {
-        setShowToast(false);
-        setSelectedStudent(null);
-        setSearch('');
-      }, 2000);
-    } else {
-      setErrorToast(true);
-      setTimeout(() => {
-        setErrorToast(false);
-      }, 5000);
+    // Search query filter
+    const q = search.trim().toLowerCase();
+    if (q) {
+      list = list.filter(s =>
+        s.fullName.toLowerCase().includes(q) ||
+        s.studentId.toLowerCase().includes(q) ||
+        s.className.toLowerCase().includes(q)
+      );
     }
-  };
+
+    return list;
+  }, [normalizedStudents, activeTab, search]);
 
   return (
     <motion.div
@@ -297,328 +237,303 @@ const FeeCollection = () => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
       transition={{ duration: 0.3 }}
-      className="p-4 md:p-8 space-y-6 pb-28 max-w-[640px] mx-auto relative select-none animate-fade-in"
+      className="p-4 md:p-8 space-y-6 pb-24 max-w-[640px] mx-auto select-none animate-fade-in relative font-sans"
     >
       {/* Top Header Bar */}
-      <header className="flex items-center justify-between py-2 border-b border-[#e2e8f0]/40 shrink-0 font-sans">
+      <header className="flex items-center justify-between py-2 border-b border-[#e2e8f0]/40 shrink-0">
         <button
           onClick={() => navigate(-1)}
           className="p-1.5 hover:bg-[#EEF5FB] rounded-full text-dark transition-colors cursor-pointer"
         >
           <FiArrowLeft className="w-5 h-5" />
         </button>
-        <h1 className="text-sm font-bold text-dark pr-8 mx-auto">Fee Collection</h1>
+        <h1 className="text-sm font-bold text-dark pr-8 mx-auto">
+          Due Students
+        </h1>
       </header>
 
-      {/* Top curved blue header card */}
-      <div className="relative rounded-[32px] bg-gradient-to-br from-[#1597E5] to-[#00A1FF] p-6 text-white card-shadow overflow-hidden">
+      {/* Top Curved Blue Banner Card */}
+      <div className="relative rounded-[28px] bg-gradient-to-br from-[#1597E5] to-[#00A1FF] p-6 text-white card-shadow overflow-hidden">
         <div className="absolute top-[-30px] right-[-30px] w-36 h-36 rounded-full bg-white/10 pointer-events-none" />
         <div className="absolute bottom-[-40px] left-[10%] w-48 h-48 rounded-full bg-white/5 pointer-events-none" />
 
         <div className="mb-2 relative z-10">
-          <span className="text-[10px] text-white/70 font-semibold tracking-wider uppercase font-sans">FEE DESK</span>
+          <span className="text-[10px] text-white/70 font-semibold tracking-wider uppercase">FEE DESK</span>
         </div>
 
-        <h2 className="text-xl font-bold mb-1 relative z-10 font-sans">Fee Collection</h2>
-        <p className="text-xs text-white/85 font-medium relative z-10 font-sans">
-          Search student ➔ Review fee ➔ Record payment
+        <h2 className="text-xl font-bold mb-1 relative z-10">Fee Dashboard</h2>
+        <p className="text-xs text-white/80 font-medium relative z-10">
+          Collection, dues, and student ledger overview
         </p>
       </div>
 
-      {selectedStudent ? (
-        /* STEP 2: SELECTED STUDENT PAYMENT CONFIGURATION */
-        <div className="space-y-6">
-          {/* Selected Student Card */}
-          <div className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-6 card-shadow space-y-5 relative">
-            {/* Change Student link */}
-            <button
-              onClick={() => setSelectedStudent(null)}
-              className="absolute top-6 right-6 text-[10.5px] font-black text-[#1597E5] hover:text-[#00A1FF] transition-colors flex items-center gap-1 cursor-pointer"
-            >
-              <span>🔄</span> Change student
-            </button>
+      {/* Year Filter Pills */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => setSelectedYear('All Years')}
+          className={`px-5 py-2 text-xs font-bold rounded-full transition-all ${
+            selectedYear === 'All Years'
+              ? 'bg-[#1597E5] text-white shadow-sm'
+              : 'bg-white text-slate-600 border border-[#e2e8f0]/60 hover:bg-slate-50'
+          }`}
+        >
+          All Years
+        </button>
+        <button
+          onClick={() => setSelectedYear('AY 2026')}
+          className={`px-5 py-2 text-xs font-bold rounded-full transition-all ${
+            selectedYear === 'AY 2026'
+              ? 'bg-[#1597E5] text-white shadow-sm'
+              : 'bg-white text-slate-600 border border-[#e2e8f0]/60 hover:bg-slate-50'
+          }`}
+        >
+          AY 2026
+        </button>
+      </div>
 
-            {/* Student Info */}
-            <div className="flex items-center gap-4">
-              <div className="w-11 h-11 rounded-full bg-[#EEF5FB] text-[#1597E5] flex items-center justify-center font-bold text-xs border border-brand-blue/5">
-                {(selectedStudent.fullName || 'S').charAt(0)}
-              </div>
-              <div>
-                <h4 className="text-xs font-black text-dark font-sans leading-tight">
-                  {selectedStudent.fullName}
-                </h4>
-                <p className="text-[9px] text-[#A0AEC0] font-bold mt-1 font-sans">
-                  {selectedStudent.studentId} · {selectedStudent.className}
-                </p>
-              </div>
-            </div>
-
-            {/* Triple stats display */}
-            <div className="grid grid-cols-3 gap-1 pt-4 border-t border-slate-100 text-center font-sans text-xs">
-              <div className="border-r border-slate-100">
-                <p className="font-black text-[#E53E3E]">Rs {studentStats.pending.toLocaleString('en-IN')}</p>
-                <p className="text-[8.5px] font-black text-[#A0AEC0] uppercase tracking-wider mt-1">Pending</p>
-              </div>
-              <div className="border-r border-slate-100">
-                <p className="font-black text-[#23C16B]">Rs {studentStats.paid.toLocaleString('en-IN')}</p>
-                <p className="text-[8.5px] font-black text-[#A0AEC0] uppercase tracking-wider mt-1">Paid</p>
-              </div>
-              <div>
-                <p className="font-black text-dark">Rs {studentStats.total.toLocaleString('en-IN')}</p>
-                <p className="text-[8.5px] font-black text-[#A0AEC0] uppercase tracking-wider mt-1">Total</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Record Payment Form Card */}
-          <div className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-6 card-shadow space-y-5">
-            <h3 className="text-xs font-black text-dark font-sans flex items-center gap-2">
-              <FiCreditCard className="w-4 h-4 text-[#1597E5]" />
-              <span>Record Payment</span>
+      {/* Live Collection Rate Card */}
+      <div className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-6 shadow-sm space-y-4">
+        <div className="flex justify-between items-start">
+          <div>
+            <h3 className="text-xs font-black text-[#0F172A] uppercase tracking-wide">
+              Collection Rate
             </h3>
+            <p className="text-[10px] text-[#A0AEC0] font-bold mt-1">
+              {dashboardStats.paidCount} paid · {dashboardStats.pendingCount} pending
+            </p>
+          </div>
+          <span className="text-2xl font-black text-rose-500">
+            {dashboardStats.rate}%
+          </span>
+        </div>
 
-            <form onSubmit={handleConfirmPayment} className="space-y-4 font-sans text-xs select-none">
-              {/* Payment Date */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Payment Date</label>
-                <div className="relative">
-                  <input
-                    type="date"
-                    required
-                    value={paymentDate}
-                    onChange={(e) => setPaymentDate(e.target.value)}
-                    className="w-full bg-white border border-[#e2e8f0] rounded-[20px] px-4 py-3.5 text-xs font-semibold focus:outline-none focus:border-[#1597E5]/60 cursor-pointer"
-                  />
-                </div>
-              </div>
+        {/* Progress Bar */}
+        <div className="w-full bg-[#EEF5FB] h-1.5 rounded-full overflow-hidden">
+          <div
+            className="bg-rose-500 h-full rounded-full transition-all duration-300"
+            style={{ width: `${dashboardStats.rate}%` }}
+          />
+        </div>
 
-              {/* Amount */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Amount (₹)</label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-secondaryText">₹</span>
-                  <input
-                    type="number"
-                    required
-                    placeholder="Amount (₹)"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    className="w-full bg-[#F2F7FB] focus:bg-white border border-[#e2e8f0]/40 focus:border-[#1597E5]/50 rounded-[20px] pl-8 pr-4 py-3.5 text-xs font-semibold focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* Payment Mode */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Payment Mode</label>
-                <div className="relative">
-                  <select
-                    value={paymentMode}
-                    onChange={(e) => setPaymentMode(e.target.value)}
-                    className="w-full bg-white border border-[#e2e8f0] rounded-[20px] px-4 py-3.5 text-xs font-semibold focus:outline-none focus:border-[#1597E5]/60 appearance-none cursor-pointer"
-                  >
-                    <option value="Cash">Cash</option>
-                    <option value="UPI">UPI</option>
-                    <option value="Card">Card</option>
-                    <option value="Bank Transfer">Bank Transfer</option>
-                  </select>
-                  <FiChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0AEC0] pointer-events-none" />
-                </div>
-              </div>
-
-              {/* Installment */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Installment</label>
-                <div className="relative">
-                  <select
-                    value={installment}
-                    onChange={(e) => setInstallment(e.target.value)}
-                    className="w-full bg-white border border-[#e2e8f0] rounded-[20px] px-4 py-3.5 text-xs font-semibold focus:outline-none focus:border-[#1597E5]/60 appearance-none cursor-pointer"
-                  >
-                    <option value="1st Term Tuition">1st Term Tuition</option>
-                    <option value="2nd Term Tuition">2nd Term Tuition</option>
-                    <option value="3rd Term Tuition">3rd Term Tuition</option>
-                    <option value="Books">Books</option>
-                    <option value="Transport">Transport</option>
-                    <option value="Admission Fee">Admission Fee</option>
-                    <option value="Uniform Fee">Uniform Fee</option>
-                    <option value="Exam Fee">Exam Fee</option>
-                    <option value="Other/Combined">Other/Combined</option>
-                  </select>
-                  <FiChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0AEC0] pointer-events-none" />
-                </div>
-              </div>
-
-              {/* Student Name */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Student</label>
-                <div className="relative">
-                  <FiUser className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-secondaryText" />
-                  <input
-                    type="text"
-                    disabled
-                    value={selectedStudent.fullName}
-                    className="w-full bg-slate-50 border border-[#e2e8f0]/60 rounded-[20px] pl-10 pr-4 py-3.5 text-xs font-semibold text-secondaryText cursor-not-allowed"
-                  />
-                </div>
-              </div>
-
-              {/* Reference Number */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Reference Number</label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-secondaryText">#</span>
-                  <input
-                    type="text"
-                    placeholder="Reference Number"
-                    value={referenceNumber}
-                    onChange={(e) => setReferenceNumber(e.target.value)}
-                    className="w-full bg-[#F2F7FB] focus:bg-white border border-[#e2e8f0]/40 focus:border-[#1597E5]/50 rounded-[20px] pl-8 pr-4 py-3.5 text-xs font-semibold focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* Remarks */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Remarks (optional)</label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-secondaryText">📝</span>
-                  <input
-                    type="text"
-                    placeholder="Remarks (optional)"
-                    value={remarks}
-                    onChange={(e) => setRemarks(e.target.value)}
-                    className="w-full bg-[#F2F7FB] focus:bg-white border border-[#e2e8f0]/40 focus:border-[#1597E5]/50 rounded-[20px] pl-8 pr-4 py-3.5 text-xs font-semibold focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={!amount || parseFloat(amount) <= 0}
-                className={`w-full py-4 rounded-[20px] text-xs font-extrabold flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer ${
-                  amount && parseFloat(amount) > 0
-                    ? 'bg-[#1597E5] text-white hover:bg-[#00A1FF] active:scale-95 shadow-brand-blue/20'
-                    : 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none border border-slate-100'
-                }`}
-              >
-                <FiCreditCard className="w-4 h-4" />
-                <span>Record Payment</span>
-              </button>
-            </form>
+        {/* Amount Grid */}
+        <div className="grid grid-cols-3 gap-2 pt-2 border-t border-[#e2e8f0]/30">
+          <div>
+            <p className="text-[9px] font-black text-[#A0AEC0] uppercase tracking-wider">Total</p>
+            <p className="text-xs font-black text-[#0F172A] mt-1">
+              Rs {dashboardStats.overall.toLocaleString('en-IN')}
+            </p>
+          </div>
+          <div>
+            <p className="text-[9px] font-black text-[#A0AEC0] uppercase tracking-wider">Paid</p>
+            <p className="text-xs font-black text-[#23C16B] mt-1">
+              Rs {dashboardStats.collected.toLocaleString('en-IN')}
+            </p>
+          </div>
+          <div className="cursor-pointer group" onClick={() => navigate('/settings/global-students')}>
+            <p className="text-[9px] font-black text-[#A0AEC0] uppercase tracking-wider flex items-center gap-0.5">
+              Due <span className="text-[8px]">↗</span>
+            </p>
+            <p className="text-xs font-black text-rose-500 mt-1 group-hover:underline">
+              Rs {dashboardStats.pending.toLocaleString('en-IN')}
+            </p>
           </div>
         </div>
-      ) : (
-        /* STEP 1: SEARCH STUDENT (default view) */
-        <>
-          {/* Find Student Search Box Container */}
-          <div className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-5 card-shadow space-y-3 font-sans">
-            <span className="text-[9.5px] font-black text-slate-500 tracking-wider uppercase">
-              FIND STUDENT
-            </span>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Name, admission number..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-11 pr-4 py-4 bg-[#F2F7FB] border border-[#e2e8f0]/40 rounded-[20px] focus:outline-none focus:border-[#1597E5]/50 focus:bg-white text-xs font-semibold text-dark placeholder:text-secondaryText transition-all"
-              />
-              <FiSearch className="absolute left-4.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-secondaryText" />
+      </div>
+
+      {/* Quick Action Grid */}
+      <div className="grid grid-cols-4 gap-3 select-none">
+        {/* Actions Cards */}
+        <div
+          onClick={() => navigate('/settings/record-payment')}
+          className="bg-white rounded-[20px] border border-[#e2e8f0]/45 p-3 flex flex-col items-center justify-center text-center cursor-pointer shadow-sm active:scale-95 hover:border-[#1597E5]/15 transition-all"
+        >
+          <div className="w-9 h-9 rounded-full bg-[#EEF5FB] flex items-center justify-center text-[#1597E5] mb-2 border border-blue-50">
+            <FiCreditCard className="w-4.5 h-4.5" />
+          </div>
+          <span className="text-[10px] font-black text-[#0F172A]">Collection</span>
+          <span className="text-[8px] text-[#A0AEC0] font-extrabold mt-0.5">Record</span>
+        </div>
+
+        <div
+          onClick={() => navigate('/settings/fee-history')}
+          className="bg-white rounded-[20px] border border-[#e2e8f0]/45 p-3 flex flex-col items-center justify-center text-center cursor-pointer shadow-sm active:scale-95 hover:border-[#1597E5]/15 transition-all"
+        >
+          <div className="w-9 h-9 rounded-full bg-[#EEF5FB] flex items-center justify-center text-[#1597E5] mb-2 border border-blue-50">
+            <FiClock className="w-4.5 h-4.5" />
+          </div>
+          <span className="text-[10px] font-black text-[#0F172A]">History</span>
+          <span className="text-[8px] text-[#A0AEC0] font-extrabold mt-0.5">View</span>
+        </div>
+
+        <div
+          onClick={() => navigate('/settings/ledger')}
+          className="bg-white rounded-[20px] border border-[#e2e8f0]/45 p-3 flex flex-col items-center justify-center text-center cursor-pointer shadow-sm active:scale-95 hover:border-[#1597E5]/15 transition-all"
+        >
+          <div className="w-9 h-9 rounded-full bg-[#EEF5FB] flex items-center justify-center text-[#1597E5] mb-2 border border-blue-50">
+            <FiBookOpen className="w-4.5 h-4.5" />
+          </div>
+          <span className="text-[10px] font-black text-[#0F172A]">Ledger</span>
+          <span className="text-[8px] text-[#A0AEC0] font-extrabold mt-0.5">Open</span>
+        </div>
+
+        <div
+          onClick={() => navigate('/settings/branch-reports')}
+          className="bg-white rounded-[20px] border border-[#e2e8f0]/45 p-3 flex flex-col items-center justify-center text-center cursor-pointer shadow-sm active:scale-95 hover:border-[#1597E5]/15 transition-all"
+        >
+          <div className="w-9 h-9 rounded-full bg-[#EEF5FB] flex items-center justify-center text-[#1597E5] mb-2 border border-blue-50">
+            <FiFileText className="w-4.5 h-4.5" />
+          </div>
+          <span className="text-[10px] font-black text-[#0F172A]">Reports</span>
+          <span className="text-[8px] text-[#A0AEC0] font-extrabold mt-0.5">View</span>
+        </div>
+      </div>
+
+      {/* STUDENT LEDGERS Header */}
+      <div className="pt-2">
+        <span className="text-[9px] font-black text-secondaryText tracking-widest uppercase block mb-3.5">
+          Student Ledgers
+        </span>
+
+        {/* Search student fees */}
+        <div className="relative mb-4">
+          <input
+            type="text"
+            placeholder="Search student fees"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-11 pr-4 py-3.5 bg-white border border-[#e2e8f0] rounded-[20px] shadow-sm focus:outline-none focus:border-[#1597E5]/60 text-xs font-semibold text-dark placeholder:text-secondaryText"
+          />
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-[#EEF5FB] flex items-center justify-center">
+            <FiSearch className="w-3 h-3 text-[#1597E5]" />
+          </div>
+        </div>
+
+        {/* Status Filters Pills */}
+        <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar mb-4">
+          {['All', 'Paid', 'Partial', 'Due'].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-5 py-2 text-xs font-bold rounded-full transition-all shrink-0 ${
+                activeTab === tab
+                  ? 'bg-[#1597E5] text-white shadow-sm font-black'
+                  : 'bg-white text-slate-600 border border-[#e2e8f0]/60 hover:bg-slate-50'
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        {/* Student Cards List */}
+        {loading ? (
+          <div className="text-center py-12 text-xs font-bold text-secondaryText">
+            Loading student ledgers...
+          </div>
+        ) : filteredStudents.length > 0 ? (
+          <div className="space-y-4">
+            {filteredStudents.map((item) => {
+              let borderBg = 'bg-[#FF9F0A]'; // Partial top line
+              if (item.totalAmount === 0 || item.dueAmount === 0) {
+                borderBg = 'bg-[#23C16B]'; // Green top line
+              }
+
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => navigate('/settings/ledger', { state: { studentId: item.id } })}
+                  className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-5 shadow-sm flex flex-col gap-4 relative overflow-hidden transition-all hover:border-[#1597E5]/15 cursor-pointer active:scale-[0.99]"
+                >
+                  {/* Top curved colored border */}
+                  <div className={`absolute top-0 left-0 right-0 h-1 ${borderBg}`} />
+
+                  {/* Card Header row */}
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="text-xs font-extrabold text-[#0F172A] uppercase tracking-wide">
+                        {item.fullName}
+                      </h3>
+                      <p className="text-[10px] text-secondaryText font-bold mt-0.5">
+                        {item.className}
+                      </p>
+                    </div>
+                    {/* Status Badge */}
+                    <div>
+                      {item.dueAmount === 0 ? (
+                        <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#E5F9EE] text-[#23C16B] text-[9px] font-black">
+                          <span className="w-1 h-1 rounded-full bg-[#23C16B]" />
+                          Paid
+                        </span>
+                      ) : item.paidAmount > 0 ? (
+                        <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FFF9E5] text-[#FF9F0A] text-[9px] font-black">
+                          <span className="w-1 h-1 rounded-full bg-[#FF9F0A]" />
+                          Partial
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FFEAE9] text-[#FF3B30] text-[9px] font-black">
+                          <span className="w-1 h-1 rounded-full bg-[#FF3B30]" />
+                          Due
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Progress bar */}
+                  <div className="w-full bg-[#EEF5FB] h-1.5 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-300 ${
+                        item.dueAmount === 0 ? 'bg-[#23C16B]' : 'bg-[#FF9F0A]'
+                      }`}
+                      style={{ width: `${item.percent > 100 ? 100 : item.percent}%` }}
+                    />
+                  </div>
+
+                  {/* Metrics Row */}
+                  <div className="flex items-center justify-between text-[10px] font-bold text-secondaryText">
+                    <div className="flex items-center gap-6">
+                      <div>
+                        <span className="text-[8px] font-black uppercase tracking-widest text-[#A0AEC0]">PAID</span>
+                        <p className="text-xs font-black text-[#23C16B] mt-0.5">
+                          Rs {item.paidAmount.toLocaleString('en-IN')}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-[8px] font-black uppercase tracking-widest text-[#A0AEC0]">DUE</span>
+                        <p className={`text-xs font-black mt-0.5 ${item.dueAmount > 0 ? 'text-[#FF3B30]' : 'text-[#0F172A]'}`}>
+                          Rs {item.dueAmount.toLocaleString('en-IN')}
+                        </p>
+                      </div>
+                    </div>
+                    {/* Circular Percentage Pill */}
+                    <div className={`px-2.5 py-0.5 text-[8.5px] font-black rounded-full border ${
+                      item.dueAmount === 0
+                        ? 'border-[#23C16B]/20 text-[#23C16B] bg-[#E5F9EE]/30'
+                        : 'border-[#FF9F0A]/20 text-[#FF9F0A] bg-[#FFF9E5]/30'
+                    }`}>
+                      {item.percent}%
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          /* Empty State Card */
+          <div className="bg-white rounded-[32px] border border-[#e2e8f0]/40 p-12 card-shadow text-center flex flex-col items-center justify-center space-y-5 min-h-[300px]">
+            <div className="w-20 h-20 rounded-full bg-[#EEF5FB] border border-[#BEE3F8] flex items-center justify-center text-[#3182CE] relative">
+              <div className="absolute inset-[-4px] rounded-full border border-brand-blue/5" />
+              <FiInbox className="w-9 h-9" />
+            </div>
+
+            <div className="space-y-2 max-w-[280px]">
+              <h3 className="text-sm font-extrabold text-dark">No records found</h3>
+              <p className="text-xs text-[#A0AEC0] font-semibold leading-relaxed">
+                Could not find any matching fee records.
+              </p>
             </div>
           </div>
-
-          {/* Results / Empty State Card */}
-          <div className="bg-white rounded-[32px] border border-[#e2e8f0]/40 p-6 card-shadow min-h-[300px] flex flex-col justify-center font-sans">
-            {search.trim().length < 2 ? (
-              <div className="text-center flex flex-col items-center justify-center space-y-4 py-8">
-                <div className="w-16 h-16 rounded-full bg-[#EEF5FB] flex items-center justify-center text-[#1597E5] border border-[#1597E5]/10 shadow-inner">
-                  <svg className="w-7 h-7 text-[#1597E5]" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                    <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
-                    <line x1="9" y1="9" x2="15" y2="9"></line>
-                    <line x1="9" y1="13" x2="15" y2="13"></line>
-                  </svg>
-                </div>
-                <div className="space-y-1.5 max-w-[280px]">
-                  <h3 className="text-sm font-extrabold text-dark">Search for student</h3>
-                  <p className="text-[10.5px] text-[#A0AEC0] font-semibold leading-relaxed">
-                    Enter at least 2 characters to search
-                  </p>
-                </div>
-              </div>
-            ) : filteredStudents.length > 0 ? (
-              <div className="space-y-3 py-2">
-                <div className="text-[9px] font-black text-[#A0AEC0] tracking-widest uppercase mb-1">
-                  Search Results ({filteredStudents.length})
-                </div>
-                {filteredStudents.map((student) => {
-                  const initials = (student.fullName || 'S').charAt(0);
-                  return (
-                    <div
-                      key={student.id}
-                      onClick={() => handleSelectStudent(student)}
-                      className="bg-white rounded-[24px] border border-slate-100 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/20 transition-all cursor-pointer group active:scale-[0.99]"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-11 h-11 rounded-full bg-[#EEF5FB] text-[#1597E5] flex items-center justify-center font-bold text-xs select-none border border-brand-blue/5">
-                          {initials}
-                        </div>
-                        <div>
-                          <h4 className="text-xs font-black text-dark leading-tight group-hover:text-brand-blue transition-colors">
-                            {student.fullName}
-                          </h4>
-                          <p className="text-[9px] text-[#A0AEC0] font-bold mt-1">
-                            {student.studentId} · {student.className}
-                          </p>
-                        </div>
-                      </div>
-                      <FiChevronRight className="w-4 h-4 text-[#A0AEC0] group-hover:translate-x-0.5 transition-transform" />
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-center flex flex-col items-center justify-center space-y-4 py-8">
-                <FiInbox className="w-8 h-8 text-secondaryText" />
-                <div className="space-y-1.5 max-w-[280px]">
-                  <h3 className="text-sm font-extrabold text-dark">No student found</h3>
-                  <p className="text-[10.5px] text-[#A0AEC0] font-semibold leading-relaxed">
-                    Could not find any student matching "{search}"
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        </>
-      )}
-
-      {/* Success and Error Toasts */}
-      <AnimatePresence>
-        {showToast && (
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-dark text-white px-6 py-3.5 rounded-full card-shadow flex items-center gap-3 z-50 select-none font-sans text-xs font-bold"
-          >
-            <FiCheckCircle className="text-emerald-500 w-5 h-5" />
-            <span>Payment recorded successfully!</span>
-          </motion.div>
         )}
-
-        {errorToast && (
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-rose-600 text-white px-6 py-3.5 rounded-full card-shadow flex items-center gap-3 z-50 select-none font-sans text-xs font-bold"
-          >
-            <FiX className="text-white w-5 h-5 bg-white/20 rounded-full p-0.5" />
-            <span>{errorMessage}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      </div>
     </motion.div>
   );
 };

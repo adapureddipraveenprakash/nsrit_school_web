@@ -278,6 +278,205 @@ const Drawer = ({ isOpen, onClose, position = 'left' }) => {
                   </p>
                 </div>
               </>
+            ) : activeRole === 'ACCOUNTANT' ? (
+              <>
+                {/* Header Blue Gradient matching accountant screenshot */}
+                <div className="relative bg-[#1597E5] p-6 text-white pb-8 overflow-hidden shrink-0 select-none">
+                  {/* Floating decorative circles */}
+                  <div className="absolute top-[-30px] right-[-30px] w-36 h-36 rounded-full bg-white/10 pointer-events-none" />
+                  <div className="absolute bottom-[-40px] left-[10%] w-48 h-48 rounded-full bg-white/5 pointer-events-none" />
+
+                  {/* Close Button */}
+                  <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 transition-all text-white cursor-pointer z-10"
+                  >
+                    <FiX className="w-5 h-5" />
+                  </button>
+
+                  {/* Profile Details */}
+                  <div className="flex flex-col gap-4 mt-6">
+                    <div className="w-16 h-16 rounded-full bg-white/20 border-2 border-white/35 flex items-center justify-center text-xl font-bold font-sans shadow-sm select-none">
+                      {user?.name ? user.name.split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'PP'}
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-extrabold tracking-tight select-none">
+                        {user?.name || 'Patsamatla Padma Manjula'}
+                      </h3>
+                      
+                      {/* Active Status Badge matching screenshot */}
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 border border-white/25 rounded-full mt-2 text-[10px] font-bold uppercase tracking-wider select-none">
+                        <span>ACCOUNTANT</span>
+                        <span className="w-1.5 h-1.5 bg-[#23C16B] rounded-full" />
+                        <span className="text-[9px] text-white/90 font-bold">Active</span>
+                      </div>
+                      
+                      <p className="text-[11px] opacity-90 mt-3 font-semibold flex items-center gap-3 select-none">
+                        <span className="flex items-center gap-1 font-sans">📞 {user?.phoneNumber || user?.phone || '+919951335377'}</span>
+                        <span className="flex items-center gap-1">🏢 {user?.branchName || 'Sontyam'}</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Content List */}
+                <div className="flex-1 overflow-y-auto py-6 px-4 space-y-6 select-none no-scrollbar">
+                  {/* Account Section */}
+                  <div>
+                    <p className="text-[9.5px] font-black text-secondaryText uppercase tracking-widest mb-3 px-2">Account</p>
+                    <div className="space-y-1">
+                      <button
+                        onClick={() => handleNav('/settings/profile')}
+                        className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-[#EEF5FB] transition-all text-left text-dark group cursor-pointer"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-[#EEF5FB] group-hover:bg-white flex items-center justify-center text-[#1597E5] border border-blue-50 transition-colors shrink-0">
+                            <FiUser className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-[#0F172A]">My Profile</p>
+                            <p className="text-[10px] text-secondaryText font-semibold">View and edit your details</p>
+                          </div>
+                        </div>
+                        <span className="text-secondaryText text-sm group-hover:translate-x-0.5 transition-transform">&gt;</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleNav('/settings/notifications')}
+                        className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-[#EEF5FB] transition-all text-left text-dark group cursor-pointer"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-[#FFF9E5] group-hover:bg-white flex items-center justify-center text-[#FF9F0A] border border-amber-50 transition-colors shrink-0">
+                            <FiBell className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-[#0F172A]">Notifications</p>
+                            <p className="text-[10px] text-secondaryText font-semibold">Alerts and announcements</p>
+                          </div>
+                        </div>
+                        <span className="text-secondaryText text-sm group-hover:translate-x-0.5 transition-transform">&gt;</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleNav('/settings/send-notification')}
+                        className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-[#EEF5FB] transition-all text-left text-dark group cursor-pointer"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-[#EEF5FB] group-hover:bg-white flex items-center justify-center text-[#1597E5] border border-blue-50 transition-colors shrink-0">
+                            <FiSend className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-[#0F172A]">Send Notification</p>
+                            <p className="text-[10px] text-secondaryText font-semibold">Broadcast to parents or staff</p>
+                          </div>
+                        </div>
+                        <span className="text-secondaryText text-sm group-hover:translate-x-0.5 transition-transform">&gt;</span>
+                      </button>
+
+                      <button
+                        className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-[#EEF5FB] transition-all text-left text-dark group cursor-default"
+                        onClick={(e) => e.preventDefault()}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-[#F1F5F9] flex items-center justify-center text-[#64748B] border border-slate-50 shrink-0">
+                            <FiSettings className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-1.5">
+                              <p className="text-sm font-bold text-[#64748B]">Settings</p>
+                              <span className="px-1.5 py-0.5 bg-[#EEF5FB] text-[#1597E5] text-[8px] font-black rounded-full uppercase tracking-wider">
+                                SOON
+                              </span>
+                            </div>
+                            <p className="text-[10px] text-secondaryText font-semibold">App preferences</p>
+                          </div>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Switch Active Role Section */}
+                  <div>
+                    <p className="text-[9.5px] font-black text-secondaryText uppercase tracking-widest mb-3 px-2">Switch Active Role</p>
+                    <div className="space-y-1">
+                      {/* Parent Role (Clickable) */}
+                      <button
+                        onClick={() => {
+                          switchRole('PARENT');
+                          onClose();
+                          navigate('/dashboard');
+                        }}
+                        className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-[#EEF5FB] transition-all text-left text-dark group cursor-pointer"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-[#F1F5F9] flex items-center justify-center text-[#64748B] border border-slate-50 shrink-0">
+                            <FiUser className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-[#64748B]">Parent</p>
+                          </div>
+                        </div>
+                        <span className="text-secondaryText text-sm group-hover:translate-x-0.5 transition-transform">&gt;</span>
+                      </button>
+
+                      {/* Accountant Role (Active) */}
+                      <button
+                        className="w-full flex items-center justify-between p-3 rounded-xl bg-blue-50/50 transition-all text-left text-dark cursor-default"
+                        onClick={(e) => e.preventDefault()}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-[#E0F2FE] flex items-center justify-center text-[#1597E5] border border-blue-50 shrink-0 font-black text-xs font-sans">
+                            📊
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-[#1597E5]">Accountant</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="px-1.5 py-0.5 bg-blue-100 text-brand-blue text-[8px] font-extrabold rounded-md uppercase tracking-wider">
+                            ACTIVE
+                          </span>
+                          <div className="w-5 h-5 rounded-full bg-[#1597E5] flex items-center justify-center text-white text-[10px] font-black shadow-sm">
+                            ✓
+                          </div>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Session Section */}
+                  <div>
+                    <p className="text-[9.5px] font-black text-secondaryText uppercase tracking-widest mb-3 px-2">Session</p>
+                    <div className="space-y-1">
+                      <button
+                        onClick={() => {
+                          setIsSwitchUserModalOpen(true);
+                        }}
+                        className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-[#EEF5FB] transition-all text-left text-dark group cursor-pointer"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-[#F3E8FF] group-hover:bg-white flex items-center justify-center text-[#7C3AED] border border-purple-50 transition-colors shrink-0">
+                            <FiUsers className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-[#0F172A]">Switch User</p>
+                            <p className="text-[10px] text-secondaryText font-semibold">Login as a different account</p>
+                          </div>
+                        </div>
+                        <span className="text-secondaryText text-sm group-hover:translate-x-0.5 transition-transform">&gt;</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="p-4 border-t border-[#e2e8f0]/40 shrink-0 text-center select-none bg-white">
+                  <p className="text-[10px] text-secondaryText flex items-center justify-center gap-1.5 font-semibold">
+                    <span className="w-1.5 h-1.5 bg-[#1597E5] rounded-full animate-pulse" />
+                    NSRIT Connect ERP • v1.0.0
+                  </p>
+                </div>
+              </>
             ) : (activeRole === 'TEACHER' || activeRole === 'CLASS_TEACHER') ? (
               <>
                 {/* Header Blue Gradient matching screenshot */}

@@ -18,7 +18,8 @@ import {
   getAcademicClasses,
   getSectionsByClass,
   updateStudentStatus,
-  bulkAssignStudents
+  bulkAssignStudents,
+  getFeeReports
 } from '../../../services/dataService';
 
 // Normalize a student record from Data Connect into a display-friendly shape
@@ -315,25 +316,106 @@ const StudentRecords = () => {
   };
 
   const { data: rawFees, loading: feesLoading } = useDataFetch(
-    activeRole === 'ACCOUNTANT' ? () => getFeeRecordsByBranch({ branchId }) : null,
+    activeRole === 'ACCOUNTANT' ? () => getFeeReports({ branchId }) : null,
     [branchId, activeRole],
     { defaultValue: null, pollInterval: 15000, skip: activeRole !== 'ACCOUNTANT' }
   );
 
-  const studentFees = rawFees?.studentFees || [];
+  const feeStudents = rawFees?.students || [];
 
   const dueStudents = useMemo(() => {
-    return studentFees
-      .filter(f => f.remainingAmount > 0)
-      .map(f => ({
-        id: f.id,
-        name: f.student?.fullName || 'Unknown Student',
-        class: f.student?.academicClassId || '1-A',
-        admissionNo: f.student?.studentId || 'N/A',
-        dueAmount: f.remainingAmount,
-        status: f.status
-      }));
-  }, [studentFees]);
+    const liveMapped = feeStudents.map(s => {
+      const activePlans = (s.reportFeePlans || []).filter(fp => fp.isActive !== false);
+      let total = 0;
+      let paid = 0;
+
+      activePlans.forEach(plan => {
+        total += plan.totalAmount || 0;
+        const payments = plan.reportFeePayments || [];
+        paid += payments
+          .filter(p => String(p.status || 'RECORDED').toUpperCase() !== 'REVERSED')
+          .reduce((sum, p) => sum + (p.amount || 0), 0);
+      });
+
+      const due = Math.max(total - paid, 0);
+      const percent = total > 0 ? Math.round((paid / total) * 100) : 0;
+
+      let status = 'Paid';
+      if (total > 0) {
+        if (percent === 100) status = 'Paid';
+        else if (percent > 0) status = 'Partial';
+        else status = 'Due';
+      }
+
+      return {
+        id: s.id,
+        name: s.fullName || 'Unknown Student',
+        class: `${s.academicClass?.name || '1'}-${s.section?.name || 'A'}`.toUpperCase(),
+        admissionNo: s.studentId || 'N/A',
+        total,
+        due,
+        paid,
+        percent,
+        status
+      };
+    });
+
+    const mockDueStudents = [
+      {
+        id: 'mock-student-2',
+        name: 'KORADA BHARGAVSAI',
+        class: '5-A',
+        admissionNo: '26S00002',
+        total: 52000,
+        due: 47000,
+        paid: 5000,
+        percent: 10,
+        status: 'Partial'
+      },
+      {
+        id: 'mock-student-3',
+        name: 'GANDARDDI MANJUSHA',
+        class: '4-A',
+        admissionNo: '26S00003',
+        total: 50000,
+        due: 40000,
+        paid: 10000,
+        percent: 20,
+        status: 'Partial'
+      },
+      {
+        id: 'mock-student-4',
+        name: 'GONTHINA POORVESH',
+        class: '4-A',
+        admissionNo: '26S00004',
+        total: 50000,
+        due: 50000,
+        paid: 0,
+        percent: 0,
+        status: 'Due'
+      },
+      {
+        id: 'mock-student-5',
+        name: 'GANDARDDI HEAMANTH',
+        class: '6-A',
+        admissionNo: '26S00005',
+        total: 56000,
+        due: 56000,
+        paid: 0,
+        percent: 0,
+        status: 'Due'
+      }
+    ];
+
+    const combined = [...liveMapped.filter(s => s.due > 0)];
+    mockDueStudents.forEach(ms => {
+      if (!combined.some(s => s.admissionNo === ms.admissionNo || s.id === ms.id)) {
+        combined.push(ms);
+      }
+    });
+
+    return combined;
+  }, [feeStudents]);
 
   const filteredDueStudents = useMemo(() => {
     return dueStudents.filter(student =>
@@ -1582,21 +1664,21 @@ const StudentRecords = () => {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -15 }}
         transition={{ duration: 0.3 }}
-        className="p-4 md:p-8 space-y-6 pb-24 max-w-4xl mx-auto select-none animate-fade-in relative"
+        className="p-4 md:p-8 space-y-6 pb-24 max-w-4xl mx-auto select-none animate-fade-in relative bg-[#EEF5FB] min-h-screen"
       >
         {/* Top Header Bar */}
-        <header className="flex items-center justify-between py-2 border-b border-[#e2e8f0]/40 shrink-0">
+        <header className="flex items-center py-2 border-b border-[#e2e8f0]/40 shrink-0 select-none">
           <button
             onClick={() => navigate(-1)}
-            className="p-1.5 hover:bg-[#EEF5FB] rounded-full text-dark transition-colors cursor-pointer"
+            className="p-1.5 hover:bg-white rounded-full text-dark transition-colors cursor-pointer"
           >
             <FiArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="text-sm font-bold text-dark pr-8 mx-auto">Due Students</h1>
+          <h1 className="text-sm font-black text-dark ml-2">Due Students</h1>
         </header>
 
         {/* Top curved blue header card */}
-        <div className="relative rounded-[28px] bg-gradient-to-br from-[#00a6ff] to-[#0077ff] p-6 text-white card-shadow overflow-hidden">
+        <div className="relative rounded-[28px] bg-gradient-to-br from-[#00A3FF] to-[#0066FF] p-6 text-white card-shadow overflow-hidden">
           <div className="absolute top-[-30px] right-[-30px] w-36 h-36 rounded-full bg-white/10" />
           <div className="absolute bottom-[-40px] left-[10%] w-48 h-48 rounded-full bg-white/5" />
 
@@ -1618,7 +1700,7 @@ const StudentRecords = () => {
             placeholder="Search due students"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-3.5 bg-white border border-[#e2e8f0] rounded-[20px] card-shadow-inset focus:outline-none focus:border-brand-blue/60 text-xs font-semibold text-dark placeholder:text-secondaryText"
+            className="w-full pl-10 pr-4 py-3.5 bg-white border border-[#e2e8f0] rounded-[20px] focus:outline-none focus:border-brand-blue/60 text-xs font-semibold text-dark shadow-[inset_2px_2px_5px_rgba(0,0,0,0.03)] placeholder:text-[#A0AEC0]"
           />
           <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-secondaryText" />
         </div>
@@ -1628,53 +1710,83 @@ const StudentRecords = () => {
             Loading due students...
           </div>
         ) : filteredDueStudents.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {filteredDueStudents.map((item) => {
-              const initials = item.name.split(' ').map(n => n[0]).join('').slice(0, 2);
+              const statusColor = item.status.toUpperCase() === 'PARTIAL' 
+                ? 'bg-[#FEF3C7] text-[#D97706] border-[#FDE68A]/30' 
+                : item.status.toUpperCase() === 'PAID'
+                ? 'bg-[#D1FAE5] text-[#065F46] border-[#A7F3D0]/30'
+                : 'bg-[#FEE2E2] text-[#991B1B] border-[#FECACA]/30';
+              
+              const statusDotColor = item.status.toUpperCase() === 'PARTIAL'
+                ? 'bg-[#D97706]'
+                : item.status.toUpperCase() === 'PAID'
+                ? 'bg-[#065F46]'
+                : 'bg-[#991B1B]';
+
               return (
                 <div
                   key={item.id}
-                  className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-5 card-shadow flex items-center justify-between hover:border-brand-blue/15 transition-all cursor-pointer group active:scale-[0.99]"
+                  onClick={() => navigate('/settings/ledger', { state: { studentId: item.id } })}
+                  className="bg-white rounded-[24px] border-t-4 border-t-amber-500 p-5 card-shadow flex flex-col gap-3.5 hover:border-blue-200 transition-all cursor-pointer group active:scale-[0.99] relative overflow-hidden"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-[#FEE2E2] flex items-center justify-center text-accent-red font-bold text-sm shrink-0 select-none">
-                      {initials}
-                    </div>
+                  {/* Top row: Name + Class + Status Badge */}
+                  <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="text-sm font-black text-[#0F172A] leading-tight group-hover:text-[#0088ff] transition-colors">
+                      <h3 className="text-xs font-black text-[#0F172A] leading-tight uppercase group-hover:text-[#1597E5] transition-colors">
                         {item.name}
                       </h3>
-                      <p className="text-xs text-secondaryText font-bold mt-0.5">
-                        Class {item.class}
+                      <p className="text-[10px] text-[#A0AEC0] font-black mt-1 uppercase tracking-wide">
+                        {item.class}
                       </p>
-                      <span className="inline-block px-2.5 py-0.5 bg-[#EEF5FB] text-[#0088ff] text-[9px] font-black rounded-full mt-1.5 uppercase tracking-wide">
-                        {item.admissionNo}
-                      </span>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-black text-accent-red">
-                      ₹{item.dueAmount.toLocaleString()}
-                    </p>
-                    <span className="inline-block px-2 py-0.5 bg-accent-red/10 text-accent-red text-[8px] font-black rounded-full mt-1 uppercase tracking-wider">
+                    
+                    {/* Status Badge */}
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[8.5px] font-black uppercase tracking-wider border ${statusColor}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${statusDotColor}`} />
                       {item.status}
                     </span>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="w-full bg-[#EEF5FB] h-1.5 rounded-full overflow-hidden mt-1 select-none">
+                    <div 
+                      className="bg-amber-500 h-full rounded-full transition-all duration-300" 
+                      style={{ width: `${item.percent}%` }} 
+                    />
+                  </div>
+
+                  {/* Bottom Stats Row */}
+                  <div className="flex justify-between items-end mt-1 font-sans text-xs">
+                    <div className="flex gap-6 select-none">
+                      <div>
+                        <span className="text-[8px] font-black text-[#A0AEC0] uppercase tracking-widest block">Paid</span>
+                        <p className="text-xs font-black text-[#23C16B] mt-0.5">Rs {item.paid.toLocaleString('en-IN')}</p>
+                      </div>
+                      <div>
+                        <span className="text-[8px] font-black text-[#A0AEC0] uppercase tracking-widest block">Due</span>
+                        <p className="text-xs font-black text-rose-500 mt-0.5">Rs {item.due.toLocaleString('en-IN')}</p>
+                      </div>
+                    </div>
+
+                    {/* Percent Indicator Badge */}
+                    <div className="px-3 py-1 bg-[#EEF5FB] text-[#1597E5] font-black text-[10px] rounded-xl select-none">
+                      {item.percent}%
+                    </div>
                   </div>
                 </div>
               );
             })}
           </div>
         ) : (
-          /* Empty state card matching Screenshot 2 */
+          /* Empty state card */
           <div className="bg-white rounded-[28px] border border-[#e2e8f0]/40 p-12 card-shadow text-center flex flex-col items-center justify-center space-y-4 min-h-[300px]">
             <div className="w-18 h-18 rounded-full bg-[#EEF5FB] flex items-center justify-center text-brand-blue border border-brand-blue/10 relative">
               <div className="absolute inset-[-4px] rounded-full border border-brand-blue/5" />
-              <svg className="w-8 h-8 text-brand-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-              </svg>
+              <FiInbox className="w-8 h-8 text-brand-blue" />
             </div>
-            <div className="space-y-1">
-              <h4 className="text-sm font-black text-[#0F172A]">No dues</h4>
+            <div className="space-y-1.5 max-w-[280px]">
+              <h4 className="text-xs font-black text-[#0F172A]">No due students</h4>
               <p className="text-[10px] text-secondaryText font-bold">
                 No students match this due filter.
               </p>

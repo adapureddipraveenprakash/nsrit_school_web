@@ -183,15 +183,25 @@ const normalizeProfile = (profile, fallback = {}) => {
 // Keep one RecaptchaVerifier instance per button element
 let _recaptchaVerifier = null;
 
-const getRecaptchaVerifier = () => {
-  if (_recaptchaVerifier) return _recaptchaVerifier;
-  _recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' });
-  return _recaptchaVerifier;
+const resetRecaptcha = () => {
+  try { 
+    if (_recaptchaVerifier) {
+      _recaptchaVerifier.clear();
+    }
+  } catch (err) { 
+    console.warn('[resetRecaptcha] Clear failed:', err);
+  }
+  _recaptchaVerifier = null;
 };
 
-const resetRecaptcha = () => {
-  try { _recaptchaVerifier?.clear(); } catch { /* ignore */ }
-  _recaptchaVerifier = null;
+const getRecaptchaVerifier = () => {
+  resetRecaptcha();
+  const container = document.getElementById('recaptcha-container');
+  if (container) {
+    container.innerHTML = '';
+  }
+  _recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' });
+  return _recaptchaVerifier;
 };
 
 export const authService = {

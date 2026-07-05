@@ -77,6 +77,7 @@ const Q = {
   GET_COORDINATOR_STUDENTS_BY_WING: 'GetCoordinatorStudentsByWing',
   GET_HOLIDAYS_BY_BRANCH: 'GetHolidaysByBranch',
   GET_ACTIVE_ACADEMIC_YEAR: 'GetActiveAcademicYear',
+  GET_DUE_STUDENTS: 'GetDueStudents',
 };
 
 const M = {
@@ -439,6 +440,11 @@ export const getPaymentHistory = async ({ branchId, studentId, fromDate, toDate,
 
 export const getFeeRecordsByBranch = async ({ branchId }) => {
   const res = await dataConnectClient.query(Q.GET_FEE_RECORDS_BY_BRANCH, { branchId });
+  return res;
+};
+
+export const getDueStudents = async ({ branchId }) => {
+  const res = await dataConnectClient.query(Q.GET_DUE_STUDENTS, { branchId });
   return res;
 };
 

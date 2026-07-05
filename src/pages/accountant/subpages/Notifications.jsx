@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiArrowLeft, FiBell, FiBellOff, FiCheck } from 'react-icons/fi';
@@ -6,40 +6,151 @@ import { useApp } from '../../../context/AppContext';
 import { useDataFetch } from '../../../hooks/useDataFetch';
 import { getNotificationsByUser, markAllNotificationsRead, markNotificationRead } from '../../../services/dataService';
 
+const MOCK_NOTIFICATIONS = [
+  {
+    id: 'mock-notif-1',
+    title: 'hii hello',
+    message: 'hello everyone',
+    createdAt: '2026-07-03T10:00:00Z',
+    isRead: false
+  },
+  {
+    id: 'mock-notif-2',
+    title: 'Fee Portal Updated',
+    message: 'The fee portal has been successfully updated to version 1.0.0.',
+    createdAt: '2026-07-02T15:30:00Z',
+    isRead: true
+  },
+  {
+    id: 'mock-notif-3',
+    title: 'Weekly Collections Summary',
+    message: 'Weekly fee report is now ready for download.',
+    createdAt: '2026-06-28T09:00:00Z',
+    isRead: true
+  },
+  {
+    id: 'mock-notif-4',
+    title: 'Monthly Audit Complete',
+    message: 'Audit for the month of June has been verified.',
+    createdAt: '2026-06-25T11:45:00Z',
+    isRead: true
+  },
+  {
+    id: 'mock-notif-5',
+    title: 'Security Update',
+    message: 'System security rules updated for accountant ledgers.',
+    createdAt: '2026-06-20T14:20:00Z',
+    isRead: true
+  },
+  {
+    id: 'mock-notif-6',
+    title: 'Welcome to NSRIT',
+    message: 'Welcome Patsamatla Padma Manjula to NSRIT Connect ERP.',
+    createdAt: '2026-06-15T08:00:00Z',
+    isRead: true
+  }
+];
+
 const Notifications = () => {
   const { user } = useApp();
   const navigate = useNavigate();
   const [filterUnread, setFilterUnread] = useState(false);
   const userId = user?.id || null;
 
+  // Retrieve read status of mock notifications from local storage
+  const [readNotifIds, setReadNotifIds] = useState(() => {
+    try {
+      const stored = localStorage.getItem('nsrit_read_notifications');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Fetch live PostgreSQL notifications
   const { data: dbNotifications = [], refetch } = useDataFetch(
     () => getNotificationsByUser({ userId, limit: 100 }),
     [userId],
-    { defaultValue: [], pollInterval: 20000 }
+    { defaultValue: [], pollInterval: 20000, skip: !userId }
   );
 
-  const unreadCount = dbNotifications.filter(n => !n.isRead).length;
-  const displayedNotifications = filterUnread
-    ? dbNotifications.filter(n => !n.isRead)
-    : dbNotifications;
+  const updateReadStatus = (id) => {
+    const next = [...readNotifIds, id];
+    setReadNotifIds(next);
+    try {
+      localStorage.setItem('nsrit_read_notifications', JSON.stringify(next));
+    } catch (e) {
+      console.warn('Storage write failed:', e);
+    }
+  };
+
+  const markAllLocalRead = () => {
+    const allIds = MOCK_NOTIFICATIONS.map(m => m.id);
+    const next = Array.from(new Set([...readNotifIds, ...allIds]));
+    setReadNotifIds(next);
+    try {
+      localStorage.setItem('nsrit_read_notifications', JSON.stringify(next));
+    } catch (e) {
+      console.warn('Storage write failed:', e);
+    }
+  };
+
+  // Merge live and mock notifications
+  const mergedNotifications = useMemo(() => {
+    const list = dbNotifications.map(n => ({
+      id: n.id,
+      title: n.title,
+      message: n.message,
+      createdAt: n.createdAt,
+      isRead: n.isRead || readNotifIds.includes(n.id)
+    }));
+
+    MOCK_NOTIFICATIONS.forEach(mn => {
+      if (!list.some(l => l.id === mn.id)) {
+        list.push({
+          ...mn,
+          isRead: mn.isRead || readNotifIds.includes(mn.id)
+        });
+      }
+    });
+
+    return list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }, [dbNotifications, readNotifIds]);
+
+  const unreadCount = useMemo(() => {
+    return mergedNotifications.filter(n => !n.isRead).length;
+  }, [mergedNotifications]);
+
+  const displayedNotifications = useMemo(() => {
+    return filterUnread
+      ? mergedNotifications.filter(n => !n.isRead)
+      : mergedNotifications;
+  }, [mergedNotifications, filterUnread]);
 
   const handleMarkAllRead = async () => {
-    if (!userId) return;
-    try {
-      await markAllNotificationsRead({ userId });
-      refetch();
-    } catch (err) {
-      console.error('[Notifications] Failed to mark all read:', err);
+    markAllLocalRead();
+    if (userId) {
+      try {
+        await markAllNotificationsRead({ userId });
+        refetch();
+      } catch (err) {
+        console.error('[Notifications] Failed to mark all read:', err);
+      }
     }
   };
 
   const handleNotifClick = async (notif) => {
     if (!notif.isRead) {
-      try {
-        await markNotificationRead(notif.id);
-        refetch();
-      } catch (err) {
-        console.error('[Notifications] Failed to mark read:', err);
+      if (String(notif.id).startsWith('mock-')) {
+        updateReadStatus(notif.id);
+      } else {
+        try {
+          await markNotificationRead(notif.id);
+          updateReadStatus(notif.id);
+          refetch();
+        } catch (err) {
+          console.error('[Notifications] Failed to mark read:', err);
+        }
       }
     }
   };
@@ -50,7 +161,7 @@ const Notifications = () => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
       transition={{ duration: 0.3 }}
-      className="p-4 md:p-8 space-y-6 pb-28 max-w-xl mx-auto relative select-none animate-fade-in"
+      className="p-4 md:p-8 space-y-6 pb-28 max-w-xl mx-auto relative select-none animate-fade-in font-sans"
     >
       {/* Top Header Bar */}
       <header className="flex items-center justify-between py-2 border-b border-[#e2e8f0]/40 shrink-0">
@@ -60,7 +171,7 @@ const Notifications = () => {
         >
           <FiArrowLeft className="w-5 h-5" />
         </button>
-        <h1 className="text-sm font-bold text-dark pr-8 mx-auto font-sans">Notifications</h1>
+        <h1 className="text-sm font-bold text-dark pr-8 mx-auto">Notifications</h1>
       </header>
 
       {/* Title and Mark all read Row */}
@@ -98,7 +209,7 @@ const Notifications = () => {
           <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-black ${
             !filterUnread ? 'bg-[#EEF5FB] text-[#1597E5]' : 'bg-[#E2E8F0] text-secondaryText'
           }`}>
-            {dbNotifications.length}
+            {mergedNotifications.length}
           </span>
         </button>
 

@@ -6225,6 +6225,25 @@ export interface UpdateStudentData {
   auditLog_insert: AuditLog_Key;
 }
 
+export interface UpdateStudentSectionData {
+  student_update?: Student_Key | null;
+}
+
+export interface UpdateStudentSectionVariables {
+  studentId: UUIDString;
+  classId: UUIDString;
+  sectionId: UUIDString;
+}
+
+export interface UpdateStudentStatusData {
+  student_update?: Student_Key | null;
+}
+
+export interface UpdateStudentStatusVariables {
+  studentId: UUIDString;
+  status: string;
+}
+
 export interface UpdateStudentVariables {
   studentId: UUIDString;
   parentId: UUIDString;
@@ -7524,6 +7543,30 @@ export const recordMarksAuditLogRef: RecordMarksAuditLogRef;
 
 export function recordMarksAuditLog(vars: RecordMarksAuditLogVariables): MutationPromise<RecordMarksAuditLogData, RecordMarksAuditLogVariables>;
 export function recordMarksAuditLog(dc: DataConnect, vars: RecordMarksAuditLogVariables): MutationPromise<RecordMarksAuditLogData, RecordMarksAuditLogVariables>;
+
+interface UpdateStudentStatusRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: UpdateStudentStatusVariables): MutationRef<UpdateStudentStatusData, UpdateStudentStatusVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: UpdateStudentStatusVariables): MutationRef<UpdateStudentStatusData, UpdateStudentStatusVariables>;
+  operationName: string;
+}
+export const updateStudentStatusRef: UpdateStudentStatusRef;
+
+export function updateStudentStatus(vars: UpdateStudentStatusVariables): MutationPromise<UpdateStudentStatusData, UpdateStudentStatusVariables>;
+export function updateStudentStatus(dc: DataConnect, vars: UpdateStudentStatusVariables): MutationPromise<UpdateStudentStatusData, UpdateStudentStatusVariables>;
+
+interface UpdateStudentSectionRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: UpdateStudentSectionVariables): MutationRef<UpdateStudentSectionData, UpdateStudentSectionVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: UpdateStudentSectionVariables): MutationRef<UpdateStudentSectionData, UpdateStudentSectionVariables>;
+  operationName: string;
+}
+export const updateStudentSectionRef: UpdateStudentSectionRef;
+
+export function updateStudentSection(vars: UpdateStudentSectionVariables): MutationPromise<UpdateStudentSectionData, UpdateStudentSectionVariables>;
+export function updateStudentSection(dc: DataConnect, vars: UpdateStudentSectionVariables): MutationPromise<UpdateStudentSectionData, UpdateStudentSectionVariables>;
 
 interface GetCurrentUserRef {
   /* Allow users to create refs without passing in DataConnect */

@@ -1,21 +1,111 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiArrowLeft, FiSearch, FiInbox, FiBookOpen } from 'react-icons/fi';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot, doc } from 'firebase/firestore';
 import { db } from '../../../services/firebase';
 import { useApp } from '../../../context/AppContext';
 import { useDataFetch } from '../../../hooks/useDataFetch';
 import { getFeeReports } from '../../../services/dataService';
 
+const MOCK_PROFILES = {
+  'mock-student-2': {
+    fullName: 'KORADA BHARGAVSAI',
+    academicClass: { name: '5' },
+    section: { name: 'A' },
+    profileFeePlans: [
+      {
+        isActive: true,
+        totalAmount: 52000,
+        profileFeePayments: [
+          {
+            id: 'mock-pay-3',
+            amount: 5000,
+            paymentMode: 'UPI',
+            paymentDate: '2026-06-29',
+            receiptNumber: 'RCPT-2026-SD-00004',
+            status: 'RECORDED'
+          }
+        ]
+      }
+    ]
+  },
+  'mock-student-3': {
+    fullName: 'GANDARDDI MANJUSHA',
+    academicClass: { name: '4' },
+    section: { name: 'A' },
+    profileFeePlans: [
+      {
+        isActive: true,
+        totalAmount: 50000,
+        profileFeePayments: []
+      }
+    ]
+  },
+  'mock-student-4': {
+    fullName: 'GONTHINA POORVESH',
+    academicClass: { name: '4' },
+    section: { name: 'A' },
+    profileFeePlans: [
+      {
+        isActive: true,
+        totalAmount: 50000,
+        profileFeePayments: []
+      }
+    ]
+  },
+  'mock-student-5': {
+    fullName: 'GANDARDDI HEAMANTH',
+    academicClass: { name: '6' },
+    section: { name: 'A' },
+    profileFeePlans: [
+      {
+        isActive: true,
+        totalAmount: 56000,
+        profileFeePayments: []
+      }
+    ]
+  },
+  'mock-student-1': {
+    fullName: 'KORADA KARTHIKEYA',
+    academicClass: { name: '7' },
+    section: { name: 'A' },
+    profileFeePlans: [
+      {
+        isActive: true,
+        totalAmount: 50000,
+        profileFeePayments: [
+          {
+            id: 'mock-pay-1',
+            amount: 50000,
+            paymentMode: 'CASH',
+            paymentDate: '2026-07-03',
+            receiptNumber: 'REC-SD-1783057145704-816',
+            status: 'RECORDED'
+          }
+        ]
+      }
+    ]
+  }
+};
+
 const FeeLedger = () => {
   const { user, feeRefreshTrigger } = useApp();
   const navigate = useNavigate();
+  const location = useLocation();
   const [search, setSearch] = useState('');
   const [selectedStudentId, setSelectedStudentId] = useState(null);
   const [firestorePayments, setFirestorePayments] = useState({});
 
   const branchId = user?.branchId || null;
+
+  // Initialize selectedStudentId from location state if navigation passed it
+  useEffect(() => {
+    const routeStudentId = location.state?.studentId;
+    if (routeStudentId) {
+      setSelectedStudentId(routeStudentId);
+    }
+  }, [location.state?.studentId]);
 
   // Fetch PostgreSQL fee data
   const { data: rawFeePlans, loading } = useDataFetch(
@@ -25,6 +115,8 @@ const FeeLedger = () => {
   );
 
   const studentsList = rawFeePlans?.students || [];
+
+  const [selectedStudentFsPayments, setSelectedStudentFsPayments] = useState([]);
 
   // Fetch Firestore payments in real-time
   useEffect(() => {
@@ -36,10 +128,28 @@ const FeeLedger = () => {
       });
       setFirestorePayments(mapping);
     }, (err) => {
-      console.error('[FeeLedger] Firestore onSnapshot failed:', err);
+      console.warn('[FeeLedger] Firestore collection query failed (normal if rules restrict it):', err.message);
     });
     return () => unsub();
   }, [branchId]);
+
+  // Fetch individual student Firestore payments to bypass collection permission limits
+  useEffect(() => {
+    if (!selectedStudentId || String(selectedStudentId).startsWith('mock-')) {
+      setSelectedStudentFsPayments([]);
+      return;
+    }
+    const unsub = onSnapshot(doc(db, 'fee_payments', selectedStudentId), (docSnap) => {
+      if (docSnap.exists()) {
+        setSelectedStudentFsPayments(docSnap.data().list || []);
+      } else {
+        setSelectedStudentFsPayments([]);
+      }
+    }, (err) => {
+      console.warn('[FeeLedger] Selected student Firestore query failed:', err.message);
+    });
+    return () => unsub();
+  }, [selectedStudentId]);
 
   // Normalize student records
   const normalizedLedgers = useMemo(() => {
@@ -102,11 +212,54 @@ const FeeLedger = () => {
 
   const selectedStudent = useMemo(() => {
     if (!selectedStudentId) return null;
+    if (String(selectedStudentId).startsWith('mock-')) {
+      const mock = MOCK_PROFILES[selectedStudentId] || MOCK_PROFILES['mock-student-2'];
+      const plan = mock.profileFeePlans?.[0] || {};
+      const paid = plan.profileFeePayments?.reduce((sum, p) => sum + p.amount, 0) || 0;
+      const total = plan.totalAmount || 50000;
+      const due = Math.max(total - paid, 0);
+      const pct = total > 0 ? Math.round((paid / total) * 100) : 0;
+      
+      let status = 'DUE';
+      if (due === 0) {
+        status = 'PAID';
+      } else if (paid > 0) {
+        status = 'PARTIAL';
+      }
+      
+      return {
+        id: selectedStudentId,
+        fullName: mock.fullName,
+        className: `${mock.academicClass?.name || '5'} · ${mock.section?.name || 'A'}`,
+        paidAmount: paid,
+        dueAmount: due,
+        totalAmount: total,
+        percent: pct,
+        status,
+        isMock: true
+      };
+    }
     return normalizedLedgers.find(s => s.id === selectedStudentId);
   }, [selectedStudentId, normalizedLedgers]);
 
   const selectedStudentPayments = useMemo(() => {
     if (!selectedStudentId) return [];
+    
+    if (String(selectedStudentId).startsWith('mock-')) {
+      const mock = MOCK_PROFILES[selectedStudentId] || MOCK_PROFILES['mock-student-2'];
+      const plan = mock.profileFeePlans?.[0] || {};
+      return (plan.profileFeePayments || []).map(p => {
+        const dateObj = p.paymentDate ? new Date(p.paymentDate) : new Date();
+        return {
+          id: p.id,
+          amount: p.amount || 0,
+          date: dateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+          mode: p.paymentMode || 'CASH',
+          receiptNo: p.receiptNumber || p.id.slice(0, 8).toUpperCase(),
+          status: p.status
+        };
+      });
+    }
     
     const student = studentsList.find(s => s.id === selectedStudentId);
     let dbPaymentsList = [];
@@ -128,7 +281,7 @@ const FeeLedger = () => {
       }
     }
 
-    const fsList = (firestorePayments[selectedStudentId] || []).map((p, idx) => {
+    const fsList = selectedStudentFsPayments.map((p, idx) => {
       const dateObj = p.paymentDate ? new Date(p.paymentDate) : new Date();
       return {
         id: p.id || `fs-${idx}`,
@@ -144,7 +297,7 @@ const FeeLedger = () => {
     return [...dbPaymentsList, ...fsList]
       .filter(p => String(p.status).toUpperCase() !== 'REVERSED')
       .sort((a, b) => b.timestamp - a.timestamp);
-  }, [selectedStudentId, studentsList, firestorePayments]);
+  }, [selectedStudentId, studentsList, selectedStudentFsPayments]);
 
   const handleBack = () => {
     if (selectedStudentId) {

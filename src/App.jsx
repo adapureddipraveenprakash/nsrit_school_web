@@ -55,6 +55,7 @@ import TeacherStudents from './pages/teacher/subpages/TeacherStudents';
 import Expenses from './pages/accountant/subpages/Expenses';
 import RecordPayment from './pages/accountant/subpages/RecordPayment';
 import BranchReports from './pages/accountant/subpages/BranchReports';
+import ClassWiseReport from './pages/accountant/subpages/ClassWiseReport';
 import Events from './pages/parent/subpages/Events';
 import CorrectAttendance from './pages/teacher/subpages/CorrectAttendance';
 import TakeAttendance from './pages/teacher/subpages/TakeAttendance';
@@ -347,11 +348,12 @@ const AnimatedRoutes = () => {
           <Route path="/settings/year-management" element={<YearManagement />} />
           <Route path="/settings/exams-marks" element={<ExamsMarks />} />
           <Route path="/settings/collection" element={<FeeCollection />} />
-          <Route path="/settings/fee-reports" element={<FeeReports />} />
+          <Route path="/settings/fee-reports" element={<ClassWiseReport />} />
           <Route path="/settings/fee-history" element={<FeeHistory />} />
           <Route path="/settings/expenses" element={<Expenses />} />
           <Route path="/settings/record-payment" element={<RecordPayment />} />
           <Route path="/settings/branch-reports" element={<BranchReports />} />
+          <Route path="/settings/class-wise-report" element={<ClassWiseReport />} />
           <Route path="/settings/events" element={<Events />} />
           <Route path="/settings/take-attendance" element={<TakeAttendance />} />
           <Route path="/settings/notice-board" element={<NoticeBoard />} />

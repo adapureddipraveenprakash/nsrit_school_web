@@ -14,21 +14,46 @@ const GlobalReports = () => {
 
   // Functional Exports helper
   const handleExport = (fileType) => {
-    // Generate CSV dataset
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Branch,Students,Pending Fees,Concessions\n";
-    
-    branches.forEach(b => {
-      csvContent += `${b.code},${b.studentsCount},Rs ${fees.pending.toLocaleString('en-IN')},Rs ${fees.concession.toLocaleString('en-IN')}\n`;
-    });
+    if (fileType === 'csv') {
+      let csvContent = "\uFEFFBranch,Students,Pending Fees,Concessions\n";
+      branches.forEach(b => {
+        csvContent += `"${b.code}",${b.studentsCount},"Rs ${fees.pending.toLocaleString('en-IN')}","Rs ${fees.concession.toLocaleString('en-IN')}"\n`;
+      });
 
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `Global_Reports_Summary.${fileType === 'csv' ? 'csv' : 'xls'}`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `Global_Reports_Summary.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      // Excel (Standard CSV format saved with _Excel.csv to guarantee mobile/desktop Excel opens columns correctly)
+      const rows = [
+        ["Branch", "Students", "Pending Fees", "Concessions"],
+        ...branches.map(b => [
+          b.code,
+          b.studentsCount,
+          `Rs ${fees.pending.toLocaleString('en-IN')}`,
+          `Rs ${fees.concession.toLocaleString('en-IN')}`
+        ])
+      ];
+
+      const csvContent = "\uFEFF" + rows.map(e => e.map(val => {
+        const cleanVal = String(val).replace(/"/g, '""');
+        return `"${cleanVal}"`;
+      }).join(",")).join("\n");
+
+      const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `Global_Reports_Summary.xls`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   return (

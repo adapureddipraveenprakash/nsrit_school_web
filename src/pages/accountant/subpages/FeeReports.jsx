@@ -36,7 +36,7 @@ const FeeReports = () => {
       });
       setFirestorePayments(mapping);
     }, (err) => {
-      console.error('[FeeReports] Firestore onSnapshot failed:', err);
+      console.warn('[FeeReports] Firestore collection query failed (normal if rules restrict it):', err.message);
     });
     return () => unsub();
   }, [branchId]);
