@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FiArrowLeft, FiSearch, FiChevronRight, FiInbox, FiCheckCircle,
@@ -20,6 +20,8 @@ const MOCK_PLANS = [
 
 const FeeCollection = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const studentIdParam = searchParams.get('studentId');
   const { user, branches, triggerFeeRefresh, feeRefreshTrigger } = useApp();
   const [search, setSearch] = useState('');
 
@@ -158,6 +160,16 @@ const FeeCollection = () => {
       };
     });
   }, [studentsList]);
+
+  // Auto-select student if studentId query param is provided
+  useEffect(() => {
+    if (studentIdParam && normalizedStudents.length > 0 && !selectedStudent) {
+      const match = normalizedStudents.find(s => s.id === studentIdParam);
+      if (match) {
+        setSelectedStudent(match);
+      }
+    }
+  }, [studentIdParam, normalizedStudents, selectedStudent]);
 
   // Search filter
   const filteredStudents = useMemo(() => {

@@ -234,6 +234,8 @@ You can also follow the instructions from the [Data Connect documentation](https
   - [*PublishExamSection*](#publishexamsection)
   - [*UnpublishExamSection*](#unpublishexamsection)
   - [*RecordMarksAuditLog*](#recordmarksauditlog)
+  - [*UpdateStudentStatus*](#updatestudentstatus)
+  - [*UpdateStudentSection*](#updatestudentsection)
 
 # TanStack Query Firebase & TanStack React Query
 This SDK provides [React](https://react.dev/) hooks generated specific to your application, for the operations found in the connector `nsrit`. These hooks are generated using [TanStack Query Firebase](https://react-query-firebase.invertase.dev/) by our partners at Invertase, a library built on top of [TanStack React Query v5](https://tanstack.com/query/v5/docs/framework/react/overview).
@@ -24433,6 +24435,200 @@ export default function RecordMarksAuditLogComponent() {
   // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
   if (mutation.isSuccess) {
     console.log(mutation.data.marksAuditLog_insert);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## UpdateStudentStatus
+You can execute the `UpdateStudentStatus` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useUpdateStudentStatus(options?: useDataConnectMutationOptions<UpdateStudentStatusData, FirebaseError, UpdateStudentStatusVariables>): UseDataConnectMutationResult<UpdateStudentStatusData, UpdateStudentStatusVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useUpdateStudentStatus(dc: DataConnect, options?: useDataConnectMutationOptions<UpdateStudentStatusData, FirebaseError, UpdateStudentStatusVariables>): UseDataConnectMutationResult<UpdateStudentStatusData, UpdateStudentStatusVariables>;
+```
+
+### Variables
+The `UpdateStudentStatus` Mutation requires an argument of type `UpdateStudentStatusVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface UpdateStudentStatusVariables {
+  studentId: UUIDString;
+  status: string;
+}
+```
+### Return Type
+Recall that calling the `UpdateStudentStatus` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `UpdateStudentStatus` Mutation is of type `UpdateStudentStatusData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface UpdateStudentStatusData {
+  student_update?: Student_Key | null;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `UpdateStudentStatus`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, UpdateStudentStatusVariables } from '@dataconnect/generated';
+import { useUpdateStudentStatus } from '@dataconnect/generated/react'
+
+export default function UpdateStudentStatusComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useUpdateStudentStatus();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useUpdateStudentStatus(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useUpdateStudentStatus(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useUpdateStudentStatus(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useUpdateStudentStatus` Mutation requires an argument of type `UpdateStudentStatusVariables`:
+  const updateStudentStatusVars: UpdateStudentStatusVariables = {
+    studentId: ..., 
+    status: ..., 
+  };
+  mutation.mutate(updateStudentStatusVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ studentId: ..., status: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(updateStudentStatusVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.student_update);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## UpdateStudentSection
+You can execute the `UpdateStudentSection` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useUpdateStudentSection(options?: useDataConnectMutationOptions<UpdateStudentSectionData, FirebaseError, UpdateStudentSectionVariables>): UseDataConnectMutationResult<UpdateStudentSectionData, UpdateStudentSectionVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useUpdateStudentSection(dc: DataConnect, options?: useDataConnectMutationOptions<UpdateStudentSectionData, FirebaseError, UpdateStudentSectionVariables>): UseDataConnectMutationResult<UpdateStudentSectionData, UpdateStudentSectionVariables>;
+```
+
+### Variables
+The `UpdateStudentSection` Mutation requires an argument of type `UpdateStudentSectionVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface UpdateStudentSectionVariables {
+  studentId: UUIDString;
+  classId: UUIDString;
+  sectionId: UUIDString;
+}
+```
+### Return Type
+Recall that calling the `UpdateStudentSection` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `UpdateStudentSection` Mutation is of type `UpdateStudentSectionData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface UpdateStudentSectionData {
+  student_update?: Student_Key | null;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `UpdateStudentSection`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, UpdateStudentSectionVariables } from '@dataconnect/generated';
+import { useUpdateStudentSection } from '@dataconnect/generated/react'
+
+export default function UpdateStudentSectionComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useUpdateStudentSection();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useUpdateStudentSection(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useUpdateStudentSection(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useUpdateStudentSection(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useUpdateStudentSection` Mutation requires an argument of type `UpdateStudentSectionVariables`:
+  const updateStudentSectionVars: UpdateStudentSectionVariables = {
+    studentId: ..., 
+    classId: ..., 
+    sectionId: ..., 
+  };
+  mutation.mutate(updateStudentSectionVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ studentId: ..., classId: ..., sectionId: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(updateStudentSectionVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.student_update);
   }
   return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
 }

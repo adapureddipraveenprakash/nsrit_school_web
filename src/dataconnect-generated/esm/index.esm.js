@@ -1138,6 +1138,30 @@ export function recordMarksAuditLog(dcOrVars, vars) {
   return executeMutation(recordMarksAuditLogRef(dcInstance, inputVars));
 }
 
+export const updateStudentStatusRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'UpdateStudentStatus', inputVars);
+}
+updateStudentStatusRef.operationName = 'UpdateStudentStatus';
+
+export function updateStudentStatus(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(updateStudentStatusRef(dcInstance, inputVars));
+}
+
+export const updateStudentSectionRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'UpdateStudentSection', inputVars);
+}
+updateStudentSectionRef.operationName = 'UpdateStudentSection';
+
+export function updateStudentSection(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(updateStudentSectionRef(dcInstance, inputVars));
+}
+
 export const getCurrentUserRef = (dcOrVars, vars) => {
   const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
   dcInstance._useGeneratedSdk();

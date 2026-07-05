@@ -138,6 +138,21 @@ const Sections = () => {
         throw new Error('Selected class not found');
       }
 
+      // Check if section already exists in current list
+      const existingSections = sectionsData?.sections || [];
+      const sectionExists = existingSections.some(
+        sec => sec.academicClassId === selectedClassId && 
+               sec.name.trim().toUpperCase() === selectedSectionLetter.trim().toUpperCase() &&
+               sec.academicYear === 2026 &&
+               sec.isActive !== false
+      );
+
+      if (sectionExists) {
+        setModalError(`Section "${selectedSectionLetter}" already exists for ${clsObj.name} class.`);
+        setCreating(false);
+        return;
+      }
+
       await createSection({
         branchId,
         wingId: clsObj.wingId,

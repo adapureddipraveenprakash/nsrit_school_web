@@ -1,12 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiArrowLeft, FiEdit2, FiAlertCircle, FiSettings, FiGrid } from 'react-icons/fi';
 import { HiOutlineDocumentText } from 'react-icons/hi2';
+import {
+  getAcademicClasses,
+  getClassFees,
+  createClassFee,
+  updateClassFee
+} from '../../../services/dataService';
 
 const SEED_TEMPLATES = [
-  { id: ' nursery-2026', className: 'Nursery', academicYear: '2026-27', term1: 12400, term2: 12400, term3: 6200, total: 31000, applyTo: 'Both', futureStudents: true, status: 'Active' },
+  { id: 'nursery-2026', className: 'Nursery', academicYear: '2026-27', term1: 12400, term2: 12400, term3: 6200, total: 31000, applyTo: 'Both', futureStudents: true, status: 'Active' },
   { id: 'lkg-2026', className: 'LKG', academicYear: '2026-27', term1: 13200, term2: 13200, term3: 6600, total: 33000, applyTo: 'Both', futureStudents: true, status: 'Active' },
   { id: 'ukg-2026', className: 'UKG', academicYear: '2026-27', term1: 14800, term2: 14800, term3: 7400, total: 37000, applyTo: 'Both', futureStudents: true, status: 'Active' },
   { id: 'class1-2026', className: '1', academicYear: '2026-27', term1: 16400, term2: 16400, term3: 8200, total: 41000, applyTo: 'Both', futureStudents: true, status: 'Active' },
@@ -19,7 +25,8 @@ const SEED_TEMPLATES = [
 
 const FeeSetup = () => {
   const navigate = useNavigate();
-  const { addLog } = useApp();
+  const { user, addLog } = useApp();
+  const branchId = user?.branchId || 'sontyam-branch-id';
 
   // Form States
   const [academicYear, setAcademicYear] = useState('2026-27');
@@ -35,13 +42,63 @@ const FeeSetup = () => {
   const [error, setError] = useState('');
   const [editingId, setEditingId] = useState(null);
 
-  // Created templates list
-  const [templates, setTemplates] = useState(SEED_TEMPLATES);
+  // Database templates & classes list
+  const [dbClasses, setDbClasses] = useState([]);
+  const [templates, setTemplates] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch academic classes to get their UUIDs
+  useEffect(() => {
+    if (!branchId) return;
+    const fetchClasses = async () => {
+      try {
+        const classes = await getAcademicClasses();
+        const filtered = classes.filter(c => c.branchId === branchId);
+        setDbClasses(filtered);
+      } catch (err) {
+        console.error('Error fetching academic classes:', err);
+      }
+    };
+    fetchClasses();
+  }, [branchId]);
+
+  // Fetch existing class fee templates from database
+  const fetchTemplates = async () => {
+    if (!branchId) return;
+    setLoading(true);
+    try {
+      const yearNum = parseInt(academicYear.split('-')[0]) || 2026;
+      const data = await getClassFees({ branchId, academicYear: yearNum });
+      const mapped = data.map(t => ({
+        id: t.id,
+        academicClassId: t.academicClassId,
+        className: t.academicClass?.name || '',
+        academicYear: `${t.academicYear}-${String(t.academicYear + 1).slice(-2)}`,
+        term1: t.term1Fee || 0,
+        term2: t.term2Fee || 0,
+        term3: t.term3Fee || 0,
+        total: t.totalTuitionFee || 0,
+        applyTo: t.applyToFuture ? 'Both' : 'New Students',
+        futureStudents: t.applyToFuture,
+        status: t.status || 'Active'
+      }));
+      setTemplates(mapped.length > 0 ? mapped : SEED_TEMPLATES);
+    } catch (err) {
+      console.error('Error fetching class fee templates:', err);
+      setTemplates(SEED_TEMPLATES);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTemplates();
+  }, [branchId, academicYear]);
 
   // Calculate sum dynamically
   const totalTuition = (parseInt(term1) || 0) + (parseInt(term2) || 0) + (parseInt(term3) || 0);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedClass) {
       setError('Please select a class');
@@ -53,35 +110,64 @@ const FeeSetup = () => {
     }
     setError('');
 
-    const newTemplate = {
-      id: editingId || 'fee-tpl-' + Date.now(),
-      academicYear,
-      className: selectedClass,
-      term1: parseInt(term1) || 0,
-      term2: parseInt(term2) || 0,
-      term3: parseInt(term3) || 0,
-      total: totalTuition,
-      applyTo,
-      futureStudents,
-      status
+    // Resolve academic class UUID
+    const selectedClsObj = dbClasses.find(c => c.name === selectedClass);
+    if (!selectedClsObj && dbClasses.length > 0) {
+      setError('Selected class not found in database');
+      return;
+    }
+    const targetClassId = selectedClsObj?.id || 'nursery-class-uuid';
+
+    const yearNum = parseInt(academicYear.split('-')[0]) || 2026;
+
+    const payload = {
+      branchId,
+      academicClassId: targetClassId,
+      academicYear: yearNum,
+      term1Fee: parseFloat(term1) || 0,
+      term2Fee: parseFloat(term2) || 0,
+      term3Fee: parseFloat(term3) || 0,
+      totalTuitionFee: parseFloat(totalTuition) || 0,
+      applyToFuture: futureStudents,
+      status: status || 'Active',
+      createdById: user?.id || 'admin-user-id'
     };
 
-    if (editingId) {
-      // Update existing template
-      setTemplates(templates.map(t => t.id === editingId ? newTemplate : t));
-      addLog(`Updated Class Fee Template for Class ${selectedClass} - Rs ${totalTuition}`);
+    try {
+      if (editingId && !editingId.startsWith('fee-tpl-') && !editingId.includes('2026')) {
+        // Update in database
+        await updateClassFee({
+          classFeeId: editingId,
+          branchId,
+          academicClassId: targetClassId,
+          academicYear: yearNum,
+          term1Fee: payload.term1Fee,
+          term2Fee: payload.term2Fee,
+          term3Fee: payload.term3Fee,
+          totalTuitionFee: payload.totalTuitionFee,
+          applyToFuture: payload.applyToFuture,
+          status: payload.status
+        });
+        addLog(`Updated Class Fee Template in DB for Class ${selectedClass} - Rs ${totalTuition}`);
+      } else {
+        // Create in database
+        await createClassFee(payload);
+        addLog(`Created Class Fee Template in DB for Class ${selectedClass} - Rs ${totalTuition}`);
+      }
+      
+      // Refetch from database
+      await fetchTemplates();
+      
+      // Reset fields
+      setTerm1('');
+      setTerm2('');
+      setTerm3('');
+      setSelectedClass('');
       setEditingId(null);
-    } else {
-      // Create new template
-      setTemplates([newTemplate, ...templates]);
-      addLog(`Created Class Fee Template for Class ${selectedClass} - Rs ${totalTuition}`);
+    } catch (err) {
+      console.error('Error saving class fee template:', err);
+      setError(err.message || 'Error saving template to database');
     }
-    
-    // Reset term fees fields
-    setTerm1('');
-    setTerm2('');
-    setTerm3('');
-    setSelectedClass('');
   };
 
   // Populate form for editing
@@ -98,7 +184,7 @@ const FeeSetup = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const classesList = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+  const classesList = dbClasses.length > 0 ? dbClasses.map(c => c.name) : ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
   return (
     <motion.div

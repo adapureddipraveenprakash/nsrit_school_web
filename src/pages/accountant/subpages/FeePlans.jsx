@@ -7,15 +7,15 @@ import { useDataFetch } from '../../../hooks/useDataFetch';
 import { getFeeReports } from '../../../services/dataService';
 
 const MOCK_PLANS = [
-  { name: 'KORADA KARTHIKEYA', class: '7-A', admissionNo: '#26SO0001', paid: 0, pending: 0, total: 0 },
-  { name: 'KORADA BHARGAVSAI', class: '5-A', admissionNo: '#26SO0002', paid: 15000, pending: 37000, total: 52000 },
-  { name: 'GANDARDDI MANJUSHA', class: '4-A', admissionNo: '#26SO0003', paid: 0, pending: 50000, total: 50000 },
-  { name: 'GONTHINA POORVESH', class: '4-A', admissionNo: '#26SO0004', paid: 0, pending: 50000, total: 50000 },
-  { name: 'SHINAGAN KOTISUYA', class: '1-A', admissionNo: '#26SO0005', paid: 10000, pending: 15000, total: 25000 },
-  { name: 'BALIVADA TEJASWINI', class: '6-A', admissionNo: '#26SO0006', paid: 25000, pending: 25000, total: 50000 },
-  { name: 'RATCHAKONDA LALITHA', class: '7-A', admissionNo: '#26SO0007', paid: 0, pending: 60000, total: 60000 },
-  { name: 'PALLA DEEKSHIT RAM', class: '1-A', admissionNo: '#26SO0008', paid: 30000, pending: 0, total: 30000 },
-  { name: 'DUDI GREESHMANTH', class: '3-A', admissionNo: '#26SO0009', paid: 15000, pending: 20000, total: 35000 }
+  { studentId: 'mock-karthikeya-uuid', name: 'KORADA KARTHIKEYA', class: '7-A', admissionNo: '#26SO0001', paid: 0, pending: 0, total: 0 },
+  { studentId: 'mock-bhargav-uuid', name: 'KORADA BHARGAVSAI', class: '5-A', admissionNo: '#26SO0002', paid: 15000, pending: 37000, total: 52000 },
+  { studentId: 'mock-manjusha-uuid', name: 'GANDARDDI MANJUSHA', class: '4-A', admissionNo: '#26SO0003', paid: 0, pending: 50000, total: 50000 },
+  { studentId: 'mock-poorvesh-uuid', name: 'GONTHINA POORVESH', class: '4-A', admissionNo: '#26SO0004', paid: 0, pending: 50000, total: 50000 },
+  { studentId: 'mock-kotisuya-uuid', name: 'SHINAGAN KOTISUYA', class: '1-A', admissionNo: '#26SO0005', paid: 10000, pending: 15000, total: 25000 },
+  { studentId: 'mock-tejaswini-uuid', name: 'BALIVADA TEJASWINI', class: '6-A', admissionNo: '#26SO0006', paid: 25000, pending: 25000, total: 50000 },
+  { studentId: 'mock-lalitha-uuid', name: 'RATCHAKONDA LALITHA', class: '7-A', admissionNo: '#26SO0007', paid: 0, pending: 60000, total: 60000 },
+  { studentId: 'mock-deekshit-uuid', name: 'PALLA DEEKSHIT RAM', class: '1-A', admissionNo: '#26SO0008', paid: 30000, pending: 0, total: 30000 },
+  { studentId: 'mock-greeshmanth-uuid', name: 'DUDI GREESHMANTH', class: '3-A', admissionNo: '#26SO0009', paid: 15000, pending: 20000, total: 35000 }
 ];
 
 const FeePlans = () => {
@@ -55,6 +55,7 @@ const FeePlans = () => {
       }
 
       return {
+        studentId: s.id,
         name: s.fullName || 'Unknown Student',
         class: `${s.academicClass?.name || ''} - ${s.section?.name || ''}`.trim().replace(/^-|-$/, ''),
         admissionNo: s.studentId || '26SO0000',
@@ -192,6 +193,7 @@ const FeePlans = () => {
         {filteredPlans.map((plan, idx) => (
           <div
             key={idx}
+            onClick={() => plan.studentId && navigate(`/settings/fee-profile/${plan.studentId}`)}
             className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/20 transition-all cursor-pointer relative group active:scale-[0.99]"
           >
             <div>

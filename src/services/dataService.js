@@ -109,6 +109,8 @@ const M = {
   UPDATE_CLASS_FEE: 'UpdateClassFee',
   CREATE_FEE_PLAN: 'CreateFeePlan',
   UPDATE_FEE_PLAN: 'UpdateFeePlan',
+  CLEAR_FEE_PLAN_ITEMS: 'ClearFeePlanItems',
+  CREATE_FEE_PLAN_ITEM: 'CreateFeePlanItem',
   RECORD_PAYMENT: 'RecordPayment',
   UPDATE_PAYMENT: 'UpdatePayment',
   REVERSE_PAYMENT: 'ReversePayment',
@@ -471,8 +473,24 @@ export const createClassFee = async (payload) => {
   return dataConnectClient.mutate(M.CREATE_CLASS_FEE, payload);
 };
 
+export const updateClassFee = async (payload) => {
+  return dataConnectClient.mutate(M.UPDATE_CLASS_FEE, payload);
+};
+
 export const createFeePlan = async (payload) => {
   return dataConnectClient.mutate(M.CREATE_FEE_PLAN, payload);
+};
+
+export const updateFeePlan = async (payload) => {
+  return dataConnectClient.mutate(M.UPDATE_FEE_PLAN, payload);
+};
+
+export const clearFeePlanItems = async (payload) => {
+  return dataConnectClient.mutate(M.CLEAR_FEE_PLAN_ITEMS, payload);
+};
+
+export const createFeePlanItem = async (payload) => {
+  return dataConnectClient.mutate(M.CREATE_FEE_PLAN_ITEM, payload);
 };
 
 export const recordPayment = async (payload) => {
