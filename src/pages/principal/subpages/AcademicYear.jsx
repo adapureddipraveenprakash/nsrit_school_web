@@ -1,11 +1,65 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiArrowLeft, FiCalendar, FiChevronRight, FiAlertCircle, FiLayers } from 'react-icons/fi';
+import { FiArrowLeft, FiCalendar, FiChevronRight, FiLayers } from 'react-icons/fi';
 import { HiOutlineAcademicCap } from 'react-icons/hi2';
+import { useApp } from '../../../context/AppContext';
+import { subscribeAcademicYears } from '../../../services/yearService';
+
+const DEFAULT_YEARS = [
+  { id: '2', year: '2027-28', status: 'PLANNING', startDate: '2027-06-01', endDate: '2028-04-30', startYear: '2027' },
+  { id: '1', year: '2026-27', status: 'ACTIVE', startDate: '2026-06-12', endDate: '2027-04-24', startYear: '2026' }
+];
 
 const AcademicYear = () => {
   const navigate = useNavigate();
+  const { user } = useApp();
+  const branchId = user?.branchId || 'sontyam-branch-id';
+
+  const [dbYears, setDbYears] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Subscribe to Firestore academic years
+  useEffect(() => {
+    setLoading(true);
+    const unsubscribe = subscribeAcademicYears(branchId,
+      (list) => {
+        setDbYears(list);
+        setLoading(false);
+      },
+      (err) => {
+        console.error('Error fetching academic years:', err);
+        setLoading(false);
+      }
+    );
+    return unsubscribe;
+  }, [branchId]);
+
+  const activeYearsList = useMemo(() => {
+    return dbYears.length > 0 ? dbYears : DEFAULT_YEARS;
+  }, [dbYears]);
+
+  const activeYearObj = useMemo(() => {
+    return activeYearsList.find(y => y.status === 'ACTIVE') || {
+      year: '2026-27',
+      startYear: '2026',
+      startDate: '2026-06-12',
+      endDate: '2027-04-24',
+      status: 'ACTIVE'
+    };
+  }, [activeYearsList]);
+
+  // Date formatter helper: 2026-06-12 -> 12 Jun 2026
+  const formatDate = (dateStr) => {
+    if (!dateStr) return 'Not set';
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    const year = parts[0];
+    const monthIndex = parseInt(parts[1]) - 1;
+    const day = parseInt(parts[2]);
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${day} ${monthNames[monthIndex] || parts[1]} ${year}`;
+  };
 
   return (
     <motion.div
@@ -16,36 +70,35 @@ const AcademicYear = () => {
       className="p-4 md:p-8 space-y-6 pb-20 md:pb-8 max-w-[640px] mx-auto animate-fade-in"
     >
       {/* Top Header Bar */}
-      <header className="flex items-center justify-between py-2 border-b border-[#e2e8f0]/40 shrink-0">
+      <header className="flex items-center justify-between py-2 border-b border-[#e2e8f0]/40 shrink-0 font-sans">
         <button
           onClick={() => navigate(-1)}
           className="p-1.5 hover:bg-[#EEF5FB] rounded-full text-dark transition-colors cursor-pointer"
         >
           <FiArrowLeft className="w-5 h-5" />
         </button>
-        <h1 className="text-sm font-bold text-dark pr-8 mx-auto">Academic Year</h1>
+        <h1 className="text-sm font-black text-dark pr-8 mx-auto tracking-tight">Academic Year</h1>
       </header>
 
-      {/* Top curved blue header card */}
-      <div className="relative rounded-[32px] bg-gradient-to-br from-[#1597E5] to-[#00A1FF] p-6 text-white card-shadow overflow-hidden text-center select-none">
+      {/* Top curved blue header card (Matching Screenshot 1) */}
+      <div className="relative rounded-[32px] bg-gradient-to-br from-[#1597E5] to-[#00A1FF] p-6 text-white card-shadow overflow-hidden text-center select-none font-sans">
         <div className="absolute top-[-30px] right-[-30px] w-36 h-36 rounded-full bg-white/10" />
         <div className="absolute bottom-[-40px] left-[10%] w-48 h-48 rounded-full bg-white/5" />
 
         <div className="relative z-10 flex flex-col items-center justify-center space-y-3 py-4">
-          {/* Large question mark indicator */}
           <div className="text-4xl font-extrabold text-white/95 leading-none">?</div>
-          <h2 className="text-2xl font-black">2026-27</h2>
+          <h2 className="text-2xl font-black">{activeYearObj.year}</h2>
           
           {/* Status Badge */}
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 border border-white/20 rounded-full text-[9px] font-bold uppercase tracking-wider">
-            <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-pulse" />
-            Unknown
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white/20 border border-white/20 rounded-full text-[9px] font-black uppercase tracking-wider">
+            <span className="w-1.5 h-1.5 bg-[#48BB78] rounded-full animate-pulse" />
+            <span className="text-[#48BB78] font-black">ACTIVE</span>
           </div>
         </div>
       </div>
 
       {/* Configuration dates details card */}
-      <div className="bg-white rounded-[28px] border border-[#e2e8f0]/45 p-5 card-shadow divide-y divide-[#e2e8f0]/60 select-none">
+      <div className="bg-white rounded-[28px] border border-[#e2e8f0]/45 p-5 card-shadow divide-y divide-[#e2e8f0]/60 select-none font-sans">
         {/* Start Date */}
         <div className="flex items-center gap-4 py-4 first:pt-2 last:pb-2">
           <div className="w-11 h-11 rounded-full bg-[#E8F8F0] text-[#23C16B] flex items-center justify-center border border-[#23C16B]/5 shrink-0">
@@ -53,7 +106,7 @@ const AcademicYear = () => {
           </div>
           <div>
             <p className="text-[9px] text-[#A0AEC0] font-bold uppercase tracking-wider">Start Date</p>
-            <p className="text-xs font-extrabold text-dark mt-0.5">Not set</p>
+            <p className="text-xs font-extrabold text-dark mt-0.5">{formatDate(activeYearObj.startDate)}</p>
           </div>
         </div>
 
@@ -64,24 +117,24 @@ const AcademicYear = () => {
           </div>
           <div>
             <p className="text-[9px] text-[#A0AEC0] font-bold uppercase tracking-wider">End Date</p>
-            <p className="text-xs font-extrabold text-dark mt-0.5">Not set</p>
+            <p className="text-xs font-extrabold text-dark mt-0.5">{formatDate(activeYearObj.endDate)}</p>
           </div>
         </div>
 
         {/* Academic Year Number */}
         <div className="flex items-center gap-4 py-4 first:pt-2 last:pb-2">
-          <div className="w-11 h-11 rounded-full bg-[#F3E8FF] text-[#7C3AED] flex items-center justify-center border border-[#7C3AED]/5 shrink-0 font-extrabold text-xs font-sans">
+          <div className="w-11 h-11 rounded-full bg-[#F3E8FF] text-[#7C3AED] flex items-center justify-center border border-[#7C3AED]/5 shrink-0 font-extrabold text-xs">
             123
           </div>
           <div>
             <p className="text-[9px] text-[#A0AEC0] font-bold uppercase tracking-wider">Academic Year Number</p>
-            <p className="text-xs font-extrabold text-dark mt-0.5">—</p>
+            <p className="text-xs font-extrabold text-dark mt-0.5">{activeYearObj.startYear || '2026'}</p>
           </div>
         </div>
       </div>
 
       {/* Navigation links card */}
-      <div className="bg-white rounded-[28px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow divide-y divide-[#e2e8f0]/60 select-none">
+      <div className="bg-white rounded-[28px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow divide-y divide-[#e2e8f0]/60 select-none font-sans">
         {/* Academic Structure */}
         <div
           onClick={() => navigate('/settings/classes')}
@@ -112,18 +165,6 @@ const AcademicYear = () => {
             </h3>
           </div>
           <FiChevronRight className="w-4 h-4 text-[#A0AEC0] group-hover:translate-x-0.5 transition-transform" />
-        </div>
-      </div>
-
-      {/* Caution alert card */}
-      <div className="bg-[#FFF8EE] border border-[#FF9F1C]/25 rounded-[24px] p-4.5 flex gap-3.5 select-none shadow-sm shadow-[#FF9F1C]/5">
-        <div className="w-9 h-9 rounded-full bg-[#FFF3E0] text-[#FF9F1C] flex items-center justify-center shrink-0">
-          <FiAlertCircle className="w-5 h-5" />
-        </div>
-        <div>
-          <p className="text-[10px] text-[#C05621] font-bold leading-relaxed">
-            No active academic year configured. Contact Main Admin to set up the current year.
-          </p>
         </div>
       </div>
     </motion.div>

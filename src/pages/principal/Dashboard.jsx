@@ -168,7 +168,7 @@ const PrincipalDashboard = () => {
     } else if (title === 'Timetable') {
       navigate('/settings/timetable');
     } else if (title === 'Notice Board') {
-      navigate('/settings/notifications');
+      navigate('/settings/notice-board');
     } else if (title === 'Holiday Management') {
       navigate('/settings/holidays');
     } else if (title === 'Academic Year') {

@@ -30,11 +30,11 @@ const Teachers = () => {
   const [staffType, setStaffType] = useState('All Staff Types');
 
   // Fetch real teachers from Firebase Data Connect
-  const branchId = user?.branchId || currentBranchContext?.id || null;
+  const branchId = user?.branchId || currentBranchContext?.id || 'sontyam-branch-id';
   const { data: rawTeachers, loading: teachersLoading } = useDataFetch(
     () => getTeachers({ branchId, limit: 200 }),
     [branchId],
-    { defaultValue: [], pollInterval: 30000 }
+    { defaultValue: [], pollInterval: 30000, skip: !branchId }
   );
   const TEACHERS = useMemo(() => (rawTeachers || []).map(normalizeTeacher), [rawTeachers]);
 
@@ -250,12 +250,13 @@ const Teachers = () => {
       {/* Teachers cards list */}
       <div className="space-y-3 pt-1">
         {filtered.map((t) => {
-          const initials = t.name.split(' ').map((n) => n[0]).join('').slice(0, 2);
+          const initials = t.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
           const hasSection = t.section && t.section.trim() !== '';
 
           return (
             <div
               key={t.id}
+              onClick={() => navigate(`/settings/teacher-details/${t.id}`)}
               className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 shadow-sm flex flex-col justify-between hover:border-[#1597E5]/20 transition-all cursor-pointer group active:scale-[0.99]"
             >
               <div className="flex items-center justify-between">
@@ -270,7 +271,7 @@ const Teachers = () => {
                     </h3>
                     <div className="flex items-center gap-2 mt-1 select-none">
                       <span className="bg-[#EBF8FF] text-[#1597E5] px-2 py-0.5 rounded-full text-[9px] font-extrabold border border-blue-100/50">
-                        {t.id}
+                        {t.staffId}
                       </span>
                       <span className="text-[10px] font-semibold text-secondaryText">
                         {t.staffType}

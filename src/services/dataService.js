@@ -65,6 +65,8 @@ const Q = {
   GET_BRANCH_ANALYTICS: 'GetBranchAnalytics',
   GET_USERS_BY_ROLE: 'GetUsersByRole',
   GET_PROMOTION_HISTORY: 'GetPromotionHistory',
+  GET_BRANCH_PROMOTION_HISTORY: 'GetBranchPromotionHistory',
+  GET_NOTICE: 'GetNotice',
   GET_SECTIONS_FOR_TEACHER_ASSIGNMENT: 'GetSectionsForTeacherAssignment',
   GET_FEE_DETAILS: 'GetFeeDetails',
   GET_FEE_PLAN_ITEMS: 'GetClassFees',
@@ -91,6 +93,8 @@ const M = {
   TRANSFER_STUDENT: 'TransferStudent',
   BULK_ASSIGN_STUDENTS: 'BulkAssignStudents',
   PROMOTE_STUDENTS: 'PromoteStudents',
+  APPLY_STUDENT_PROMOTION: 'ApplyStudentPromotion',
+  RECORD_STUDENT_PROMOTION: 'RecordStudentPromotion',
   CREATE_TEACHER: 'CreateTeacher',
   UPDATE_TEACHER: 'UpdateTeacher',
   ASSIGN_CLASS_TEACHER: 'AssignTeacherClassTeacher',
@@ -141,7 +145,7 @@ const M = {
   UPDATE_HOLIDAY: 'UpdateHoliday',
   DELETE_HOLIDAY: 'DeleteHoliday',
   CREATE_PUBLIC_HOLIDAY: 'CreatePublicHoliday',
-  UPSERT_TIMETABLE_PERIOD_FULL: 'UpsertTimetablePeriodFull',
+  UPSERT_TIMETABLE_PERIOD_FULL: 'UpsertTimetablePeriod',
   PUBLISH_TIMETABLE_SECTION: 'PublishTimetableSection',
   UNPUBLISH_TIMETABLE_SECTION: 'UnpublishTimetableSection',
 };
@@ -176,8 +180,8 @@ export const assignPrincipal = async (payload) => {
 };
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────
-export const getDashboardStatistics = async ({ branchId } = {}) => {
-  const res = await dataConnectClient.query(Q.GET_DASHBOARD_STATISTICS, { branchId: branchId || null });
+export const getDashboardStatistics = async () => {
+  const res = await dataConnectClient.query(Q.GET_DASHBOARD_STATISTICS);
   return res;
 };
 
@@ -246,6 +250,14 @@ export const bulkAssignStudents = async ({ studentIds, classId, sectionId }) => 
 
 export const promoteStudents = async (payload) => {
   return dataConnectClient.mutate(M.PROMOTE_STUDENTS, payload);
+};
+
+export const applyStudentPromotion = async (payload) => {
+  return dataConnectClient.mutate(M.APPLY_STUDENT_PROMOTION, payload);
+};
+
+export const recordStudentPromotion = async (payload) => {
+  return dataConnectClient.mutate(M.RECORD_STUDENT_PROMOTION, payload);
 };
 
 export const getParentChildren = async (parentId) => {
@@ -392,6 +404,11 @@ export const updateCoordinator = async (payload) => {
   return dataConnectClient.mutate(M.UPDATE_COORDINATOR, payload);
 };
 
+export const getCoordinatorDetails = async (coordinatorId) => {
+  const res = await dataConnectClient.query(Q.GET_COORDINATOR_DETAILS, { coordinatorId });
+  return res.coordinator || null;
+};
+
 // ─── Accountants ──────────────────────────────────────────────────────────────
 export const getAccountants = async ({ branchId, limit = 100, offset = 0 } = {}) => {
   const res = await dataConnectClient.query(Q.GET_ACCOUNTANTS, {
@@ -406,6 +423,11 @@ export const createAccountant = async (payload) => {
 
 export const updateAccountant = async (payload) => {
   return dataConnectClient.mutate(M.UPDATE_ACCOUNTANT, payload);
+};
+
+export const getAccountantProfile = async (accountantId) => {
+  const res = await dataConnectClient.query(Q.GET_ACCOUNTANT_PROFILE, { accountantId });
+  return res.accountant || null;
 };
 
 // ─── Fees ─────────────────────────────────────────────────────────────────────
@@ -545,7 +567,12 @@ export const updateNotice = async (payload) => {
 };
 
 export const deleteNotice = async (noticeId) => {
-  return dataConnectClient.mutate(M.DELETE_NOTICE, { noticeId });
+  return dataConnectClient.mutate(M.DELETE_NOTICE, { id: noticeId });
+};
+
+export const getNotice = async (id) => {
+  const res = await dataConnectClient.query(Q.GET_NOTICE, { id });
+  return res.notice;
 };
 
 // ─── Timetable ────────────────────────────────────────────────────────────────
@@ -689,8 +716,8 @@ export const getStudentParents = async (studentId) => {
 
 // ─── Promotions ───────────────────────────────────────────────────────────────
 export const getPromotionHistory = async ({ branchId }) => {
-  const res = await dataConnectClient.query(Q.GET_PROMOTION_HISTORY, { branchId });
-  return res.promotionRecords || [];
+  const res = await dataConnectClient.query(Q.GET_BRANCH_PROMOTION_HISTORY, { branchId });
+  return res.studentPromotionHistories || [];
 };
 
 export const changeUserRole = async ({ userId, oldRole, newRole }) => {

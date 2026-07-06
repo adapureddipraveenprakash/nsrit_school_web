@@ -233,7 +233,16 @@ const Login = () => {
                   </div>
                 </div>
 
-                {error && <p className="text-xs text-red-500 font-semibold">{error}</p>}
+                {error && (
+                  <div className="text-xs text-red-500 font-semibold space-y-1.5 bg-red-50/50 p-3.5 rounded-xl border border-red-100/50 select-text leading-relaxed">
+                    <p className="font-extrabold text-red-600">{error}</p>
+                    {window.location.hostname === 'localhost' && (
+                      <p className="text-[10px] text-slate-500 font-medium font-sans">
+                        <strong>Developer Tip:</strong> On localhost, Firebase requires test phone numbers to be whitelisted. Add this phone number under <strong>Firebase Console → Authentication → Sign-in method → Phone → Phone numbers for testing</strong> (e.g., with code 123456).
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 <button type="submit" disabled={authLoading}
                   className="w-full py-4 bg-brand-blue hover:bg-brand-secondary text-white rounded-btn font-bold flex items-center justify-center gap-2 shadow-lg shadow-brand-blue/35 transition-all text-sm group active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed">

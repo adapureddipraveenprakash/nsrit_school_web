@@ -1,14 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiArrowLeft, FiPlus, FiCheckCircle, FiAlertTriangle, FiCalendar, FiEdit2, FiX } from 'react-icons/fi';
+import { FiArrowLeft, FiPlus, FiCheckCircle, FiAlertTriangle, FiCalendar, FiEdit2, FiX, FiInbox } from 'react-icons/fi';
 import { useApp } from '../../../context/AppContext';
 import { subscribeAcademicYears, saveAcademicYears } from '../../../services/yearService';
-
-const DEFAULT_YEARS = [
-  { id: '2', year: '2027-28', status: 'PLANNING', startDate: '2027-06-01', endDate: '2028-04-30', startYear: '2027' },
-  { id: '1', year: '2026-27', status: 'ACTIVE', startDate: '2026-06-12', endDate: '2027-04-24', startYear: '2026' }
-];
 
 const YearManagement = () => {
   const { user } = useApp();
@@ -18,7 +13,14 @@ const YearManagement = () => {
   const [dbYears, setDbYears] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Edit / Form state (Screenshot 5 bottom sheet)
+  // Create Year modal state (Screenshot 2 bottom sheet)
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createYearName, setCreateYearName] = useState('2026-27');
+  const [createStartYear, setCreateStartYear] = useState('2026');
+  const [createStartDate, setCreateStartDate] = useState('2026-06-01');
+  const [createEndDate, setCreateEndDate] = useState('2027-04-30');
+
+  // Edit states
   const [editingYear, setEditingYear] = useState(null);
   const [yearName, setYearName] = useState('');
   const [startYearVal, setStartYearVal] = useState('');
@@ -46,19 +48,36 @@ const YearManagement = () => {
   }, [branchId]);
 
   const activeYearsList = useMemo(() => {
-    return dbYears.length > 0 ? dbYears : DEFAULT_YEARS;
+    return dbYears;
   }, [dbYears]);
 
   const activeYearObj = useMemo(() => {
     return activeYearsList.find(y => y.status === 'ACTIVE') || { year: '2026-27' };
   }, [activeYearsList]);
 
-  // Seeding initial years if database is empty
-  const handleSeedYears = async () => {
+  // Create academic year (Screenshot 2 drawer submit)
+  const handleCreateYear = async (e) => {
+    e.preventDefault();
+    if (!createYearName || !createStartYear) return;
+
+    const newYearObj = {
+      id: String(Date.now()),
+      year: createYearName.trim(),
+      startYear: createStartYear.trim(),
+      startDate: createStartDate,
+      endDate: createEndDate,
+      status: activeYearsList.length === 0 ? 'ACTIVE' : 'PLANNING'
+    };
+
+    const newList = [newYearObj, ...activeYearsList];
     try {
-      await saveAcademicYears(branchId, DEFAULT_YEARS);
+      await saveAcademicYears(branchId, newList);
+      setShowCreateModal(false);
+      setSuccessMessage(`Academic Year ${createYearName} created successfully!`);
+      setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err) {
-      console.error('Error seeding years:', err);
+      console.error('Error creating year:', err);
+      alert('Failed to create academic year.');
     }
   };
 
@@ -68,34 +87,6 @@ const YearManagement = () => {
     setStartYearVal(y.startYear || y.year.split('-')[0]);
     setStartDateVal(y.startDate);
     setEndDateVal(y.endDate);
-  };
-
-  const handleCreateUpcoming = async () => {
-    // Generate next year
-    const lastYear = activeYearsList[0]?.year || '2027-28';
-    const parts = lastYear.split('-');
-    const currentStart = parseInt(parts[0]);
-    const nextStart = currentStart + 1;
-    const nextEnd = (nextStart + 1) % 100;
-    
-    const newYearStr = `20${nextStart}-${String(nextEnd).padStart(2, '0')}`;
-    const newYearObj = {
-      id: String(Date.now()),
-      year: newYearStr,
-      status: 'PLANNING',
-      startYear: `20${nextStart}`,
-      startDate: `20${nextStart}-06-01`,
-      endDate: `20${nextStart + 1}-04-30`
-    };
-
-    const newList = [newYearObj, ...activeYearsList];
-    try {
-      await saveAcademicYears(branchId, newList);
-      setSuccessMessage(`Academic Year ${newYearStr} created in Planning!`);
-      setTimeout(() => setSuccessMessage(''), 3000);
-    } catch (err) {
-      console.error('Error adding year:', err);
-    }
   };
 
   const handleUpdateYear = async (e) => {
@@ -145,7 +136,7 @@ const YearManagement = () => {
     if (!confirmTarget) return;
     setShowConfirmModal(false);
 
-    // Rollover logic: archive active years and activate the target one
+    // Rollover logic: archive active years and activate target
     const newList = activeYearsList.map(y => {
       if (y.id === confirmTarget.id) {
         return { ...y, status: 'ACTIVE' };
@@ -181,7 +172,7 @@ const YearManagement = () => {
         >
           <FiArrowLeft className="w-5 h-5" />
         </button>
-        <h1 className="text-sm font-bold text-dark pr-8 mx-auto">Year Management</h1>
+        <h1 className="text-sm font-black text-dark pr-8 mx-auto tracking-tight">Year Management</h1>
       </header>
 
       {/* Success Banner */}
@@ -199,121 +190,216 @@ const YearManagement = () => {
         )}
       </AnimatePresence>
 
-      {/* Blue Header Card (Screenshot 5) */}
+      {/* Blue Header Card (Screenshot 2) */}
       <div className="relative rounded-[32px] bg-gradient-to-br from-[#1597E5] to-[#00A1FF] p-6 text-white card-shadow overflow-hidden">
         <div className="absolute top-[-30px] right-[-30px] w-36 h-36 rounded-full bg-white/10 pointer-events-none" />
         <div className="absolute bottom-[-40px] left-[10%] w-48 h-48 rounded-full bg-white/5 pointer-events-none" />
 
-        {/* Action Button: Upcoming Set */}
+        {/* Action Button: + New Year (Screenshot 2 Match) */}
         <button
-          onClick={handleCreateUpcoming}
-          className="absolute top-6 right-6 inline-flex items-center gap-1.5 text-[10px] font-bold text-white bg-white/15 border border-white/25 px-3.5 py-1.5 rounded-full hover:bg-white/25 transition-all cursor-pointer"
+          onClick={() => setShowCreateModal(true)}
+          className="absolute top-6 right-6 inline-flex items-center gap-1.5 text-[10px] font-black text-white bg-white/15 border border-white/25 px-4 py-2 rounded-full hover:bg-white/25 transition-all cursor-pointer shadow-sm"
         >
           <FiPlus className="w-3.5 h-3.5" />
-          <span>Upcoming Set</span>
+          <span>New Year</span>
         </button>
 
         {/* Subtitle */}
         <span className="text-[10px] text-white/70 font-semibold tracking-wider uppercase font-sans font-black">Academic Year</span>
         <h2 className="text-xl font-bold mt-1 font-sans">Year Management</h2>
         
-        <div className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-white/25 border border-white/20 rounded-full mt-3.5 text-[9px] font-bold uppercase">
-          <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-          Active: {activeYearObj.year}
-        </div>
+        {activeYearObj.year && (
+          <div className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-white/25 border border-white/20 rounded-full mt-3.5 text-[9px] font-bold uppercase select-none">
+            <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+            Active: {activeYearObj.year}
+          </div>
+        )}
       </div>
 
-      {dbYears.length === 0 && (
-        <div className="bg-slate-50 border border-slate-100 rounded-[20px] p-4 flex justify-between items-center font-sans">
-          <span className="text-[10.5px] font-extrabold text-slate-500 uppercase tracking-wide">
-            Database year registry is empty
-          </span>
-          <button
-            onClick={handleSeedYears}
-            className="px-3.5 py-1.5 bg-[#1597E5] text-white hover:bg-[#00A1FF] rounded-full text-[10.5px] font-black cursor-pointer transition-all active:scale-95"
-          >
-            Seed Years
-          </button>
+      {/* Empty State Card (Screenshot 2 Match) */}
+      {activeYearsList.length === 0 && (
+        <div className="bg-slate-50 border border-slate-100 rounded-[28px] p-12 flex flex-col items-center justify-center text-center space-y-4 card-shadow font-sans select-none">
+          <div className="w-16 h-16 rounded-full bg-slate-100/70 border border-slate-200/50 flex items-center justify-center text-brand-blue">
+            <FiInbox className="w-7 h-7 text-[#1597E5]/70" />
+          </div>
+          <div className="space-y-1.5">
+            <h3 className="text-sm font-black text-dark">No academic years</h3>
+            <p className="text-xs text-secondaryText font-medium max-w-[280px]">
+              Create your first academic year to get started.
+            </p>
+          </div>
         </div>
       )}
 
-      {/* Year Registry List (Screenshot 5 layout) */}
-      <div className="space-y-3.5 select-none">
-        {activeYearsList.map((y) => {
-          const isPlanning = y.status === 'PLANNING';
-          const isActive = y.status === 'ACTIVE';
+      {/* Year Registry List */}
+      {activeYearsList.length > 0 && (
+        <div className="space-y-3.5 select-none">
+          {activeYearsList.map((y) => {
+            const isPlanning = y.status === 'PLANNING';
+            const isActive = y.status === 'ACTIVE';
 
-          return (
-            <div
-              key={y.id}
-              className={`bg-white rounded-[24px] border p-4 px-5 card-shadow flex justify-between items-center hover:border-brand-blue/15 transition-all ${
-                isActive ? 'border-emerald-200' : 'border-[#e2e8f0]/45'
-              }`}
-            >
-              <div className="flex items-center gap-4">
-                {/* Year Indicator Dot */}
-                <div className={`w-3.5 h-3.5 rounded-full shrink-0 ${
-                  isActive ? 'bg-emerald-500' : isPlanning ? 'bg-amber-500' : 'bg-slate-300'
-                }`} />
+            return (
+              <div
+                key={y.id}
+                className={`bg-white rounded-[24px] border p-4 px-5 card-shadow flex justify-between items-center hover:border-brand-blue/15 transition-all ${
+                  isActive ? 'border-emerald-200 shadow-sm shadow-emerald-50' : 'border-[#e2e8f0]/45'
+                }`}
+              >
+                <div className="flex items-center gap-4">
+                  {/* Year Indicator Dot */}
+                  <div className={`w-3.5 h-3.5 rounded-full shrink-0 ${
+                    isActive ? 'bg-emerald-500' : isPlanning ? 'bg-amber-500' : 'bg-slate-300'
+                  }`} />
 
-                <div>
-                  <h4 className="text-xs font-black text-dark font-sans leading-none">{y.year}</h4>
-                  
-                  {/* Date range formatted: 01-06-2027 - 30-04-2028 */}
-                  <p className="text-[9.5px] text-[#A0AEC0] font-bold mt-2 font-sans">
-                    {y.startDate ? new Date(y.startDate).toLocaleDateString('en-GB').replace(/\//g, '-') : ''} - {y.endDate ? new Date(y.endDate).toLocaleDateString('en-GB').replace(/\//g, '-') : ''}
-                  </p>
+                  <div>
+                    <h4 className="text-xs font-black text-dark font-sans leading-none">{y.year}</h4>
+                    
+                    <p className="text-[9.5px] text-[#A0AEC0] font-bold mt-2 font-sans">
+                      {y.startDate ? new Date(y.startDate).toLocaleDateString('en-GB').replace(/\//g, '-') : ''} - {y.endDate ? new Date(y.endDate).toLocaleDateString('en-GB').replace(/\//g, '-') : ''}
+                    </p>
 
-                  {/* Status Indicator */}
-                  <div className="mt-2.5">
-                    <span className={`px-2 py-0.5 rounded-full text-[7.5px] font-black uppercase tracking-wider ${
-                      isActive ? 'bg-emerald-50 text-emerald-600' :
-                      isPlanning ? 'bg-amber-50 text-amber-600' :
-                      'bg-slate-50 text-slate-400'
-                    }`}>
-                      {y.status}
-                    </span>
+                    <div className="mt-2.5">
+                      <span className={`px-2 py-0.5 rounded-full text-[7.5px] font-black uppercase tracking-wider ${
+                        isActive ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                        isPlanning ? 'bg-amber-50 text-amber-600 border border-amber-100' :
+                        'bg-slate-50 text-slate-400'
+                      }`}>
+                        {y.status}
+                      </span>
+                    </div>
                   </div>
                 </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-3">
+                  {isPlanning && (
+                    <>
+                      <button
+                        onClick={() => handleOpenEdit(y)}
+                        className="p-1.5 hover:bg-slate-50 rounded-full text-slate-400 hover:text-[#1597E5] transition-colors cursor-pointer"
+                      >
+                        <FiEdit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleOpenActivateConfirm(y)}
+                        className="px-4 py-2 bg-[#1597E5] hover:bg-[#00A1FF] text-white rounded-full text-[10.5px] font-extrabold transition-all cursor-pointer active:scale-95 shadow-sm shadow-[#1597E5]/15"
+                      >
+                        Activate
+                      </button>
+                    </>
+                  )}
+                  {isActive && (
+                    <button
+                      onClick={() => handleCloseYear(y)}
+                      className="px-4 py-2 border border-red-200 text-red-500 hover:bg-red-50 rounded-full text-[10.5px] font-extrabold transition-all cursor-pointer active:scale-95"
+                    >
+                      Close
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Create Academic Year Slide-up Modal Drawer Overlay (Screenshot 2 Match) */}
+      <AnimatePresence>
+        {showCreateModal && (
+          <div className="fixed inset-0 bg-[#0F172A]/40 backdrop-blur-sm z-50 flex items-end justify-center">
+            <div className="absolute inset-0" onClick={() => setShowCreateModal(false)} />
+            
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 220 }}
+              className="bg-white rounded-t-[32px] w-full max-w-[640px] p-6 shadow-2xl z-10 relative space-y-5"
+            >
+              <div className="w-10 h-1 bg-slate-200 rounded-full mx-auto -mt-2 mb-3" />
+
+              <div className="flex justify-between items-center pb-2 select-none">
+                <h3 className="text-base font-black text-dark font-sans leading-none">Create Academic Year</h3>
+                <button
+                  onClick={() => setShowCreateModal(false)}
+                  className="p-1 hover:bg-slate-100 rounded-full text-secondaryText transition-colors"
+                >
+                  <FiX className="w-5.5 h-5.5" />
+                </button>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-3">
-                {isPlanning && (
-                  <>
-                    <button
-                      onClick={() => handleOpenEdit(y)}
-                      className="p-1.5 hover:bg-slate-50 rounded-full text-slate-400 hover:text-[#1597E5] transition-colors cursor-pointer"
-                    >
-                      <FiEdit2 className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => handleOpenActivateConfirm(y)}
-                      className="px-4 py-2 bg-[#1597E5] hover:bg-[#00A1FF] text-white rounded-full text-[10.5px] font-extrabold transition-all cursor-pointer active:scale-95 shadow-sm shadow-[#1597E5]/15"
-                    >
-                      Activate
-                    </button>
-                  </>
-                )}
-                {isActive && (
+              <form onSubmit={handleCreateYear} className="space-y-4 font-sans text-xs">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Year Name (e.g. 2026-27)</label>
+                  <input
+                    type="text"
+                    required
+                    value={createYearName}
+                    onChange={(e) => setCreateYearName(e.target.value)}
+                    placeholder="2026-27"
+                    className="w-full bg-white border border-blue-100 rounded-[20px] px-4 py-3.5 text-xs font-semibold focus:outline-none focus:border-[#1597E5]"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Start Year (e.g. 2026)</label>
+                  <input
+                    type="text"
+                    required
+                    value={createStartYear}
+                    onChange={(e) => setCreateStartYear(e.target.value)}
+                    placeholder="2026"
+                    className="w-full bg-white border border-blue-100 rounded-[20px] px-4 py-3.5 text-xs font-semibold focus:outline-none focus:border-[#1597E5]"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Start Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={createStartDate}
+                    onChange={(e) => setCreateStartDate(e.target.value)}
+                    className="w-full bg-white border border-blue-100 rounded-[20px] px-4 py-3.5 text-xs font-semibold focus:outline-none focus:border-[#1597E5] cursor-pointer"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-wide block">End Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={createEndDate}
+                    onChange={(e) => setCreateEndDate(e.target.value)}
+                    className="w-full bg-white border border-blue-100 rounded-[20px] px-4 py-3.5 text-xs font-semibold focus:outline-none focus:border-[#1597E5] cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex gap-3.5 pt-4 select-none">
                   <button
-                    onClick={() => handleCloseYear(y)}
-                    className="px-4 py-2 border border-red-200 text-red-500 hover:bg-red-50 rounded-full text-[10.5px] font-extrabold transition-all cursor-pointer active:scale-95"
+                    type="button"
+                    onClick={() => setShowCreateModal(false)}
+                    className="flex-1 py-3.5 bg-white border border-blue-100 hover:bg-slate-50 text-secondaryText rounded-[20px] font-extrabold text-xs transition-all cursor-pointer"
                   >
-                    Close
+                    Cancel
                   </button>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+                  <button
+                    type="submit"
+                    className="flex-1 py-3.5 bg-[#1597E5] hover:bg-[#00A1FF] text-white rounded-[20px] font-extrabold text-xs transition-all shadow-md shadow-brand-blue/20 cursor-pointer"
+                  >
+                    Create
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
-      {/* Edit Academic Year Slide-up Modal Panel (Screenshot 5) */}
+      {/* Edit Academic Year Slide-up Modal Panel */}
       <AnimatePresence>
         {editingYear && (
           <div className="fixed inset-0 bg-[#0F172A]/40 backdrop-blur-sm z-50 flex items-end justify-center">
-            {/* Click outside to close */}
             <div className="absolute inset-0" onClick={() => setEditingYear(null)} />
             
             <motion.div
@@ -323,7 +409,6 @@ const YearManagement = () => {
               transition={{ type: 'spring', damping: 25, stiffness: 220 }}
               className="bg-white rounded-t-[32px] w-full max-w-[640px] p-6 shadow-2xl z-10 relative space-y-5"
             >
-              {/* Drag indicator handle */}
               <div className="w-10 h-1 bg-slate-200 rounded-full mx-auto -mt-2 mb-3" />
 
               <div className="flex justify-between items-center pb-2 select-none">
@@ -363,28 +448,24 @@ const YearManagement = () => {
 
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-wide block">Start Date *</label>
-                  <div className="relative">
-                    <input
-                      type="date"
-                      required
-                      value={startDateVal}
-                      onChange={(e) => setStartDateVal(e.target.value)}
-                      className="w-full bg-white border border-[#e2e8f0] rounded-[20px] px-4 py-3.5 text-xs font-semibold focus:outline-none focus:border-[#1597E5] cursor-pointer"
-                    />
-                  </div>
+                  <input
+                    type="date"
+                    required
+                    value={startDateVal}
+                    onChange={(e) => setStartDateVal(e.target.value)}
+                    className="w-full bg-white border border-[#e2e8f0] rounded-[20px] px-4 py-3.5 text-xs font-semibold focus:outline-none focus:border-[#1597E5] cursor-pointer"
+                  />
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-wide block">End Date *</label>
-                  <div className="relative">
-                    <input
-                      type="date"
-                      required
-                      value={endDateVal}
-                      onChange={(e) => setEndDateVal(e.target.value)}
-                      className="w-full bg-white border border-[#e2e8f0] rounded-[20px] px-4 py-3.5 text-xs font-semibold focus:outline-none focus:border-[#1597E5] cursor-pointer"
-                    />
-                  </div>
+                  <input
+                    type="date"
+                    required
+                    value={endDateVal}
+                    onChange={(e) => setEndDateVal(e.target.value)}
+                    className="w-full bg-white border border-[#e2e8f0] rounded-[20px] px-4 py-3.5 text-xs font-semibold focus:outline-none focus:border-[#1597E5] cursor-pointer"
+                  />
                 </div>
 
                 <div className="flex gap-3 pt-4 select-none">

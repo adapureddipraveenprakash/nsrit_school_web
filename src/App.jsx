@@ -75,6 +75,12 @@ import Events from './pages/parent/subpages/Events';
 import CorrectAttendance from './pages/teacher/subpages/CorrectAttendance';
 import TakeAttendance from './pages/teacher/subpages/TakeAttendance';
 import StudentFeeProfile from './pages/principal/subpages/StudentFeeProfile';
+import TeacherDetails from './pages/principal/subpages/TeacherDetails';
+import CreateCoordinator from './pages/principal/subpages/CreateCoordinator';
+import CreateAccountant from './pages/principal/subpages/CreateAccountant';
+import CoordinatorDetails from './pages/principal/subpages/CoordinatorDetails';
+import PrincipalAccountantProfile from './pages/principal/subpages/AccountantProfile';
+import EditTeacher from './pages/principal/subpages/EditTeacher';
 
 // Role-Specific Imports to separate shared pages
 import PrincipalProfile from './pages/principal/subpages/MyProfile';
@@ -402,6 +408,12 @@ const AnimatedRoutes = () => {
           <Route path="/settings/academic-year" element={<AcademicYear />} />
           <Route path="/settings/year-management" element={<YearManagement />} />
           <Route path="/settings/exams-marks" element={<ExamsMarks />} />
+          <Route path="/settings/teacher-details/:teacherId" element={<TeacherDetails />} />
+          <Route path="/settings/edit-teacher/:teacherId" element={<EditTeacher />} />
+          <Route path="/settings/create-coordinator" element={<CreateCoordinator />} />
+          <Route path="/settings/create-accountant" element={<CreateAccountant />} />
+          <Route path="/settings/coordinator-details/:coordinatorId" element={<CoordinatorDetails />} />
+          <Route path="/settings/accountant-profile/:accountantId" element={<PrincipalAccountantProfile />} />
           <Route path="/settings/collection" element={<FeeCollection />} />
           <Route path="/settings/fee-reports" element={<BranchReports />} />
           <Route path="/settings/fee-history" element={<FeeHistory />} />

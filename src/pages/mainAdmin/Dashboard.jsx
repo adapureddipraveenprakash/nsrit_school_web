@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useDataFetch } from '../../hooks/useDataFetch';
 import { getDashboardStatistics } from '../../services/dataService';
@@ -71,19 +71,37 @@ const Dashboard = () => {
   // Fetch live statistics from Firebase Data Connect
   const contextBranchId = currentBranchContext?.id || null;
   const { data: stats } = useDataFetch(
-    () => getDashboardStatistics({ branchId: contextBranchId }),
-    [contextBranchId],
+    () => getDashboardStatistics(),
+    [],
     { defaultValue: null, pollInterval: 15000 }
   );
 
-  // Stats with fallback to branch array counts
-  const studentsCount = stats?.studentsAggregate?.count
-    ?? (currentBranchContext?.studentsCount ?? branches.reduce((s, b) => s + (b.studentsCount || 0), 0));
-  const facultyCount = stats?.teachersAggregate?.count
-    ?? (currentBranchContext?.facultyCount ?? branches.reduce((s, b) => s + (b.facultyCount || 0), 0));
-  const coordinatorsCount = stats?.coordinatorsAggregate?.count
-    ?? (currentBranchContext?.coordinatorsCount ?? branches.reduce((s, b) => s + (b.coordinatorsCount || 0), 0));
-  const branchesCount = currentBranchContext ? 1 : branches.length;
+  // Compute stats dynamically from the returned arrays
+  const studentsCount = useMemo(() => {
+    if (!stats?.students) return currentBranchContext?.studentsCount ?? branches.reduce((s, b) => s + (b.studentsCount || 0), 0);
+    if (contextBranchId) {
+      return stats.students.filter(s => s.branchId === contextBranchId).length;
+    }
+    return stats.students.length;
+  }, [stats, contextBranchId, currentBranchContext, branches]);
+
+  const facultyCount = useMemo(() => {
+    if (!stats?.users) return currentBranchContext?.facultyCount ?? branches.reduce((s, b) => s + (b.facultyCount || 0), 0);
+    if (contextBranchId) {
+      return stats.users.filter(u => u.branchId === contextBranchId && ['TEACHER', 'CLASS_TEACHER'].includes(u.role)).length;
+    }
+    return stats.users.filter(u => ['TEACHER', 'CLASS_TEACHER'].includes(u.role)).length;
+  }, [stats, contextBranchId, currentBranchContext, branches]);
+
+  const coordinatorsCount = useMemo(() => {
+    if (!stats?.users) return currentBranchContext?.coordinatorsCount ?? branches.reduce((s, b) => s + (b.coordinatorsCount || 0), 0);
+    if (contextBranchId) {
+      return stats.users.filter(u => u.branchId === contextBranchId && u.role === 'COORDINATOR').length;
+    }
+    return stats.users.filter(u => u.role === 'COORDINATOR').length;
+  }, [stats, contextBranchId, currentBranchContext, branches]);
+
+  const branchesCount = contextBranchId ? 1 : branches.length;
 
   const handleListItemClick = (item) => {
     if (item === 'Branch Context') navigate('/settings/branch-context');

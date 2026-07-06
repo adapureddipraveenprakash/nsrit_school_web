@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useDataFetch } from '../../hooks/useDataFetch';
-import { getDashboardStatistics } from '../../services/dataService';
+import { getBranchAnalytics } from '../../services/dataService';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FiBriefcase, FiMoreVertical, FiCreditCard, FiArrowRight,
@@ -32,12 +32,12 @@ const BranchAdminDashboard = () => {
 
   // Fetch real-time statistics from Firebase Data Connect
   const { data: stats } = useDataFetch(
-    () => getDashboardStatistics({ branchId: user?.branchId }),
+    () => getBranchAnalytics(user?.branchId),
     [user?.branchId],
-    { defaultValue: null, pollInterval: 15000 }
+    { defaultValue: null, pollInterval: 15000, skip: !user?.branchId }
   );
 
-  const studentsCount = stats?.studentsAggregate?.count ?? 105;
+  const studentsCount = stats?.students?.length ?? 105;
   const collectedFee = fees.collected || 10000;
   const pendingFee = fees.pending || 4369000;
   const totalFee = collectedFee + pendingFee;
