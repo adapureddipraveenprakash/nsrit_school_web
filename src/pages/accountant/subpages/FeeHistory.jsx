@@ -589,8 +589,11 @@ const FeeHistory = () => {
       };
     });
 
+    const dbReceipts = new Set(dbItems.map(p => p.receiptNo?.toUpperCase()));
+    const uniqueFsItems = fsItems.filter(p => !dbReceipts.has(p.receiptNo?.toUpperCase()) && !dbReceipts.has(p.id?.toUpperCase()));
+
     // Combine and sort by date descending
-    const combined = [...dbItems, ...fsItems].sort((a, b) => b.timestamp - a.timestamp);
+    const combined = [...dbItems, ...uniqueFsItems].sort((a, b) => b.timestamp - a.timestamp);
 
     // Apply year filter
     if (selectedYearTab === '2026') {

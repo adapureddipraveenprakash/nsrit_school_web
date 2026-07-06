@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiArrowLeft, FiEdit2, FiPhone, FiMail, FiCreditCard, FiFlag, FiChevronRight } from 'react-icons/fi';
 import { useApp } from '../../../context/AppContext';
-import { getCoordinatorDetails } from '../../../services/dataService';
+import { getCoordinatorDetails, updateCoordinator } from '../../../services/dataService';
 
 const CoordinatorDetails = () => {
   const navigate = useNavigate();
@@ -11,6 +11,39 @@ const CoordinatorDetails = () => {
 
   const [coordinator, setCoordinator] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [deactivating, setDeactivating] = useState(false);
+
+  const handleToggleActive = async () => {
+    if (!coordinator || deactivating) return;
+    const confirmMsg = coordinator.isActive !== false
+      ? "Are you sure you want to deactivate this coordinator?"
+      : "Are you sure you want to activate this coordinator?";
+    if (!window.confirm(confirmMsg)) return;
+
+    setDeactivating(true);
+    try {
+      const nextActive = coordinator.isActive === false;
+      await updateCoordinator({
+        coordinatorId: coordinator.id,
+        userId: coordinator.userId,
+        branchId: coordinator.branchId,
+        fullName: coordinator.user?.fullName || '',
+        countryCode: coordinator.user?.countryCode || '+91',
+        phoneNumber: coordinator.user?.phoneNumber || '',
+        email: coordinator.email,
+        gender: coordinator.gender || 'Other',
+        wing: coordinator.wing,
+        isActive: nextActive
+      });
+
+      setCoordinator(prev => prev ? { ...prev, isActive: nextActive } : null);
+    } catch (err) {
+      console.error('Error toggling coordinator status:', err);
+      alert('Failed to update status: ' + (err.message || err));
+    } finally {
+      setDeactivating(false);
+    }
+  };
 
   useEffect(() => {
     if (!coordinatorId) return;
@@ -111,10 +144,17 @@ const CoordinatorDetails = () => {
         </div>
 
         {/* Active status indicator bottom left */}
-        <div className="mt-6 flex items-center gap-1 text-[9.5px] font-black uppercase tracking-wider bg-emerald-400/20 text-emerald-300 px-3 py-1 rounded-full w-max border border-emerald-400/20">
-          <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-          <span>Active</span>
-        </div>
+        {coordinator.isActive !== false ? (
+          <div className="mt-6 flex items-center gap-1 text-[9.5px] font-black uppercase tracking-wider bg-emerald-400/20 text-emerald-300 px-3 py-1 rounded-full w-max border border-emerald-400/20">
+            <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+            <span>Active</span>
+          </div>
+        ) : (
+          <div className="mt-6 flex items-center gap-1 text-[9.5px] font-black uppercase tracking-wider bg-red-400/20 text-red-300 px-3 py-1 rounded-full w-max border border-red-400/20">
+            <span className="w-1.5 h-1.5 bg-red-400 rounded-full" />
+            <span>Inactive</span>
+          </div>
+        )}
       </div>
 
       {/* Role Pill Badges (Screenshot 2 Match) */}
@@ -180,6 +220,29 @@ const CoordinatorDetails = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Deactivate/Delete Action Button */}
+      <div className="flex justify-center pt-2 select-none">
+        <button
+          onClick={handleToggleActive}
+          disabled={deactivating}
+          className={`w-full py-3.5 rounded-[20px] text-xs font-extrabold flex items-center justify-center gap-2 border shadow-sm transition-all cursor-pointer active:scale-[0.98] ${
+            coordinator.isActive !== false
+              ? 'bg-red-50 text-red-500 border-red-200 hover:bg-red-100/50'
+              : 'bg-emerald-50 text-emerald-500 border-emerald-200 hover:bg-emerald-100/50'
+          }`}
+        >
+          {deactivating ? (
+            <div className={`w-4 h-4 border-2 border-t-transparent rounded-full animate-spin ${
+              coordinator.isActive !== false ? 'border-red-500' : 'border-emerald-500'
+            }`} />
+          ) : (
+            <span>
+              {coordinator.isActive !== false ? 'Deactivate Coordinator' : 'Activate Coordinator'}
+            </span>
+          )}
+        </button>
       </div>
     </motion.div>
   );

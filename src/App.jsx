@@ -81,6 +81,7 @@ import CreateAccountant from './pages/principal/subpages/CreateAccountant';
 import CoordinatorDetails from './pages/principal/subpages/CoordinatorDetails';
 import PrincipalAccountantProfile from './pages/principal/subpages/AccountantProfile';
 import EditTeacher from './pages/principal/subpages/EditTeacher';
+import EditCoordinator from './pages/principal/subpages/EditCoordinator';
 
 // Role-Specific Imports to separate shared pages
 import PrincipalProfile from './pages/principal/subpages/MyProfile';
@@ -413,6 +414,7 @@ const AnimatedRoutes = () => {
           <Route path="/settings/create-coordinator" element={<CreateCoordinator />} />
           <Route path="/settings/create-accountant" element={<CreateAccountant />} />
           <Route path="/settings/coordinator-details/:coordinatorId" element={<CoordinatorDetails />} />
+          <Route path="/settings/edit-coordinator/:coordinatorId" element={<EditCoordinator />} />
           <Route path="/settings/accountant-profile/:accountantId" element={<PrincipalAccountantProfile />} />
           <Route path="/settings/collection" element={<FeeCollection />} />
           <Route path="/settings/fee-reports" element={<BranchReports />} />

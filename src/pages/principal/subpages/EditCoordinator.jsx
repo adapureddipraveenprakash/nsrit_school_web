@@ -1,25 +1,61 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  FiArrowLeft, FiUser, FiPhone, FiMail, FiChevronDown, FiUserPlus, FiCheckCircle
+  FiArrowLeft, FiUser, FiPhone, FiMail, FiChevronDown, FiSave, FiCheckCircle
 } from 'react-icons/fi';
 import { useApp } from '../../../context/AppContext';
-import { createCoordinator, getStaffIdsByPrefix } from '../../../services/dataService';
-import dataConnectClient from '../../../services/dataConnectClient';
+import { getCoordinatorDetails, updateCoordinator } from '../../../services/dataService';
 
-const CreateCoordinator = () => {
+const EditCoordinator = () => {
   const navigate = useNavigate();
-  const { user, currentBranchContext } = useApp();
+  const { coordinatorId } = useParams();
+  const { user } = useApp();
 
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+
+  // Field states
   const [fullName, setFullName] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
   const [email, setEmail] = useState('');
   const [gender, setGender] = useState('');
   const [wing, setWing] = useState('Pre-Primary');
+  const [isActive, setIsActive] = useState(true);
+  const [userId, setUserId] = useState('');
+  const [branchId, setBranchId] = useState('');
 
-  const [loading, setLoading] = useState(false);
-  const [showToast, setShowToast] = useState(false);
+  useEffect(() => {
+    if (!coordinatorId) return;
+    const fetchProfile = async () => {
+      try {
+        const data = await getCoordinatorDetails(coordinatorId);
+        if (data) {
+          setFullName(data.user?.fullName || '');
+          setMobileNumber(data.user?.phoneNumber || '');
+          setEmail(data.email || '');
+          setGender(data.gender || '');
+          
+          // Normalize wing: PRE_PRIMARY -> Pre-Primary
+          let wingVal = 'Pre-Primary';
+          if (data.wing) {
+            const clean = data.wing.replace('_', '-').toLowerCase();
+            wingVal = clean.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('-');
+          }
+          setWing(wingVal);
+          setIsActive(data.isActive !== false);
+          setUserId(data.userId || '');
+          setBranchId(data.branchId || '');
+        }
+      } catch (err) {
+        console.error('Error fetching coordinator profile:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, [coordinatorId]);
 
   const isFormValid =
     fullName.trim() !== '' &&
@@ -29,68 +65,24 @@ const CreateCoordinator = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!isFormValid || loading) return;
+    if (!isFormValid || saving) return;
 
-    setLoading(true);
-    const branchId = user?.branchId || currentBranchContext?.id || 'sontyam-branch-id';
-    const branchCode = user?.branchCode || currentBranchContext?.code || 'SO';
-    const joiningYear = new Date().getFullYear();
-
+    setSaving(true);
     try {
-      const yearShort = joiningYear.toString().slice(-2);
-      const employeeIdPrefix = `${yearShort}${branchCode}CO`;
-
-      // Query existing staff with this prefix in the branch
-      const existingStaff = await getStaffIdsByPrefix({
-        branchId,
-        staffType: 'TEACHING',
-        employeeIdPrefix
-      });
-
-      let maxSerial = 0;
-      existingStaff.forEach(u => {
-        const empId = u.employeeId || '';
-        if (empId.startsWith(employeeIdPrefix)) {
-          const serialPart = empId.slice(employeeIdPrefix.length);
-          const serialNum = parseInt(serialPart, 10);
-          if (!isNaN(serialNum) && serialNum > maxSerial) {
-            maxSerial = serialNum;
-          }
-        }
-      });
-
-      // 1. Fetch sequence number
-      const seqRes = await dataConnectClient.query('GetEmployeeSequence', {
-        year: joiningYear,
-        branchCode,
-        staffType: 'TEACHING'
-      });
-      const lastSequence = seqRes?.employeeSequences?.[0]?.lastSequence || 0;
-      const serialNumber = Math.max(lastSequence, maxSerial) + 1;
-
-      // 2. Generate employeeId & firebaseUID
-      const employeeId = `${employeeIdPrefix}${String(serialNumber).padStart(3, '0')}`;
-      const firebaseUID = `COORD-${Date.now().toString(36)}-${Math.random().toString(36).substr(2, 5)}`;
-
-      // 3. Create payload
       const payload = {
-        firebaseUID,
+        coordinatorId,
+        userId,
+        branchId,
         fullName: fullName.trim(),
         countryCode: '+91',
         phoneNumber: mobileNumber.trim(),
         email: email.trim() || null,
         gender,
-        employeeId,
-        staffType: 'TEACHING',
-        joiningYear,
-        branchCode,
-        serialNumber,
-        branchId,
-        wing: wing.toUpperCase().replace('-', '_') // e.g. PRE_PRIMARY or PRIMARY
+        wing: wing.toUpperCase().replace('-', '_'),
+        isActive
       };
 
-      // 4. Save to database
-      await createCoordinator(payload);
+      await updateCoordinator(payload);
 
       setShowToast(true);
       setTimeout(() => {
@@ -98,12 +90,20 @@ const CreateCoordinator = () => {
         navigate(-1);
       }, 2000);
     } catch (err) {
-      console.error('Error creating coordinator:', err);
-      alert('Failed to register coordinator: ' + (err.message || err));
+      console.error('Error updating coordinator:', err);
+      alert('Failed to update coordinator: ' + (err.message || err));
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50/50 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-[#1597E5] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -111,7 +111,7 @@ const CreateCoordinator = () => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
       transition={{ duration: 0.3 }}
-      className="p-4 md:p-8 space-y-6 pb-28 md:pb-24 max-w-[640px] mx-auto animate-fade-in animate-fade-in-long relative select-none font-sans"
+      className="p-4 md:p-8 space-y-6 pb-28 md:pb-24 max-w-[640px] mx-auto select-none font-sans bg-gradient-to-b from-[#F3F8FC] to-[#F7FAFD] min-h-screen"
     >
       {/* Top Header Bar */}
       <header className="flex items-center justify-between py-2 border-b border-[#e2e8f0]/40 shrink-0">
@@ -121,24 +121,21 @@ const CreateCoordinator = () => {
         >
           <FiArrowLeft className="w-5 h-5" />
         </button>
-        <h1 className="text-sm font-bold text-dark pr-8 mx-auto">Create Coordinator</h1>
+        <h1 className="text-sm font-bold text-dark pr-8 mx-auto">Edit Coordinator</h1>
       </header>
 
-      {/* Top curved blue header card (Screenshot 2 Match) */}
+      {/* Hero card */}
       <div className="relative rounded-[32px] bg-gradient-to-br from-[#1597E5] to-[#00A1FF] p-6 text-white card-shadow overflow-hidden">
-        <div className="absolute top-[-30px] right-[-30px] w-36 h-36 rounded-full bg-white/10" />
-        <div className="absolute bottom-[-40px] left-[10%] w-48 h-48 rounded-full bg-white/5" />
-
-        <div className="relative z-10 select-none">
+        <div className="absolute top-[-30px] right-[-30px] w-36 h-36 rounded-full bg-white/10 pointer-events-none" />
+        <div className="relative z-10">
           <span className="text-[10px] text-white/70 font-semibold tracking-wider uppercase block mb-0.5">PRINCIPAL</span>
-          <h2 className="text-xl font-bold">Create Coordinator</h2>
-          <p className="text-[11px] text-white/80 font-medium mt-1">Coordinator inherits your branch automatically</p>
+          <h2 className="text-xl font-bold">Edit Coordinator Details</h2>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* PERSONAL INFO CARD (Screenshot 2 Match) */}
-        <div className="bg-white rounded-[24px] border border-[#e2e8f0]/45 overflow-hidden card-shadow select-none">
+        {/* Personal info */}
+        <div className="bg-white rounded-[24px] border border-[#e2e8f0]/45 overflow-hidden card-shadow">
           <div className="px-5 py-4 border-b border-[#e2e8f0]/50 bg-slate-50/50">
             <span className="text-[9.5px] font-black text-[#A0AEC0] tracking-wider uppercase">PERSONAL INFO</span>
           </div>
@@ -185,10 +182,10 @@ const CreateCoordinator = () => {
           </div>
         </div>
 
-        {/* ASSIGNMENT CARD (Screenshot 2 Match) */}
-        <div className="bg-white rounded-[24px] border border-[#e2e8f0]/45 overflow-hidden card-shadow select-none">
+        {/* Assignment info */}
+        <div className="bg-white rounded-[24px] border border-[#e2e8f0]/45 overflow-hidden card-shadow">
           <div className="px-5 py-4 border-b border-[#e2e8f0]/50 bg-slate-50/50">
-            <span className="text-[9.5px] font-black text-[#A0AEC0] tracking-wider uppercase">ASSIGNMENT</span>
+            <span className="text-[9.5px] font-black text-[#A0AEC0] tracking-wider uppercase">ASSIGNMENT & STATUS</span>
           </div>
 
           <div className="p-5 space-y-4">
@@ -228,57 +225,72 @@ const CreateCoordinator = () => {
                 <FiChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-[#A0AEC0] pointer-events-none" />
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* Success Toast */}
-        <AnimatePresence>
-          {showToast && (
-            <motion.div
-              initial={{ opacity: 0, y: 50, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.95 }}
-              className="fixed bottom-24 left-4 right-4 z-50 md:left-[calc(50%-200px)] md:right-auto md:w-[400px] bg-white border border-[#23C16B]/30 rounded-2xl p-4 card-shadow flex items-start gap-3.5 select-none"
-            >
-              <div className="w-9 h-9 rounded-full bg-[#E8F8F0] text-[#23C16B] flex items-center justify-center shrink-0">
-                <FiCheckCircle className="w-5 h-5" />
-              </div>
+            {/* Status Switch */}
+            <div className="flex items-center justify-between pt-2 px-1">
               <div>
-                <h4 className="text-xs font-bold text-dark">Coordinator Created</h4>
-                <p className="text-[10px] text-secondaryText mt-0.5 font-semibold leading-relaxed">
-                  Successfully registered coordinator {fullName} in the system.
-                </p>
+                <label className="text-[10px] font-black text-dark block">Coordinator Status</label>
+                <span className="text-[9px] text-[#A0AEC0] font-bold">Inactive coordinators cannot log in</span>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Sticky Bottom Create Coordinator Button Bar */}
-        <div className="fixed bottom-0 left-0 right-0 z-30 md:left-[288px]">
-          <div className="max-w-[640px] mx-auto px-4 pb-0">
-            <button
-              type="submit"
-              disabled={!isFormValid || loading}
-              className={`w-full py-4 rounded-t-[32px] font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer ${
-                isFormValid && !loading
-                  ? 'bg-[#80D0FF] hover:bg-[#1597E5] text-white shadow-[#1597E5]/20 active:scale-95'
-                  : 'bg-[#bfe6ff] text-white cursor-not-allowed'
-              }`}
-            >
-              {loading ? (
-                <div className="w-5.5 h-5.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <>
-                  <FiUserPlus className="w-4.5 h-4.5 text-white" />
-                  <span>Create Coordinator</span>
-                </>
-              )}
-            </button>
+              <button
+                type="button"
+                onClick={() => setIsActive(!isActive)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none cursor-pointer ${
+                  isActive ? 'bg-emerald-500' : 'bg-slate-300'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    isActive ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Submit Button */}
+        <button
+          type="submit"
+          disabled={!isFormValid || saving}
+          className={`w-full py-4 rounded-[20px] text-xs font-extrabold flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer ${
+            isFormValid && !saving
+              ? 'bg-[#1597E5] text-white hover:bg-[#1070A3] active:scale-[0.98]'
+              : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
+          }`}
+        >
+          {saving ? (
+            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <>
+              <FiSave className="w-4.5 h-4.5" />
+              <span>Save Changes</span>
+            </>
+          )}
+        </button>
       </form>
+
+      {/* Success Toast */}
+      <AnimatePresence>
+        {showToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            className="fixed bottom-6 left-4 right-4 md:left-auto md:right-6 md:w-[320px] bg-emerald-500 text-white px-5 py-4 rounded-[20px] shadow-lg flex items-center gap-3.5 z-50 border border-emerald-400/20"
+          >
+            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+              <FiCheckCircle className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-xs font-black tracking-tight leading-tight">Details Saved!</p>
+              <p className="text-[10px] text-emerald-100 font-bold mt-0.5">Coordinator profile updated in database</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
 
-export default CreateCoordinator;
+export default EditCoordinator;

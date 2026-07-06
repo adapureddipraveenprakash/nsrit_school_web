@@ -6,7 +6,7 @@ import {
   FiBookOpen, FiClock, FiHome, FiMapPin, FiMap, FiHash, FiUserPlus, FiCheckCircle, FiChevronDown
 } from 'react-icons/fi';
 import { useApp } from '../../../context/AppContext';
-import { createTeacher } from '../../../services/dataService';
+import { createTeacher, getStaffIdsByPrefix } from '../../../services/dataService';
 import dataConnectClient from '../../../services/dataConnectClient';
 
 const CreateTeacher = () => {
@@ -61,19 +61,40 @@ const CreateTeacher = () => {
       const joiningYear = yearPart ? parseInt(yearPart, 10) : 2026;
       const sType = staffType === 'Teaching Staff' ? 'TEACHING' : 'SUPPORTING';
 
-      // 1. Fetch sequence number
+      const yearShort = joiningYear.toString().slice(-2);
+      const typeCode = sType === 'TEACHING' ? 'TS' : 'SS';
+      const employeeIdPrefix = `${yearShort}${branchCode}${typeCode}`;
+
+      // Query existing staff with this prefix in the branch
+      const existingStaff = await getStaffIdsByPrefix({
+        branchId,
+        staffType: sType,
+        employeeIdPrefix
+      });
+
+      let maxSerial = 0;
+      existingStaff.forEach(u => {
+        const empId = u.employeeId || '';
+        if (empId.startsWith(employeeIdPrefix)) {
+          const serialPart = empId.slice(employeeIdPrefix.length);
+          const serialNum = parseInt(serialPart, 10);
+          if (!isNaN(serialNum) && serialNum > maxSerial) {
+            maxSerial = serialNum;
+          }
+        }
+      });
+
+      // 1. Fetch sequence number from sequence table
       const seqRes = await dataConnectClient.query('GetEmployeeSequence', {
         year: joiningYear,
         branchCode,
         staffType: sType
       });
       const lastSequence = seqRes?.employeeSequences?.[0]?.lastSequence || 0;
-      const serialNumber = lastSequence + 1;
+      const serialNumber = Math.max(lastSequence, maxSerial) + 1;
 
       // 2. Generate employeeId & firebaseUID
-      const yearShort = joiningYear.toString().slice(-2);
-      const typeCode = sType === 'TEACHING' ? 'TS' : 'SS';
-      const employeeId = `${yearShort}${branchCode}${typeCode}${String(serialNumber).padStart(3, '0')}`;
+      const employeeId = `${employeeIdPrefix}${String(serialNumber).padStart(3, '0')}`;
       const firebaseUID = `TEACHER-${Date.now().toString(36)}-${Math.random().toString(36).substr(2, 5)}`;
 
       // 3. Create teacher payload

@@ -93,12 +93,11 @@ const PrincipalDashboard = () => {
 
     studentsList.forEach(s => {
       const fsList = firestorePayments[s.id] || [];
-      const fsPaid = fsList.reduce((sum, p) => sum + Number(p.amount || 0), 0);
-
       const activePlans = (s.reportFeePlans || []).filter(plan => plan.isActive !== false);
 
       if (activePlans.length === 0) {
         // If they have no active plan but have paid some amount, count it towards total and collected!
+        const fsPaid = fsList.reduce((sum, p) => sum + Number(p.amount || 0), 0);
         if (fsPaid > 0) {
           collected += fsPaid;
           total += fsPaid;
@@ -108,14 +107,27 @@ const PrincipalDashboard = () => {
           total += plan.totalAmount || 0;
           waiver += plan.concessionAmount || 0;
 
+          const pgReceipts = new Set();
           let paidForPlan = 0;
           (plan.reportFeePayments || []).forEach(pay => {
             if (String(pay.status || 'RECORDED').toUpperCase() !== 'REVERSED') {
               paidForPlan += pay.amount || 0;
+              if (pay.receiptNumber) {
+                pgReceipts.add(pay.receiptNumber.toUpperCase());
+              }
             }
           });
 
-          const totalPaid = paidForPlan + fsPaid;
+          // Only sum Firestore payments that are not already in PostgreSQL
+          let fsPaidForPlan = 0;
+          fsList.forEach(p => {
+            const key = (p.id || p.receiptNumber || '').toUpperCase();
+            if (key && !pgReceipts.has(key)) {
+              fsPaidForPlan += Number(p.amount || 0);
+            }
+          });
+
+          const totalPaid = paidForPlan + fsPaidForPlan;
           collected += totalPaid;
           pending += Math.max((plan.totalAmount || 0) - totalPaid, 0);
         });
@@ -144,12 +156,12 @@ const PrincipalDashboard = () => {
     console.log('[Principal Dashboard] stats:', stats);
   }, [user, branchId, rawFeePlans, stats]);
 
-  const studentsCount = stats?.students?.length ?? 107;
-  const facultyCount = stats?.teachers?.length ?? 16;
-  const sectionsCount = stats?.sections?.length ?? 10;
-  const pendingCount = stats?.pendingPromotions?.length ?? 107;
+  const studentsCount = stats ? (stats.students?.length ?? 0) : 107;
+  const facultyCount = stats ? (stats.teachers?.length ?? 0) : 16;
+  const sectionsCount = stats ? (stats.sections?.length ?? 0) : 10;
+  const pendingCount = stats ? (stats.pendingPromotions?.length ?? 0) : 107;
 
-  const coordinatorsCount = stats?.coordinators?.length ?? 2;
+  const coordinatorsCount = stats ? (stats.coordinators?.length ?? 0) : 2;
   const accountantsCount = 1;
 
   const handleListItemClick = (title) => {

@@ -53,6 +53,7 @@ const Q = {
   GET_TIMETABLES_FOR_BRANCH: 'GetTimetablesForBranch',
   GET_TIMETABLE_FOR_TEACHER: 'GetTimetableForTeacher',
   GET_SUGGESTIONS_BY_BRANCH: 'GetSuggestionsByBranch',
+  GET_STAFF_IDS_BY_PREFIX: 'GetStaffIdsByPrefix',
   GET_SUGGESTIONS_BY_PARENT: 'GetSuggestionsByParent',
   GET_NOTIFICATIONS_BY_USER: 'GetNotificationsByUser',
   GET_UNREAD_NOTIFICATION_COUNT: 'GetUnreadNotificationCount',
@@ -389,9 +390,9 @@ export const getSubjects = async ({ branchId } = {}) => {
 };
 
 // ─── Coordinators ─────────────────────────────────────────────────────────────
-export const getCoordinators = async ({ branchId, limit = 100, offset = 0 } = {}) => {
+export const getCoordinators = async ({ branchId } = {}) => {
   const res = await dataConnectClient.query(Q.GET_COORDINATORS, {
-    branchId: branchId || null, limit, offset,
+    branchId: branchId || null
   });
   return res.coordinators || [];
 };
@@ -805,4 +806,9 @@ export const publishTimetableSection = async (payload) => {
 
 export const unpublishTimetableSection = async (payload) => {
   return dataConnectClient.mutate(M.UNPUBLISH_TIMETABLE_SECTION, payload);
+};
+
+export const getStaffIdsByPrefix = async ({ branchId, staffType, employeeIdPrefix }) => {
+  const res = await dataConnectClient.query(Q.GET_STAFF_IDS_BY_PREFIX, { branchId, staffType, employeeIdPrefix });
+  return res.users || [];
 };

@@ -636,29 +636,42 @@ const FeeLedger = () => {
   const normalizedLedgers = useMemo(() => {
     return studentsList.map(s => {
       const fsList = firestorePayments[s.id] || [];
-      const fsPaid = fsList.reduce((sum, p) => sum + Number(p.amount || 0), 0);
-
       const activePlan = (s.reportFeePlans || []).find(p => p.isActive !== false);
       let paid = 0;
       let total = 0;
       let pending = 0;
       let feePlanId = '';
+      let fsPaidForPlan = 0;
 
       if (activePlan) {
         feePlanId = activePlan.id;
+        const pgReceipts = new Set();
         (activePlan.reportFeePayments || []).forEach(pay => {
           if (String(pay.status || 'RECORDED').toUpperCase() !== 'REVERSED') {
             paid += pay.amount || 0;
+            if (pay.receiptNumber) {
+              pgReceipts.add(pay.receiptNumber.toUpperCase());
+            }
           }
         });
+
+        // Sum only Firestore payments not in Postgres
+        fsList.forEach(p => {
+          const key = (p.id || p.receiptNumber || '').toUpperCase();
+          if (key && !pgReceipts.has(key)) {
+            fsPaidForPlan += Number(p.amount || 0);
+          }
+        });
+
         total = activePlan.totalAmount || 0;
-        pending = Math.max(total - (paid + fsPaid), 0);
+        pending = Math.max(total - (paid + fsPaidForPlan), 0);
       } else {
-        total = fsPaid;
+        fsPaidForPlan = fsList.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+        total = fsPaidForPlan;
         pending = 0;
       }
 
-      const paidTotal = paid + fsPaid;
+      const paidTotal = paid + fsPaidForPlan;
       const pct = total > 0 ? Math.round((paidTotal / total) * 100) : 0;
 
       let status = 'DUE';

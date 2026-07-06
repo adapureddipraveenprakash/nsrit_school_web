@@ -1466,12 +1466,6 @@ mutation CreateCoordinator(
       role
       branchId
     }
-    activeCoordinators: coordinators(
-      where: {branchId: {eq: $branchId}, wing: {eq: $wing}, isActive: {eq: true}}
-      limit: 1
-    ) @check(expr: "!this.exists(c, true)", message: "This wing already has an active coordinator") {
-      id
-    }
   }
   employeeSequence_upsert(
     data: {
@@ -5103,6 +5097,73 @@ mutation UpdateStudentSection($studentId: UUID!, $classId: UUID!, $sectionId: UU
     data: {
       academicClassId: $classId
       sectionId: $sectionId
+      updatedAt_expr: "request.time"
+    }
+  )
+}
+
+mutation UpdateCoordinator(
+  $coordinatorId: UUID!
+  $userId: UUID!
+  $branchId: UUID!
+  $fullName: String!
+  $countryCode: String!
+  $phoneNumber: String!
+  $email: String
+  $gender: String!
+  $wing: String!
+  $isActive: Boolean!
+) @auth(level: USER) @transaction {
+  query @redact {
+    users(
+      where: {
+        _and: [
+          {firebaseUID: {eq_expr: "auth.uid"}}
+          {isActive: {eq: true}}
+          {
+            _or: [
+              {role: {in: ["MAIN_ADMIN", "main_admin"]}}
+              {userRoles_on_user: {exist: {role: {in: ["MAIN_ADMIN", "main_admin"]}}}}
+              {branches_on_principal: {exist: {id: {eq: $branchId}, isActive: {eq: true}}}}
+              {
+                _and: [
+                  {branchId: {eq: $branchId}}
+                  {
+                    _or: [
+                      {role: {in: ["PRINCIPAL", "principal"]}}
+                      {userRoles_on_user: {exist: {role: {in: ["PRINCIPAL", "principal"]}}}}
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+      limit: 1
+    ) @check(expr: "this.exists(u, true)", message: "Principal or Main Admin for this branch required") {
+      id
+      role
+      branchId
+    }
+  }
+  user_update(
+    id: $userId
+    data: {
+      fullName: $fullName
+      countryCode: $countryCode
+      phoneNumber: $phoneNumber
+      isActive: $isActive
+      updatedAt_expr: "request.time"
+    }
+  )
+  coordinator_update(
+    id: $coordinatorId
+    data: {
+      wing: $wing
+      gender: $gender
+      email: $email
+      isActive: $isActive
       updatedAt_expr: "request.time"
     }
   )

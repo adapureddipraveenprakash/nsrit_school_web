@@ -236,6 +236,7 @@ You can also follow the instructions from the [Data Connect documentation](https
   - [*RecordMarksAuditLog*](#recordmarksauditlog)
   - [*UpdateStudentStatus*](#updatestudentstatus)
   - [*UpdateStudentSection*](#updatestudentsection)
+  - [*UpdateCoordinator*](#updatecoordinator)
 
 # TanStack Query Firebase & TanStack React Query
 This SDK provides [React](https://react.dev/) hooks generated specific to your application, for the operations found in the connector `nsrit`. These hooks are generated using [TanStack Query Firebase](https://react-query-firebase.invertase.dev/) by our partners at Invertase, a library built on top of [TanStack React Query v5](https://tanstack.com/query/v5/docs/framework/react/overview).
@@ -24629,6 +24630,120 @@ export default function UpdateStudentSectionComponent() {
   // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
   if (mutation.isSuccess) {
     console.log(mutation.data.student_update);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## UpdateCoordinator
+You can execute the `UpdateCoordinator` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useUpdateCoordinator(options?: useDataConnectMutationOptions<UpdateCoordinatorData, FirebaseError, UpdateCoordinatorVariables>): UseDataConnectMutationResult<UpdateCoordinatorData, UpdateCoordinatorVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useUpdateCoordinator(dc: DataConnect, options?: useDataConnectMutationOptions<UpdateCoordinatorData, FirebaseError, UpdateCoordinatorVariables>): UseDataConnectMutationResult<UpdateCoordinatorData, UpdateCoordinatorVariables>;
+```
+
+### Variables
+The `UpdateCoordinator` Mutation requires an argument of type `UpdateCoordinatorVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface UpdateCoordinatorVariables {
+  coordinatorId: UUIDString;
+  userId: UUIDString;
+  branchId: UUIDString;
+  fullName: string;
+  countryCode: string;
+  phoneNumber: string;
+  email?: string | null;
+  gender: string;
+  wing: string;
+  isActive: boolean;
+}
+```
+### Return Type
+Recall that calling the `UpdateCoordinator` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `UpdateCoordinator` Mutation is of type `UpdateCoordinatorData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface UpdateCoordinatorData {
+  user_update?: User_Key | null;
+  coordinator_update?: Coordinator_Key | null;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `UpdateCoordinator`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, UpdateCoordinatorVariables } from '@dataconnect/generated';
+import { useUpdateCoordinator } from '@dataconnect/generated/react'
+
+export default function UpdateCoordinatorComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useUpdateCoordinator();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useUpdateCoordinator(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useUpdateCoordinator(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useUpdateCoordinator(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useUpdateCoordinator` Mutation requires an argument of type `UpdateCoordinatorVariables`:
+  const updateCoordinatorVars: UpdateCoordinatorVariables = {
+    coordinatorId: ..., 
+    userId: ..., 
+    branchId: ..., 
+    fullName: ..., 
+    countryCode: ..., 
+    phoneNumber: ..., 
+    email: ..., // optional
+    gender: ..., 
+    wing: ..., 
+    isActive: ..., 
+  };
+  mutation.mutate(updateCoordinatorVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ coordinatorId: ..., userId: ..., branchId: ..., fullName: ..., countryCode: ..., phoneNumber: ..., email: ..., gender: ..., wing: ..., isActive: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(updateCoordinatorVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.user_update);
+    console.log(mutation.data.coordinator_update);
   }
   return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
 }

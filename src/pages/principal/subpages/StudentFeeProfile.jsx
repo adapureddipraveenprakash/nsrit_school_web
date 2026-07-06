@@ -567,7 +567,10 @@ const StudentFeeProfile = () => {
       collectedByName: 'B. Geetha'
     }));
 
-    return [...dbItems, ...fsItems].sort((a, b) => {
+    const dbReceipts = new Set(dbItems.map(p => p.receiptNumber?.toUpperCase()));
+    const uniqueFsItems = fsItems.filter(p => !dbReceipts.has(p.receiptNumber?.toUpperCase()) && !dbReceipts.has(p.id?.toUpperCase()));
+
+    return [...dbItems, ...uniqueFsItems].sort((a, b) => {
       const dateA = a.paymentDate ? new Date(a.paymentDate).getTime() : 0;
       const dateB = b.paymentDate ? new Date(b.paymentDate).getTime() : 0;
       return dateB - dateA;

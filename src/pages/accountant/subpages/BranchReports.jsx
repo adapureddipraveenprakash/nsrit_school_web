@@ -59,21 +59,33 @@ const BranchReports = () => {
       let total = 0;
       let paid = 0;
       let concession = 0;
+      const pgReceipts = new Set();
 
       activePlans.forEach(plan => {
         total += plan.totalAmount || 0;
         concession += plan.concessionAmount || 0;
         const payments = plan.reportFeePayments || [];
-        paid += payments
+        payments
           .filter(p => String(p.status || 'RECORDED').toUpperCase() !== 'REVERSED')
-          .reduce((sum, p) => sum + (p.amount || 0), 0);
+          .forEach(p => {
+            paid += p.amount || 0;
+            if (p.receiptNumber) {
+              pgReceipts.add(p.receiptNumber.toUpperCase());
+            }
+          });
       });
 
-      // Integrate Firestore payments for this student
+      // Integrate Firestore payments for this student, filtering out duplicates
       const fsList = firestorePayments.filter(p => p.studentId === s.id);
-      const fsPaid = fsList.reduce((sum, p) => sum + Number(p.amount || 0), 0);
-      const paidTotal = paid + fsPaid;
+      let fsPaid = 0;
+      fsList.forEach(p => {
+        const key = (p.id || p.receiptNumber || '').toUpperCase();
+        if (key && !pgReceipts.has(key)) {
+          fsPaid += Number(p.amount || 0);
+        }
+      });
 
+      const paidTotal = paid + fsPaid;
       const due = Math.max(total - paidTotal, 0);
       const percent = total > 0 ? Math.round((paidTotal / total) * 100) : 0;
 

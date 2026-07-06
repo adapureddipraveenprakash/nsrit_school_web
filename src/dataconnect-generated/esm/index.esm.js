@@ -1162,6 +1162,18 @@ export function updateStudentSection(dcOrVars, vars) {
   return executeMutation(updateStudentSectionRef(dcInstance, inputVars));
 }
 
+export const updateCoordinatorRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'UpdateCoordinator', inputVars);
+}
+updateCoordinatorRef.operationName = 'UpdateCoordinator';
+
+export function updateCoordinator(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(updateCoordinatorRef(dcInstance, inputVars));
+}
+
 export const getCurrentUserRef = (dcOrVars, vars) => {
   const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
   dcInstance._useGeneratedSdk();
