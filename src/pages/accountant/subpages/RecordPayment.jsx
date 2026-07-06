@@ -9,7 +9,7 @@ import {
 import { BiReceipt } from 'react-icons/bi';
 import { useApp } from '../../../context/AppContext';
 import { useDataFetch } from '../../../hooks/useDataFetch';
-import { getStudents, getStudentFeeProfile, recordPayment } from '../../../services/dataService';
+import { getStudents, getStudentFeeProfile, recordPayment, createFeePlan } from '../../../services/dataService';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../../../services/firebase';
 
@@ -114,10 +114,46 @@ const RecordPayment = () => {
     });
 
     try {
-      const res = await getStudentFeeProfile(student.id);
+      let res = await getStudentFeeProfile(student.id);
       if (res && res.student) {
-        const plans = res.student.profileFeePlans || [];
-        const activePlans = plans.filter(p => p.isActive !== false);
+        let plans = res.student.profileFeePlans || [];
+        let activePlans = plans.filter(p => p.isActive !== false);
+        
+        // Auto-assign default fee plan for new real students
+        if (activePlans.length === 0 && !student.id.startsWith('mock-')) {
+          console.log('[RecordPayment] Real student has no active fee plan. Auto-creating a default one...');
+          try {
+            const planPayload = {
+              studentId: student.id,
+              academicYear: new Date().getFullYear(),
+              term1Fee: 15000,
+              term2Fee: 15000,
+              term3Fee: 15000,
+              booksFee: 5000,
+              transportFee: 0,
+              concessionType: null,
+              concessionValue: 0,
+              concessionAmount: 0,
+              grossAmount: 50000,
+              totalAmount: 50000,
+              createdById: user?.id || 'collected-by-id-placeholder',
+              branchId: user?.branchId || student.branchId || 'sontyam-branch-id',
+              actorRole: String(user?.role || 'ACCOUNTANT').toUpperCase(),
+              oldValue: null,
+              newValue: 'Default fee plan auto-assigned'
+            };
+            await createFeePlan(planPayload);
+            console.log('[RecordPayment] Default fee plan created successfully. Refetching profile...');
+            
+            res = await getStudentFeeProfile(student.id);
+            if (res && res.student) {
+              plans = res.student.profileFeePlans || [];
+              activePlans = plans.filter(p => p.isActive !== false);
+            }
+          } catch (createErr) {
+            console.error('[RecordPayment] Failed to auto-create fee plan:', createErr.message || createErr);
+          }
+        }
         
         let total = 0;
         let paid = 0;
@@ -235,10 +271,10 @@ const RecordPayment = () => {
     }
 
     setSubmitting(true);
+    const receiptSeq = Math.floor(Math.random() * 900000) + 100000;
+    const receiptNo = `REC-SD-${Date.now()}-${receiptSeq}`;
+
     try {
-      const receiptSeq = Math.floor(Math.random() * 900000) + 100000;
-      const receiptNo = `REC-SD-${Date.now()}-${receiptSeq}`;
-      
       const payload = {
         studentId: selectedStudent.id,
         feePlanId: feeStats.activePlanId || 'plan-uuid-placeholder',
@@ -252,8 +288,7 @@ const RecordPayment = () => {
         branchId: user?.branchId || selectedStudent.branchId || 'sontyam-branch-id',
         receiptYear: new Date().getFullYear(),
         branchCode: user?.branchCode || 'SD',
-        receiptSequence: receiptSeq,
-        academicYear: new Date().getFullYear()
+        receiptSequence: receiptSeq
       };
 
       await recordPayment(payload);
