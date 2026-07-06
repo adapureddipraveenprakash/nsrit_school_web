@@ -431,8 +431,8 @@ export const getAccountantProfile = async (accountantId) => {
 };
 
 // ─── Fees ─────────────────────────────────────────────────────────────────────
-export const getFeeCategories = async ({ branchId } = {}) => {
-  const res = await dataConnectClient.query(Q.GET_FEE_CATEGORIES, { branchId: branchId || null });
+export const getFeeCategories = async ({ limit = 100, offset = 0 } = {}) => {
+  const res = await dataConnectClient.query(Q.GET_FEE_CATEGORIES, { limit, offset });
   return res.feeCategories || [];
 };
 

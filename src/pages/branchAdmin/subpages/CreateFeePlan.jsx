@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   FiArrowLeft, FiSearch, FiCalendar, FiBookOpen, FiTruck,
-  FiChevronDown, FiPlus, FiFolder, FiSave, FiCreditCard, FiX, FiCheckCircle
+  FiChevronDown, FiPlus, FiFolder, FiSave, FiCreditCard, FiX, FiCheckCircle, FiAlertCircle
 } from 'react-icons/fi';
 import { useApp } from '../../../context/AppContext';
 import { useDataFetch } from '../../../hooks/useDataFetch';

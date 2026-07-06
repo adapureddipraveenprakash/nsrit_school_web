@@ -433,6 +433,7 @@ const StudentRecords = () => {
     });
 
     if (isStudentManagement) {
+      
       // Helper function to format date
       const formatDate = (dateStr) => {
         if (!dateStr) return '–';

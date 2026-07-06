@@ -2953,8 +2953,8 @@ mutation CreateFeePlan(
                   {branchId: {eq: $branchId}}
                   {
                     _or: [
-                      {role: {in: ["PRINCIPAL", "principal", "BRANCH_ADMIN", "branch_admin", "COORDINATOR", "coordinator"]}}
-                      {userRoles_on_user: {exist: {role: {in: ["PRINCIPAL", "principal", "BRANCH_ADMIN", "branch_admin", "COORDINATOR", "coordinator"]}}}}
+                      {role: {in: ["PRINCIPAL", "principal", "BRANCH_ADMIN", "branch_admin", "COORDINATOR", "coordinator", "ACCOUNTANT", "accountant"]}}
+                      {userRoles_on_user: {exist: {role: {in: ["PRINCIPAL", "principal", "BRANCH_ADMIN", "branch_admin", "COORDINATOR", "coordinator", "ACCOUNTANT", "accountant"]}}}}
                     ]
                   }
                 ]
@@ -3048,8 +3048,8 @@ mutation UpdateFeePlan(
                   {branchId: {eq: $branchId}}
                   {
                     _or: [
-                      {role: {in: ["PRINCIPAL", "principal", "BRANCH_ADMIN", "branch_admin", "COORDINATOR", "coordinator"]}}
-                      {userRoles_on_user: {exist: {role: {in: ["PRINCIPAL", "principal", "BRANCH_ADMIN", "branch_admin", "COORDINATOR", "coordinator"]}}}}
+                      {role: {in: ["PRINCIPAL", "principal", "BRANCH_ADMIN", "branch_admin", "COORDINATOR", "coordinator", "ACCOUNTANT", "accountant"]}}
+                      {userRoles_on_user: {exist: {role: {in: ["PRINCIPAL", "principal", "BRANCH_ADMIN", "branch_admin", "COORDINATOR", "coordinator", "ACCOUNTANT", "accountant"]}}}}
                     ]
                   }
                 ]
@@ -3119,8 +3119,8 @@ mutation ClearFeePlanItems($feePlanId: UUID!, $branchId: UUID!) @auth(level: USE
                   {branchId: {eq: $branchId}}
                   {
                     _or: [
-                      {role: {in: ["PRINCIPAL", "principal", "BRANCH_ADMIN", "branch_admin", "COORDINATOR", "coordinator"]}}
-                      {userRoles_on_user: {exist: {role: {in: ["PRINCIPAL", "principal", "BRANCH_ADMIN", "branch_admin", "COORDINATOR", "coordinator"]}}}}
+                      {role: {in: ["PRINCIPAL", "principal", "BRANCH_ADMIN", "branch_admin", "COORDINATOR", "coordinator", "ACCOUNTANT", "accountant"]}}
+                      {userRoles_on_user: {exist: {role: {in: ["PRINCIPAL", "principal", "BRANCH_ADMIN", "branch_admin", "COORDINATOR", "coordinator", "ACCOUNTANT", "accountant"]}}}}
                     ]
                   }
                 ]
@@ -3161,8 +3161,8 @@ mutation CreateFeePlanItem($feePlanId: UUID!, $categoryId: UUID!, $amount: Float
                   {branchId: {eq: $branchId}}
                   {
                     _or: [
-                      {role: {in: ["PRINCIPAL", "principal", "BRANCH_ADMIN", "branch_admin", "COORDINATOR", "coordinator"]}}
-                      {userRoles_on_user: {exist: {role: {in: ["PRINCIPAL", "principal", "BRANCH_ADMIN", "branch_admin", "COORDINATOR", "coordinator"]}}}}
+                      {role: {in: ["PRINCIPAL", "principal", "BRANCH_ADMIN", "branch_admin", "COORDINATOR", "coordinator", "ACCOUNTANT", "accountant"]}}
+                      {userRoles_on_user: {exist: {role: {in: ["PRINCIPAL", "principal", "BRANCH_ADMIN", "branch_admin", "COORDINATOR", "coordinator", "ACCOUNTANT", "accountant"]}}}}
                     ]
                   }
                 ]
