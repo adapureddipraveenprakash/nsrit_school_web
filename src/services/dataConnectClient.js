@@ -127,8 +127,97 @@ const maybeRecordMainAdminAudit = async ({ operationName, variables, data, token
     tokenOverride: token, skipAudit: true,
   });
 };
+let cachedFallbackBranchId = null;
+
+const getFallbackBranchId = async () => {
+  if (cachedFallbackBranchId) return cachedFallbackBranchId;
+  
+  try {
+    const context = getJSON(STORAGE_KEYS.MAIN_ADMIN_BRANCH_CONTEXT);
+    if (context && context.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(context.id)) {
+      cachedFallbackBranchId = context.id;
+      return cachedFallbackBranchId;
+    }
+  } catch (e) {}
+
+  try {
+    const user = getJSON(STORAGE_KEYS.AUTH_USER);
+    if (user && user.branchId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(user.branchId)) {
+      cachedFallbackBranchId = user.branchId;
+      return cachedFallbackBranchId;
+    }
+  } catch (e) {}
+
+  try {
+    const apiKey = firebaseConfig.apiKey;
+    const connectorName = buildConnectorName();
+    const token = await getAuthToken();
+    if (token) {
+      const response = await fetch(
+        `${dataConnectConfig.apiBaseURL}/${connectorName}:executeQuery?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Goog-Api-Client': 'gl-js/ web/nsrit-connect',
+            'X-Firebase-Auth-Token': token,
+          },
+          body: JSON.stringify({
+            name: connectorName,
+            operationName: 'GetBranches',
+            variables: { limit: 10 },
+          }),
+        }
+      );
+      const payload = await response.json();
+      const branches = payload.data?.branches || [];
+      const sontyam = branches.find(b => b.name === 'Sontyam') || branches[0];
+      if (sontyam && sontyam.id) {
+        cachedFallbackBranchId = sontyam.id;
+        return cachedFallbackBranchId;
+      }
+    }
+  } catch (err) {
+    console.warn('[DataConnect] Failed to resolve fallback branch UUID:', err.message);
+  }
+
+  return null;
+};
 
 const executeConnectorOperation = async ({ operationName, variables = {}, type, tokenOverride, skipAudit = false }) => {
+  // If variables contain 'sontyam-branch-id', replace it dynamically with the actual branch UUID
+  if (operationName !== 'GetBranches') {
+    const fallbackId = await getFallbackBranchId();
+    if (fallbackId) {
+      for (const key of Object.keys(variables || {})) {
+        if (variables[key] === 'sontyam-branch-id') {
+          variables[key] = fallbackId;
+        }
+      }
+    }
+  }
+
+  // Guard against invalid UUID placeholders passed as variables
+  const hasInvalidUuid = Object.entries(variables || {}).some(([key, val]) => {
+    if (typeof val === 'string' && (key.endsWith('Id') || key.toLowerCase().includes('uuid'))) {
+      if (val.includes('-placeholder') || val === 'sontyam-branch-id' || val === 'mock-plan-id' || val === 'mock-student-id') {
+        return true;
+      }
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val)) {
+        return true;
+      }
+    }
+    return false;
+  });
+
+  if (hasInvalidUuid) {
+    console.warn(`[DataConnect] Request for ${operationName} bypassed: invalid UUID in variables.`, variables);
+    if (type === 'mutation') {
+      throw new Error(`Invalid UUID parameter passed to mutation ${operationName}`);
+    }
+    return {};
+  }
+
   const token = tokenOverride || (await getAuthToken());
   const apiKey = firebaseConfig.apiKey;
   const connectorName = buildConnectorName();
