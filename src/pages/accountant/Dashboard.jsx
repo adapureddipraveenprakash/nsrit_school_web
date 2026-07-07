@@ -507,7 +507,7 @@ const handleDownloadPdf = (payment) => {
               </div>
             ) : displayPayments.length > 0 ? (
               <div className="space-y-3">
-                {displayPayments.map((p) => {
+                {displayPayments.map((p, idx) => {
                   const studentName = p.student?.fullName || 'Unknown Student';
                   const dateStr = formatDate(p.paymentDate);
                   const modeStr = p.paymentMode ? ` - ${p.paymentMode.toUpperCase()}` : '';

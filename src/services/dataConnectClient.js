@@ -159,7 +159,7 @@ const getFallbackBranchId = async () => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-Goog-Api-Client': 'gl-js/ web/nsrit-connect',
+            'X-Goog-Api-Client': 'gl-js/web/nsrit-connect',
             'X-Firebase-Auth-Token': token,
           },
           body: JSON.stringify({
@@ -234,7 +234,7 @@ const executeConnectorOperation = async ({ operationName, variables = {}, type, 
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Goog-Api-Client': 'gl-js/ web/nsrit-connect',
+        'X-Goog-Api-Client': 'gl-js/web/nsrit-connect',
         ...(token ? { 'X-Firebase-Auth-Token': token } : {}),
       },
       body: JSON.stringify({
