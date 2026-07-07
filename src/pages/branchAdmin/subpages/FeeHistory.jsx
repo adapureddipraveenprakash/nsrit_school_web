@@ -9,8 +9,7 @@ import {
 import { useApp } from '../../../context/AppContext';
 import { useDataFetch } from '../../../hooks/useDataFetch';
 import { getPaymentHistory, getStudents } from '../../../services/dataService';
-import { db } from '../../../services/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+
 
 // Helper to convert numbers to words in Indian numbering system
 
@@ -93,7 +92,7 @@ const handleDownloadPdf = (payment) => {
     setActiveSharePayment(payment);
   };
 
-  const [firestorePayments, setFirestorePayments] = useState([]);
+
 
   const branchId = user?.branchId || 'sontyam-branch-id';
 
@@ -111,30 +110,7 @@ const handleDownloadPdf = (payment) => {
     { defaultValue: [] }
   );
 
-  // Fetch Firestore payments
-  useEffect(() => {
-    const fetchFirestore = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, 'fee_payments'));
-        const list = [];
-        querySnapshot.forEach(docSnap => {
-          const studentId = docSnap.id;
-          const data = docSnap.data();
-          const items = data.list || [];
-          items.forEach(item => {
-            list.push({
-              ...item,
-              studentId
-            });
-          });
-        });
-        setFirestorePayments(list);
-      } catch (err) {
-        console.error('Error fetching firestore payments:', err);
-      }
-    };
-    fetchFirestore();
-  }, [feeRefreshTrigger]);
+
 
   const formatDDMMYYYY = (dateStr) => {
     if (!dateStr) return '';
@@ -164,42 +140,21 @@ const handleDownloadPdf = (payment) => {
         date: formatDDMMYYYY(p.paymentDate),
         year: dateObj.getFullYear(),
         mode: p.paymentMode || 'CASH',
-        receiptNo: getPaymentReceiptNo(p, (typeof student !== 'undefined' ? student : (typeof selectedStudent !== 'undefined' ? selectedStudent : null)), idx),
+        receiptNo: getPaymentReceiptNo(p, student, idx),
         timestamp: dateObj.getTime(),
         remarks: p.remarks || '',
         collectedByName: p.collectedBy?.fullName || 'B. Geetha'
       };
     });
 
-    // 2. Map Firestore payments
-    const fsItems = firestorePayments.map((p, idx) => {
-      const student = dbStudents.find(s => s.id === p.studentId);
-      const dateObj = p.paymentDate ? new Date(p.paymentDate) : new Date();
-      return {
-        id: p.id,
-        studentName: student?.fullName || 'Unknown Student',
-        class: student ? `${student.academicClass?.name || ''}-${student.section?.name || ''}`.trim().replace(/^-|-$/, '') : 'N/A',
-        admissionNo: student?.studentId || 'N/A',
-        amount: p.amount || 0,
-        date: formatDDMMYYYY(p.paymentDate),
-        year: dateObj.getFullYear(),
-        mode: p.paymentMode || 'CASH',
-        receiptNo: getPaymentReceiptNo(p, (typeof student !== 'undefined' ? student : (typeof selectedStudent !== 'undefined' ? selectedStudent : null)), idx),
-        timestamp: dateObj.getTime(),
-        remarks: p.remarks || '',
-        collectedByName: 'B. Geetha'
-      };
-    });
-
-    // Combine and sort by date descending
-    const combined = [...dbItems, ...fsItems].sort((a, b) => b.timestamp - a.timestamp);
+    const combined = [...dbItems].sort((a, b) => b.timestamp - a.timestamp);
 
     // Apply year filter
     if (selectedYearTab === '2026') {
       return combined.filter(p => p.year === 2026);
     }
     return combined;
-  }, [dbPayments, dbStudents, firestorePayments, selectedYearTab]);
+  }, [dbPayments, dbStudents, selectedYearTab]);
 
   return (
     <motion.div

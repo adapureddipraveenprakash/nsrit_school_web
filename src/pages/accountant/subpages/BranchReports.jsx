@@ -5,43 +5,19 @@ import { FiArrowLeft, FiFileText, FiDownload, FiSearch, FiInbox } from 'react-ic
 import { useApp } from '../../../context/AppContext';
 import { useDataFetch } from '../../../hooks/useDataFetch';
 import { getFeeReports } from '../../../services/dataService';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../../../services/firebase';
+
 
 const BranchReports = () => {
   const navigate = useNavigate();
   const { user, feeRefreshTrigger } = useApp();
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('All');
-  const [firestorePayments, setFirestorePayments] = useState([]);
+
 
   const branchId = user?.branchId || 'sontyam-branch-id';
   const tabs = ['All', 'Paid', 'Partial', 'Due'];
 
-  // Fetch Firestore payments
-  useEffect(() => {
-    const fetchFirestore = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, 'fee_payments'));
-        const list = [];
-        querySnapshot.forEach(docSnap => {
-          const studentId = docSnap.id;
-          const data = docSnap.data();
-          const items = data.list || [];
-          items.forEach(item => {
-            list.push({
-              ...item,
-              studentId
-            });
-          });
-        });
-        setFirestorePayments(list);
-      } catch (err) {
-        console.error('Error fetching firestore payments:', err);
-      }
-    };
-    fetchFirestore();
-  }, [feeRefreshTrigger]);
+
 
   // Fetch real fee structures
   const { data: rawFees, loading: feesLoading } = useDataFetch(
@@ -59,7 +35,6 @@ const BranchReports = () => {
       let total = 0;
       let paid = 0;
       let concession = 0;
-      const pgReceipts = new Set();
 
       activePlans.forEach(plan => {
         total += plan.totalAmount || 0;
@@ -69,25 +44,11 @@ const BranchReports = () => {
           .filter(p => String(p.status || 'RECORDED').toUpperCase() !== 'REVERSED')
           .forEach(p => {
             paid += p.amount || 0;
-            if (p.receiptNumber) {
-              pgReceipts.add(p.receiptNumber.toUpperCase());
-            }
           });
       });
 
-      // Integrate Firestore payments for this student, filtering out duplicates
-      const fsList = firestorePayments.filter(p => p.studentId === s.id);
-      let fsPaid = 0;
-      fsList.forEach(p => {
-        const key = (p.id || p.receiptNumber || '').toUpperCase();
-        if (key && !pgReceipts.has(key)) {
-          fsPaid += Number(p.amount || 0);
-        }
-      });
-
-      const paidTotal = paid + fsPaid;
-      const due = Math.max(total - paidTotal, 0);
-      const percent = total > 0 ? Math.round((paidTotal / total) * 100) : 0;
+      const due = Math.max(total - paid, 0);
+      const percent = total > 0 ? Math.round((paid / total) * 100) : 0;
 
       let status = 'DUE';
       if (total > 0) {
@@ -103,7 +64,7 @@ const BranchReports = () => {
         class: `${s.academicClass?.name || '1'}-${s.section?.name || 'A'}`.toUpperCase(),
         admissionNo: s.studentId || 'N/A',
         total,
-        paid: paidTotal,
+        paid,
         due,
         concession,
         status
@@ -119,11 +80,32 @@ const BranchReports = () => {
       { id: 'mock-student-5', name: 'GANDARDDI HEAMANTH', class: '6-A', admissionNo: '26S00005', total: 56000, paid: 0, due: 56000, concession: 0, status: 'DUE' }
     ];
 
-    if (dbMapped.length > 0) {
-      return dbMapped;
-    }
-    return mockStudents;
-  }, [feeStudents, firestorePayments]);
+    const getSortWeight = (name) => {
+      const upper = String(name).split('-')[0].trim().toUpperCase();
+      if (upper === 'NURSERY') return 1;
+      if (upper === 'LKG') return 2;
+      if (upper === 'UKG') return 3;
+      const num = parseInt(upper, 10);
+      if (!isNaN(num)) return 10 + num;
+      return 100;
+    };
+
+    const sortedRecords = (dbMapped.length > 0 ? dbMapped : mockStudents).sort((a, b) => {
+      const weightA = getSortWeight(a.class);
+      const weightB = getSortWeight(b.class);
+      if (weightA !== weightB) {
+        return weightA - weightB;
+      }
+      const secA = String(a.class).split('-')[1]?.trim() || '';
+      const secB = String(b.class).split('-')[1]?.trim() || '';
+      if (secA !== secB) {
+        return secA.localeCompare(secB);
+      }
+      return String(a.name).localeCompare(String(b.name));
+    });
+
+    return sortedRecords;
+  }, [feeStudents]);
 
   // Parse and build dynamic CLASS-WISE report records, merging screenshot data as fallbacks
   const classRecords = useMemo(() => {

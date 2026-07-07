@@ -197,9 +197,11 @@ const executeConnectorOperation = async ({ operationName, variables = {}, type, 
     }
   }
 
-  // Guard against invalid UUID placeholders passed as variables
-  const hasInvalidUuid = Object.entries(variables || {}).some(([key, val]) => {
+  const invalidUuidEntry = Object.entries(variables || {}).find(([key, val]) => {
     if (typeof val === 'string' && (key.endsWith('Id') || key.toLowerCase().includes('uuid'))) {
+      if (key === 'studentId' || key === 'employeeId') {
+        return false;
+      }
       if (val.includes('-placeholder') || val === 'sontyam-branch-id' || val === 'mock-plan-id' || val === 'mock-student-id') {
         return true;
       }
@@ -210,10 +212,11 @@ const executeConnectorOperation = async ({ operationName, variables = {}, type, 
     return false;
   });
 
-  if (hasInvalidUuid) {
-    console.warn(`[DataConnect] Request for ${operationName} bypassed: invalid UUID in variables.`, variables);
+  if (invalidUuidEntry) {
+    const [failedKey, failedValue] = invalidUuidEntry;
+    console.warn(`[DataConnect] Request for ${operationName} bypassed: invalid UUID in variables. Key: ${failedKey}, Value: ${failedValue}`, variables);
     if (type === 'mutation') {
-      throw new Error(`Invalid UUID parameter passed to mutation ${operationName}`);
+      throw new Error(`Invalid UUID parameter passed to mutation ${operationName}: "${failedKey}" has invalid UUID value "${failedValue}"`);
     }
     return {};
   }

@@ -3,8 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useDataFetch } from '../../hooks/useDataFetch';
 import { getPaymentHistory, getStudents } from '../../services/dataService';
-import { db } from '../../services/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+
 import { motion } from 'framer-motion';
 import {
   FiGrid, FiUsers, FiSettings, FiDollarSign, FiPlus, FiAlertCircle,
@@ -26,7 +25,7 @@ const AccountantDashboard = () => {
   const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [showThreeDotsMenu, setShowThreeDotsMenu] = useState(false);
-  const [firestorePayments, setFirestorePayments] = useState([]);
+
   const [activeSharePayment, setActiveSharePayment] = useState(null);
 
   const triggerPrintReceipt = (payment) => {
@@ -127,30 +126,7 @@ const handleDownloadPdf = (payment) => {
     { defaultValue: [] }
   );
 
-  // Fetch Firestore payments
-  useEffect(() => {
-    const fetchFirestore = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, 'fee_payments'));
-        const list = [];
-        querySnapshot.forEach(docSnap => {
-          const studentId = docSnap.id;
-          const data = docSnap.data();
-          const items = data.list || [];
-          items.forEach(item => {
-            list.push({
-              ...item,
-              studentId
-            });
-          });
-        });
-        setFirestorePayments(list);
-      } catch (err) {
-        console.error('Error fetching firestore payments:', err);
-      }
-    };
-    fetchFirestore();
-  }, [feeRefreshTrigger]);
+
 
   // Formatting date string for display in header card (e.g. "Sat, 4 Jul")
   const currentDateStr = new Date().toLocaleDateString('en-US', {
@@ -202,31 +178,14 @@ const handleDownloadPdf = (payment) => {
         amount: Number(p.amount || 0),
         paymentDate: p.paymentDate,
         paymentMode: p.paymentMode || 'CASH',
-        receiptNumber: getPaymentReceiptNo(p, (typeof student !== 'undefined' ? student : (typeof selectedStudent !== 'undefined' ? selectedStudent : null)), idx),
+        receiptNumber: getPaymentReceiptNo(p, student, idx),
         remarks: p.remarks || 'School Fee',
         collectedByName: p.collectedBy?.fullName || 'Accountant',
         student: { fullName: student?.fullName || 'Unknown Student' }
       };
     });
 
-    const fsItems = firestorePayments.map((p, idx) => {
-      const student = dbStudents.find(s => s.id === p.studentId) || users.find(u => u.id === p.studentId);
-      return {
-        id: p.id,
-        studentName: student?.fullName || 'Unknown Student',
-        class: student ? (student.class || `${student.academicClass?.name || ''}-${student.section?.name || ''}`.trim().replace(/^-|-$/, '') || 'N/A') : 'N/A',
-        admissionNo: student?.studentId || 'N/A',
-        amount: Number(p.amount || 0),
-        paymentDate: p.paymentDate,
-        paymentMode: p.paymentMode || 'CASH',
-        receiptNumber: getPaymentReceiptNo(p, (typeof student !== 'undefined' ? student : (typeof selectedStudent !== 'undefined' ? selectedStudent : null)), idx),
-        remarks: p.remarks || 'School Fee',
-        collectedByName: 'Accountant',
-        student: { fullName: student?.fullName || 'Unknown Student' }
-      };
-    });
-
-    const combined = [...dbItems, ...fsItems];
+    const combined = [...dbItems];
     // Sort by paymentDate descending
     combined.sort((a, b) => {
       const dateA = a.paymentDate ? new Date(a.paymentDate).getTime() : 0;
@@ -234,7 +193,7 @@ const handleDownloadPdf = (payment) => {
       return dateB - dateA;
     });
     return combined;
-  }, [dbPayments, firestorePayments, dbStudents, users]);
+  }, [dbPayments, dbStudents, users]);
 
   // Calculations using combined live payments (timezone-independent)
   const todaysCollections = allPayments

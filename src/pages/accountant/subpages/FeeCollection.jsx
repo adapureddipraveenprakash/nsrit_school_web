@@ -5,8 +5,7 @@ import {
   FiArrowLeft, FiSearch, FiChevronRight, FiInbox,
   FiBookOpen, FiClock, FiFileText, FiCreditCard
 } from 'react-icons/fi';
-import { collection, onSnapshot } from 'firebase/firestore';
-import { db } from '../../../services/firebase';
+
 import { useApp } from '../../../context/AppContext';
 import { useDataFetch } from '../../../hooks/useDataFetch';
 import { getFeeReports } from '../../../services/dataService';
@@ -84,7 +83,7 @@ const FeeCollection = () => {
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('All');
   const [selectedYear, setSelectedYear] = useState('AY 2026');
-  const [firestorePayments, setFirestorePayments] = useState({});
+
 
   const branchId = user?.branchId || null;
 
@@ -97,65 +96,33 @@ const FeeCollection = () => {
 
   const studentsList = rawFeePlans?.students || [];
 
-  // Fetch Firestore payments in real-time
-  useEffect(() => {
-    if (!branchId) return;
-    const unsub = onSnapshot(collection(db, 'fee_payments'), (snapshot) => {
-      const mapping = {};
-      snapshot.forEach(docSnap => {
-        mapping[docSnap.id] = docSnap.data().list || [];
-      });
-      setFirestorePayments(mapping);
-    }, (err) => {
-      console.warn('[FeeCollection] Firestore collection query failed (normal if rules restrict it):', err.message);
-    });
-    return () => unsub();
-  }, [branchId]);
+
 
   // Normalize student records
   const normalizedStudents = useMemo(() => {
     const list = studentsList.map(s => {
-      const fsList = firestorePayments[s.id] || [];
       const activePlan = (s.reportFeePlans || []).find(p => p.isActive !== false);
       let paid = 0;
       let total = 0;
       let pending = 0;
-      let fsPaidForPlan = 0;
 
       if (activePlan) {
-        const pgReceipts = new Set();
         (activePlan.reportFeePayments || []).forEach(pay => {
           if (String(pay.status || 'RECORDED').toUpperCase() !== 'REVERSED') {
             paid += pay.amount || 0;
-            if (pay.receiptNumber) {
-              pgReceipts.add(pay.receiptNumber.toUpperCase());
-            }
-          }
-        });
-
-        // Sum only Firestore payments not in Postgres
-        fsList.forEach(p => {
-          const key = (p.id || p.receiptNumber || '').toUpperCase();
-          if (key && !pgReceipts.has(key)) {
-            fsPaidForPlan += Number(p.amount || 0);
           }
         });
 
         total = activePlan.totalAmount || 0;
-        pending = Math.max(total - (paid + fsPaidForPlan), 0);
-      } else {
-        fsPaidForPlan = fsList.reduce((sum, p) => sum + Number(p.amount || 0), 0);
-        total = fsPaidForPlan;
-        pending = 0;
+        pending = Math.max(total - paid, 0);
       }
 
-      const paidTotal = paid + fsPaidForPlan;
-      const pct = total > 0 ? Math.round((paidTotal / total) * 100) : 0;
+      const pct = total > 0 ? Math.round((paid / total) * 100) : 0;
 
       let status = 'DUE';
       if (pending === 0 && total > 0) {
         status = 'PAID';
-      } else if (paidTotal > 0 && pending > 0) {
+      } else if (paid > 0 && pending > 0) {
         status = 'PARTIAL';
       }
 
@@ -164,7 +131,7 @@ const FeeCollection = () => {
         fullName: s.fullName || 'Unknown Student',
         className: `${s.academicClass?.name || ''} · ${s.section?.name || ''}`.trim().replace(/ · $|^ · /, ''),
         studentId: s.studentId || '26SO0000',
-        paidAmount: paidTotal,
+        paidAmount: paid,
         dueAmount: pending,
         totalAmount: total,
         percent: pct,
@@ -176,7 +143,7 @@ const FeeCollection = () => {
       return list;
     }
     return MOCK_STUDENTS;
-  }, [studentsList, firestorePayments]);
+  }, [studentsList]);
 
   // Calculate live overall stats
   const dashboardStats = useMemo(() => {

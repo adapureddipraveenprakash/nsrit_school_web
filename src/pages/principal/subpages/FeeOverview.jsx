@@ -9,15 +9,14 @@ import { BiReceipt } from 'react-icons/bi';
 import { useApp } from '../../../context/AppContext';
 import { useDataFetch } from '../../../hooks/useDataFetch';
 import { getFeeReports, reversePayment } from '../../../services/dataService';
-import { db } from '../../../services/firebase';
-import { collection, onSnapshot, doc, setDoc } from 'firebase/firestore';
+
 
 const FeeOverview = () => {
   const { activeRole, user, feeRefreshTrigger } = useApp();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('All'); // 'All' | 'Paid' | 'Partial' | 'Due' | 'Overdue'
-  const [firestorePayments, setFirestorePayments] = useState({});
+
 
   const branchId = user?.branchId || null;
 
@@ -30,67 +29,20 @@ const FeeOverview = () => {
 
   const studentsList = rawFeePlans?.students || [];
 
-  // Fetch Firestore payments in real-time
-  useEffect(() => {
-    const unsub = onSnapshot(collection(db, 'fee_payments'), (querySnapshot) => {
-      const mapping = {};
-      querySnapshot.forEach(docSnap => {
-        mapping[docSnap.id] = docSnap.data().list || [];
-      });
-      setFirestorePayments(mapping);
-    }, (err) => {
-      console.error('Firestore payments onSnapshot error:', err);
-    });
-    return () => unsub();
-  }, []);
 
-  // Temporary one-time cleanup hook for XYZ / test student payment records
-  useEffect(() => {
-    if (studentsList.length > 0) {
-      const xyzStudent = studentsList.find(s => s.fullName && s.fullName.toLowerCase().includes('xyz'));
-      if (xyzStudent) {
-        console.log('[Cleanup] Found XYZ student:', xyzStudent);
-        
-        // 1. Delete Firestore payments document
-        const firestoreRef = doc(db, 'fee_payments', xyzStudent.id);
-        setDoc(firestoreRef, { list: [] })
-          .then(() => console.log('[Cleanup] Cleared XYZ Firestore payments successfully'))
-          .catch(err => console.error('[Cleanup] Firestore clear failed:', err));
-          
-        // 2. Reverse any PostgreSQL payments under their fee plans
-        (xyzStudent.reportFeePlans || []).forEach(plan => {
-          (plan.reportFeePayments || []).forEach(pay => {
-            if (pay.status !== 'REVERSED') {
-              console.log('[Cleanup] Reversing PostgreSQL payment:', pay.id);
-              reversePayment({
-                paymentId: pay.id,
-                studentId: xyzStudent.id,
-                branchId: branchId,
-                reversedById: user?.id || xyzStudent.id,
-                reason: 'Cleanup XYZ student payment record'
-              });
-            }
-          });
-        });
-      }
-    }
-  }, [studentsList, branchId, user]);
 
   // Parse actual student ledger records from DB
   const studentLedgers = useMemo(() => {
     return studentsList.map(s => {
-      const fsList = firestorePayments[s.id] || [];
-      const fsPaid = fsList.reduce((sum, p) => sum + Number(p.amount || 0), 0);
-
       const activePlan = (s.reportFeePlans || []).find(p => p.isActive !== false);
       if (!activePlan) {
         return {
           id: s.id,
           fullName: s.fullName,
           className: `${s.academicClass?.name || ''} - ${s.section?.name || ''}`.trim().replace(/^-|-$/, ''),
-          paidAmount: fsPaid,
+          paidAmount: 0,
           dueAmount: 0,
-          totalAmount: fsPaid,
+          totalAmount: 0,
           concessionAmount: 0,
           status: 'PAID',
           percent: 100
@@ -104,18 +56,17 @@ const FeeOverview = () => {
         }
       });
 
-      const paid = dbPaid + fsPaid;
-      const due = Math.max((activePlan.totalAmount || 0) - paid, 0);
-      const pct = activePlan.totalAmount > 0 ? Math.round((paid / activePlan.totalAmount) * 100) : 0;
+      const due = Math.max((activePlan.totalAmount || 0) - dbPaid, 0);
+      const pct = activePlan.totalAmount > 0 ? Math.round((dbPaid / activePlan.totalAmount) * 100) : 0;
       let status = 'DUE';
       if (due === 0) status = 'PAID';
-      else if (paid > 0) status = 'PARTIAL';
+      else if (dbPaid > 0) status = 'PARTIAL';
 
       return {
         id: s.id,
         fullName: s.fullName,
         className: `${s.academicClass?.name || ''} - ${s.section?.name || ''}`.trim().replace(/^-|-$/, ''),
-        paidAmount: paid,
+        paidAmount: dbPaid,
         dueAmount: due,
         totalAmount: activePlan.totalAmount || 0,
         concessionAmount: activePlan.concessionAmount || 0,
@@ -123,7 +74,7 @@ const FeeOverview = () => {
         percent: pct
       };
     });
-  }, [studentsList, firestorePayments]);
+  }, [studentsList]);
 
   // Mock records from Screenshot 1 to serve as fallback if DB is unconfigured
   const mockLedgers = [
@@ -147,8 +98,10 @@ const FeeOverview = () => {
       total += item.totalAmount;
       paid += item.paidAmount;
       due += item.dueAmount;
-      if (item.dueAmount === 0) paidCount++;
-      else pendingCount++;
+      if (item.totalAmount > 0) {
+        if (item.dueAmount === 0) paidCount++;
+        else pendingCount++;
+      }
     });
 
     const rate = total > 0 ? Math.round((paid / total) * 100) : 0;

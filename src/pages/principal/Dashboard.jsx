@@ -14,15 +14,14 @@ import {
 } from 'react-icons/hi2';
 import { BiReceipt } from 'react-icons/bi';
 import Drawer from '../../components/Drawer';
-import { db } from '../../services/firebase';
-import { collection, onSnapshot, doc, setDoc } from 'firebase/firestore';
+
 
 const PrincipalDashboard = () => {
   const { user, feeRefreshTrigger } = useApp();
   const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [showThreeDotsMenu, setShowThreeDotsMenu] = useState(false);
-  const [firestorePayments, setFirestorePayments] = useState({});
+
 
   const branchId = user?.branchId || null;
   const { data: stats } = useDataFetch(
@@ -39,51 +38,7 @@ const PrincipalDashboard = () => {
 
   const studentsList = rawFeePlans?.students || [];
 
-  // Fetch Firestore payments in real-time
-  useEffect(() => {
-    const unsub = onSnapshot(collection(db, 'fee_payments'), (querySnapshot) => {
-      const mapping = {};
-      querySnapshot.forEach(docSnap => {
-        mapping[docSnap.id] = docSnap.data().list || [];
-      });
-      setFirestorePayments(mapping);
-    }, (err) => {
-      console.error('Firestore payments onSnapshot error:', err);
-    });
-    return () => unsub();
-  }, []);
 
-  // Temporary one-time cleanup hook for XYZ / test student payment records
-  useEffect(() => {
-    if (studentsList.length > 0) {
-      const xyzStudent = studentsList.find(s => s.fullName && s.fullName.toLowerCase().includes('xyz'));
-      if (xyzStudent) {
-        console.log('[Cleanup] Found XYZ student:', xyzStudent);
-        
-        // 1. Delete Firestore payments document
-        const firestoreRef = doc(db, 'fee_payments', xyzStudent.id);
-        setDoc(firestoreRef, { list: [] })
-          .then(() => console.log('[Cleanup] Cleared XYZ Firestore payments successfully'))
-          .catch(err => console.error('[Cleanup] Firestore clear failed:', err));
-          
-        // 2. Reverse any PostgreSQL payments under their fee plans
-        (xyzStudent.reportFeePlans || []).forEach(plan => {
-          (plan.reportFeePayments || []).forEach(pay => {
-            if (pay.status !== 'REVERSED') {
-              console.log('[Cleanup] Reversing PostgreSQL payment:', pay.id);
-              reversePayment({
-                paymentId: pay.id,
-                studentId: xyzStudent.id,
-                branchId: branchId,
-                reversedById: user?.id || xyzStudent.id,
-                reason: 'Cleanup XYZ student payment record'
-              });
-            }
-          });
-        });
-      }
-    }
-  }, [studentsList, branchId, user]);
 
   const feeStats = useMemo(() => {
     let collected = 0;
@@ -92,46 +47,22 @@ const PrincipalDashboard = () => {
     let total = 0;
 
     studentsList.forEach(s => {
-      const fsList = firestorePayments[s.id] || [];
       const activePlans = (s.reportFeePlans || []).filter(plan => plan.isActive !== false);
 
-      if (activePlans.length === 0) {
-        // If they have no active plan but have paid some amount, count it towards total and collected!
-        const fsPaid = fsList.reduce((sum, p) => sum + Number(p.amount || 0), 0);
-        if (fsPaid > 0) {
-          collected += fsPaid;
-          total += fsPaid;
-        }
-      } else {
-        activePlans.forEach(plan => {
-          total += plan.totalAmount || 0;
-          waiver += plan.concessionAmount || 0;
+      activePlans.forEach(plan => {
+        total += plan.totalAmount || 0;
+        waiver += plan.concessionAmount || 0;
 
-          const pgReceipts = new Set();
-          let paidForPlan = 0;
-          (plan.reportFeePayments || []).forEach(pay => {
-            if (String(pay.status || 'RECORDED').toUpperCase() !== 'REVERSED') {
-              paidForPlan += pay.amount || 0;
-              if (pay.receiptNumber) {
-                pgReceipts.add(pay.receiptNumber.toUpperCase());
-              }
-            }
-          });
-
-          // Only sum Firestore payments that are not already in PostgreSQL
-          let fsPaidForPlan = 0;
-          fsList.forEach(p => {
-            const key = (p.id || p.receiptNumber || '').toUpperCase();
-            if (key && !pgReceipts.has(key)) {
-              fsPaidForPlan += Number(p.amount || 0);
-            }
-          });
-
-          const totalPaid = paidForPlan + fsPaidForPlan;
-          collected += totalPaid;
-          pending += Math.max((plan.totalAmount || 0) - totalPaid, 0);
+        let paidForPlan = 0;
+        (plan.reportFeePayments || []).forEach(pay => {
+          if (String(pay.status || 'RECORDED').toUpperCase() !== 'REVERSED') {
+            paidForPlan += pay.amount || 0;
+          }
         });
-      }
+
+        collected += paidForPlan;
+        pending += Math.max((plan.totalAmount || 0) - paidForPlan, 0);
+      });
     });
 
     // Always show actual database values
@@ -147,7 +78,7 @@ const PrincipalDashboard = () => {
     const percent = total > 0 ? Math.round((collected / total) * 100) : 0;
 
     return { collected, pending, waiver, percent };
-  }, [studentsList, firestorePayments]);
+  }, [studentsList]);
 
   React.useEffect(() => {
     console.log('[Principal Dashboard] user:', user);

@@ -78,6 +78,8 @@ import StudentFeeProfile from './pages/principal/subpages/StudentFeeProfile';
 import TeacherDetails from './pages/principal/subpages/TeacherDetails';
 import CreateCoordinator from './pages/principal/subpages/CreateCoordinator';
 import CreateAccountant from './pages/principal/subpages/CreateAccountant';
+import StudentDetails from './pages/shared/StudentDetails';
+import EditStudent from './pages/shared/EditStudent';
 import CoordinatorDetails from './pages/principal/subpages/CoordinatorDetails';
 import PrincipalAccountantProfile from './pages/principal/subpages/AccountantProfile';
 import EditTeacher from './pages/principal/subpages/EditTeacher';
@@ -391,6 +393,8 @@ const AnimatedRoutes = () => {
           <Route path="/settings/create-fee-plan/:studentId" element={<CreateFeePlan />} />
           <Route path="/settings/edit-fee-plan/:studentId" element={<CreateFeePlan />} />
           <Route path="/settings/fee-profile/:studentId" element={<StudentFeeProfile />} />
+          <Route path="/settings/student/:studentId" element={<StudentDetails />} />
+          <Route path="/settings/edit-student/:studentId" element={<EditStudent />} />
           <Route path="/settings/ledger" element={<FeeLedger />} />
           <Route path="/settings/branch-analytics" element={<BranchAnalytics />} />
           <Route path="/settings/branch-settings" element={<BranchSettings />} />

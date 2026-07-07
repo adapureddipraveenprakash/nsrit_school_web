@@ -6,8 +6,7 @@ import {
   FiArrowLeft, FiSearch, FiInbox, FiBookOpen, FiShare2,
   FiX, FiPrinter, FiDownload, FiCopy, FiChevronRight
 } from 'react-icons/fi';
-import { collection, onSnapshot } from 'firebase/firestore';
-import { db } from '../../../services/firebase';
+
 import { useApp } from '../../../context/AppContext';
 import { useDataFetch } from '../../../hooks/useDataFetch';
 import { getFeeReports } from '../../../services/dataService';
@@ -93,7 +92,7 @@ const handleDownloadPdf = (payment) => {
   const handleShareReceipt = (payment) => {
     setActiveSharePayment(payment);
   };
-  const [firestorePayments, setFirestorePayments] = useState({});
+
 
   const branchId = user?.branchId || null;
 
@@ -106,27 +105,11 @@ const handleDownloadPdf = (payment) => {
 
   const studentsList = rawFeePlans?.students || [];
 
-  // Fetch Firestore payments in real-time
-  useEffect(() => {
-    if (!branchId) return;
-    const unsub = onSnapshot(collection(db, 'fee_payments'), (snapshot) => {
-      const mapping = {};
-      snapshot.forEach(docSnap => {
-        mapping[docSnap.id] = docSnap.data().list || [];
-      });
-      setFirestorePayments(mapping);
-    }, (err) => {
-      console.error('[FeeLedger] Firestore onSnapshot failed:', err);
-    });
-    return () => unsub();
-  }, [branchId]);
+
 
   // Normalize student records
   const normalizedLedgers = useMemo(() => {
     return studentsList.map(s => {
-      const fsList = firestorePayments[s.id] || [];
-      const fsPaid = fsList.reduce((sum, p) => sum + Number(p.amount || 0), 0);
-
       const activePlan = (s.reportFeePlans || []).find(p => p.isActive !== false);
       let paid = 0;
       let total = 0;
@@ -141,19 +124,15 @@ const handleDownloadPdf = (payment) => {
           }
         });
         total = activePlan.totalAmount || 0;
-        pending = Math.max(total - (paid + fsPaid), 0);
-      } else {
-        total = fsPaid;
-        pending = 0;
+        pending = Math.max(total - paid, 0);
       }
 
-      const paidTotal = paid + fsPaid;
-      const pct = total > 0 ? Math.round((paidTotal / total) * 100) : 0;
+      const pct = total > 0 ? Math.round((paid / total) * 100) : 0;
 
       let status = 'DUE';
       if (pending === 0) {
         status = 'PAID';
-      } else if (paidTotal > 0 && pending > 0) {
+      } else if (paid > 0 && pending > 0) {
         status = 'PARTIAL';
       }
 
@@ -162,14 +141,14 @@ const handleDownloadPdf = (payment) => {
         fullName: s.fullName || 'Unknown Student',
         className: `${s.academicClass?.name || ''} · ${s.section?.name || ''}`.trim().replace(/ · $|^ · /, ''),
         studentId: s.studentId || '26SO0000',
-        paidAmount: paidTotal,
+        paidAmount: paid,
         dueAmount: pending,
         totalAmount: total,
         percent: pct,
         status
       };
     });
-  }, [studentsList, firestorePayments]);
+  }, [studentsList]);
 
   // Filter based on search query
   const filteredLedgers = useMemo(() => {
@@ -209,23 +188,10 @@ const handleDownloadPdf = (payment) => {
       }
     }
 
-    const fsList = (firestorePayments[selectedStudentId] || []).map((p, idx) => {
-      const dateObj = p.paymentDate ? new Date(p.paymentDate) : new Date();
-      return {
-        id: p.id || `fs-${idx}`,
-        amount: p.amount || 0,
-        date: dateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
-        mode: p.paymentMode || 'CASH',
-        receiptNo: getPaymentReceiptNo(p, (typeof student !== 'undefined' ? student : (typeof selectedStudent !== 'undefined' ? selectedStudent : null)), idx),
-        timestamp: dateObj.getTime(),
-        status: 'RECORDED'
-      };
-    });
-
-    return [...dbPaymentsList, ...fsList]
+    return dbPaymentsList
       .filter(p => String(p.status).toUpperCase() !== 'REVERSED')
       .sort((a, b) => b.timestamp - a.timestamp);
-  }, [selectedStudentId, studentsList, firestorePayments]);
+  }, [selectedStudentId, studentsList]);
 
   const handleBack = () => {
     if (selectedStudentId) {

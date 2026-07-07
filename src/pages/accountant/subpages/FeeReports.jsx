@@ -2,8 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiArrowLeft, FiSearch, FiInbox, FiFileText, FiGrid } from 'react-icons/fi';
-import { collection, onSnapshot } from 'firebase/firestore';
-import { db } from '../../../services/firebase';
+
 import { useApp } from '../../../context/AppContext';
 import { useDataFetch } from '../../../hooks/useDataFetch';
 import { getFeeReports } from '../../../services/dataService';
@@ -13,7 +12,7 @@ const FeeReports = () => {
   const { user, feeRefreshTrigger } = useApp();
   const [activeTab, setActiveTab] = useState('All');
   const [search, setSearch] = useState('');
-  const [firestorePayments, setFirestorePayments] = useState({});
+
 
   const branchId = user?.branchId || null;
 
@@ -26,25 +25,11 @@ const FeeReports = () => {
 
   const studentsList = rawFeePlans?.students || [];
 
-  // Fetch Firestore payments in real-time
-  useEffect(() => {
-    if (!branchId) return;
-    const unsub = onSnapshot(collection(db, 'fee_payments'), (snapshot) => {
-      const mapping = {};
-      snapshot.forEach(docSnap => {
-        mapping[docSnap.id] = docSnap.data().list || [];
-      });
-      setFirestorePayments(mapping);
-    }, (err) => {
-      console.warn('[FeeReports] Firestore collection query failed (normal if rules restrict it):', err.message);
-    });
-    return () => unsub();
-  }, [branchId]);
+
 
   // Normalize student records
   const normalizedStudents = useMemo(() => {
     return studentsList.map(s => {
-      const fsList = firestorePayments[s.id] || [];
       const activePlan = (s.reportFeePlans || []).find(p => p.isActive !== false);
       let paid = 0;
       let total = 0;
@@ -52,24 +37,11 @@ const FeeReports = () => {
       let pending = 0;
       let booksFee = 0;
       let transportFee = 0;
-      let fsPaidForPlan = 0;
 
       if (activePlan) {
-        const pgReceipts = new Set();
         (activePlan.reportFeePayments || []).forEach(pay => {
           if (String(pay.status || 'RECORDED').toUpperCase() !== 'REVERSED') {
             paid += pay.amount || 0;
-            if (pay.receiptNumber) {
-              pgReceipts.add(pay.receiptNumber.toUpperCase());
-            }
-          }
-        });
-
-        // Sum only Firestore payments not in Postgres
-        fsList.forEach(p => {
-          const key = (p.id || p.receiptNumber || '').toUpperCase();
-          if (key && !pgReceipts.has(key)) {
-            fsPaidForPlan += Number(p.amount || 0);
           }
         });
 
@@ -77,19 +49,13 @@ const FeeReports = () => {
         concession = activePlan.concessionAmount || 0;
         booksFee = activePlan.booksFee || 0;
         transportFee = activePlan.transportFee || 0;
-        pending = Math.max(total - (paid + fsPaidForPlan), 0);
-      } else {
-        fsPaidForPlan = fsList.reduce((sum, p) => sum + Number(p.amount || 0), 0);
-        total = fsPaidForPlan;
-        pending = 0;
+        pending = Math.max(total - paid, 0);
       }
-
-      const paidTotal = paid + fsPaidForPlan;
       
       let status = 'Due';
       if (pending === 0) {
         status = 'Paid';
-      } else if (paidTotal > 0 && pending > 0) {
+      } else if (paid > 0 && pending > 0) {
         status = 'Partial';
       }
 
@@ -101,7 +67,7 @@ const FeeReports = () => {
         className: s.academicClass?.name || 'N/A',
         sectionName: s.section?.name || '',
         classSection: `${s.academicClass?.name || ''}-${s.section?.name || ''}`.trim().replace(/^-|-$/, ''),
-        paidAmount: paidTotal,
+        paidAmount: paid,
         dueAmount: pending,
         totalAmount: total,
         concessionAmount: concession,
@@ -110,7 +76,7 @@ const FeeReports = () => {
         status
       };
     });
-  }, [studentsList, firestorePayments]);
+  }, [studentsList]);
 
   // Compute overall branch statistics
   const stats = useMemo(() => {

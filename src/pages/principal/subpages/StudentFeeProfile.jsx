@@ -1,4 +1,4 @@
-import { getReceiptHtml, downloadReceiptPdf, numberToWords, getPaymentReceiptNo } from '../../../utils/recieptGenerator';
+import { getReceiptHtml, downloadReceiptPdf, numberToWords } from '../../../utils/recieptGenerator';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -9,8 +9,7 @@ import {
 } from 'react-icons/fi';
 import { useApp } from '../../../context/AppContext';
 import { getStudentFeeProfile } from '../../../services/dataService';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../../../services/firebase';
+
 
 // Helper to convert numbers to words in Indian numbering system
 
@@ -26,7 +25,7 @@ const StudentFeeProfile = () => {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [fsPayments, setFsPayments] = useState([]);
+
   const [activeSharePayment, setActiveSharePayment] = useState(null);
 
 
@@ -119,19 +118,7 @@ const handleDownloadPdf = (payment) => {
         }
       }
       
-      // Fetch Firestore payments
-      try {
-        const docRef = doc(db, 'fee_payments', studentId);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setFsPayments(docSnap.data().list || []);
-        } else {
-          setFsPayments([]);
-        }
-      } catch (fsErr) {
-        console.warn('Error fetching Firestore payments in profile:', fsErr.message);
-        setFsPayments([]);
-      }
+
     } catch (err) {
       console.error('Error fetching student fee profile:', err);
       setError(err.message || 'Error loading fee profile');
@@ -146,9 +133,8 @@ const handleDownloadPdf = (payment) => {
 
   // Combine Postgres and Firestore payments
   const allPayments = useMemo(() => {
-    const dbItems = payments.map((p, idx) => {
-      const receiptNoVal = getPaymentReceiptNo(p, studentDetails, idx);
-      const branchCode = studentDetails?.branch?.branchCode || studentDetails?.branchCode || 'SO';
+    const dbItems = payments.map(p => {
+      const receiptNoVal = p.receiptNumber || p.id.slice(0, 8).toUpperCase();
       const dateVal = p.paymentDate ? new Date(p.paymentDate).toLocaleDateString('en-GB').replace(/\//g, '-') : 'N/A';
       return {
         id: p.id,
@@ -163,42 +149,16 @@ const handleDownloadPdf = (payment) => {
         studentName: studentDetails?.fullName || 'Unknown Student',
         class: studentDetails?.academicClass ? `${studentDetails.academicClass.name}-${studentDetails.section?.name || 'A'}` : 'N/A',
         admissionNo: studentDetails?.studentId || 'N/A',
-        collectedByName: p.collectedBy?.fullName || 'B. Geetha',
-        branchCode
+        collectedByName: p.collectedBy?.fullName || 'B. Geetha'
       };
     });
 
-    const fsItems = fsPayments.map((p, idx) => {
-      const receiptNoVal = getPaymentReceiptNo(p, studentDetails, idx);
-      const branchCode = studentDetails?.branch?.branchCode || studentDetails?.branchCode || 'SO';
-      const dateVal = p.paymentDate ? new Date(p.paymentDate).toLocaleDateString('en-GB').replace(/\//g, '-') : 'N/A';
-      return {
-        id: p.id || `fs-${idx}`,
-        amount: p.amount || 0,
-        paymentMode: p.paymentMode || 'CASH',
-        paymentDate: p.paymentDate,
-        date: dateVal,
-        receiptNumber: receiptNoVal,
-        receiptNo: receiptNoVal,
-        remarks: p.remarks || 'School Fee',
-        status: p.status || 'RECORDED',
-        studentName: studentDetails?.fullName || 'Unknown Student',
-        class: studentDetails?.academicClass ? `${studentDetails.academicClass.name}-${studentDetails.section?.name || 'A'}` : 'N/A',
-        admissionNo: studentDetails?.studentId || 'N/A',
-        collectedByName: 'B. Geetha',
-        branchCode
-      };
-    });
-
-    const dbReceipts = new Set(dbItems.map(p => p.receiptNumber?.toUpperCase()));
-    const uniqueFsItems = fsItems.filter(p => !dbReceipts.has(p.receiptNumber?.toUpperCase()) && !dbReceipts.has(p.id?.toUpperCase()));
-
-    return [...dbItems, ...uniqueFsItems].sort((a, b) => {
+    return dbItems.sort((a, b) => {
       const dateA = a.paymentDate ? new Date(a.paymentDate).getTime() : 0;
       const dateB = b.paymentDate ? new Date(b.paymentDate).getTime() : 0;
       return dateB - dateA;
     });
-  }, [payments, fsPayments, studentDetails]);
+  }, [payments, studentDetails]);
 
   // Compute calculated metrics
   const metrics = useMemo(() => {

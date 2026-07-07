@@ -6,8 +6,7 @@ import {
   FiArrowLeft, FiSearch, FiInbox, FiBookOpen,
   FiX, FiPrinter, FiDownload, FiCopy, FiChevronRight, FiShare2
 } from 'react-icons/fi';
-import { collection, onSnapshot, doc } from 'firebase/firestore';
-import { db } from '../../../services/firebase';
+
 import { useApp } from '../../../context/AppContext';
 import { useDataFetch } from '../../../hooks/useDataFetch';
 import { getFeeReports } from '../../../services/dataService';
@@ -104,7 +103,7 @@ const FeeLedger = () => {
   const location = useLocation();
   const [search, setSearch] = useState('');
   const [selectedStudentId, setSelectedStudentId] = useState(null);
-  const [firestorePayments, setFirestorePayments] = useState({});
+
   const [activeSharePayment, setActiveSharePayment] = useState(null);
 
   const formatDDMMYYYY = (dateStr) => {
@@ -204,87 +203,35 @@ const handleDownloadPdf = (payment) => {
 
   const studentsList = rawFeePlans?.students || [];
 
-  const [selectedStudentFsPayments, setSelectedStudentFsPayments] = useState([]);
 
-  // Fetch Firestore payments in real-time
-  useEffect(() => {
-    if (!branchId) return;
-    const unsub = onSnapshot(collection(db, 'fee_payments'), (snapshot) => {
-      const mapping = {};
-      snapshot.forEach(docSnap => {
-        mapping[docSnap.id] = docSnap.data().list || [];
-      });
-      setFirestorePayments(mapping);
-    }, (err) => {
-      console.warn('[FeeLedger] Firestore collection query failed (normal if rules restrict it):', err.message);
-    });
-    return () => unsub();
-  }, [branchId]);
-
-  // Fetch individual student Firestore payments to bypass collection permission limits
-  useEffect(() => {
-    if (!selectedStudentId || String(selectedStudentId).startsWith('mock-')) {
-      setSelectedStudentFsPayments([]);
-      return;
-    }
-    const unsub = onSnapshot(doc(db, 'fee_payments', selectedStudentId), (docSnap) => {
-      if (docSnap.exists()) {
-        setSelectedStudentFsPayments(docSnap.data().list || []);
-      } else {
-        setSelectedStudentFsPayments([]);
-      }
-    }, (err) => {
-      console.warn('[FeeLedger] Selected student Firestore query failed:', err.message);
-    });
-    return () => unsub();
-  }, [selectedStudentId]);
 
   // Normalize student records
   const normalizedLedgers = useMemo(() => {
     return studentsList.map(s => {
-      const fsList = firestorePayments[s.id] || [];
       const activePlan = (s.reportFeePlans || []).find(p => p.isActive !== false);
       let paid = 0;
       let total = 0;
       let pending = 0;
       let feePlanId = '';
-      let fsPaidForPlan = 0;
 
       if (activePlan) {
         feePlanId = activePlan.id;
-        const pgReceipts = new Set();
         (activePlan.reportFeePayments || []).forEach(pay => {
           if (String(pay.status || 'RECORDED').toUpperCase() !== 'REVERSED') {
             paid += pay.amount || 0;
-            if (pay.receiptNumber) {
-              pgReceipts.add(pay.receiptNumber.toUpperCase());
-            }
-          }
-        });
-
-        // Sum only Firestore payments not in Postgres
-        fsList.forEach(p => {
-          const key = (p.id || p.receiptNumber || '').toUpperCase();
-          if (key && !pgReceipts.has(key)) {
-            fsPaidForPlan += Number(p.amount || 0);
           }
         });
 
         total = activePlan.totalAmount || 0;
-        pending = Math.max(total - (paid + fsPaidForPlan), 0);
-      } else {
-        fsPaidForPlan = fsList.reduce((sum, p) => sum + Number(p.amount || 0), 0);
-        total = fsPaidForPlan;
-        pending = 0;
+        pending = Math.max(total - paid, 0);
       }
 
-      const paidTotal = paid + fsPaidForPlan;
-      const pct = total > 0 ? Math.round((paidTotal / total) * 100) : 0;
+      const pct = total > 0 ? Math.round((paid / total) * 100) : 0;
 
       let status = 'DUE';
       if (pending === 0) {
         status = 'PAID';
-      } else if (paidTotal > 0 && pending > 0) {
+      } else if (paid > 0 && pending > 0) {
         status = 'PARTIAL';
       }
 
@@ -292,14 +239,17 @@ const handleDownloadPdf = (payment) => {
         id: s.id,
         fullName: s.fullName || 'Unknown Student',
         className: `${s.academicClass?.name || ''} · ${s.section?.name || ''}`.trim().replace(/ · $|^ · /, ''),
-        paidAmount: paidTotal,
+        studentId: s.studentId || '26SO0000',
+        paidAmount: paid,
         dueAmount: pending,
         totalAmount: total,
-        percent: pct,
-        status
+        feePlanId,
+        concessionAmount: activePlan ? activePlan.concessionAmount || 0 : 0,
+        status,
+        percent: pct
       };
     });
-  }, [studentsList, firestorePayments]);
+  }, [studentsList]);
 
   // Filter based on search query
   const filteredLedgers = useMemo(() => {
@@ -355,7 +305,7 @@ const handleDownloadPdf = (payment) => {
     if (String(selectedStudentId).startsWith('mock-')) {
       const mock = MOCK_PROFILES[selectedStudentId] || MOCK_PROFILES['mock-student-2'];
       const plan = mock.profileFeePlans?.[0] || {};
-      return (plan.profileFeePayments || []).map(p => {
+      return (plan.profileFeePayments || []).map((p, idx) => {
         const dateObj = p.paymentDate ? new Date(p.paymentDate) : new Date();
         const dateStr = formatDDMMYYYY(p.paymentDate);
         return {
@@ -364,7 +314,7 @@ const handleDownloadPdf = (payment) => {
           date: dateStr,
           displayDate: dateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
           mode: p.paymentMode || 'CASH',
-          receiptNo: getPaymentReceiptNo(p, (typeof student !== 'undefined' ? student : (typeof selectedStudent !== 'undefined' ? selectedStudent : null)), idx),
+          receiptNo: getPaymentReceiptNo(p, selectedStudent, idx),
           status: p.status,
           studentName: selectedStudent.fullName,
           class: selectedStudent.className,
@@ -389,7 +339,7 @@ const handleDownloadPdf = (payment) => {
             date: dateStr,
             displayDate: dateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
             mode: p.paymentMode || 'CASH',
-            receiptNo: getPaymentReceiptNo(p, (typeof student !== 'undefined' ? student : (typeof selectedStudent !== 'undefined' ? selectedStudent : null)), idx),
+            receiptNo: getPaymentReceiptNo(p, selectedStudent, idx),
             timestamp: dateObj.getTime(),
             status: p.status,
             studentName: selectedStudent.fullName,
@@ -402,30 +352,10 @@ const handleDownloadPdf = (payment) => {
       }
     }
 
-    const fsList = selectedStudentFsPayments.map((p, idx) => {
-      const dateObj = p.paymentDate ? new Date(p.paymentDate) : new Date();
-      const dateStr = formatDDMMYYYY(p.paymentDate);
-      return {
-        id: p.id || `fs-${idx}`,
-        amount: p.amount || 0,
-        date: dateStr,
-        displayDate: dateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
-        mode: p.paymentMode || 'CASH',
-        receiptNo: getPaymentReceiptNo(p, (typeof student !== 'undefined' ? student : (typeof selectedStudent !== 'undefined' ? selectedStudent : null)), idx),
-        timestamp: dateObj.getTime(),
-        status: 'RECORDED',
-        studentName: selectedStudent.fullName,
-        class: selectedStudent.className,
-        admissionNo: selectedStudent.admissionNo,
-        remarks: p.remarks || 'School Fee',
-        collectedByName: 'B. Geetha'
-      };
-    });
-
-    return [...dbPaymentsList, ...fsList]
+    return dbPaymentsList
       .filter(p => String(p.status).toUpperCase() !== 'REVERSED')
       .sort((a, b) => b.timestamp - a.timestamp);
-  }, [selectedStudentId, selectedStudent, studentsList, selectedStudentFsPayments]);
+  }, [selectedStudentId, selectedStudent, studentsList]);
 
   const handleBack = () => {
     if (selectedStudentId) {

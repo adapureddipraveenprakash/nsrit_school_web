@@ -55,40 +55,27 @@ export function numberToWords(num) {
   return formattedWords + ' Rupees Only';
 }
 
-export const padBranchCode = branchCode => String(branchCode || '').padStart(2, '0').slice(-2);
-export const formatReceiptNumber = ({year, branchCode, sequence}) =>
-  `RCPT-${year}-${padBranchCode(branchCode).toUpperCase()}-${String(sequence).padStart(5, '0')}`;
-
-export const getPaymentReceiptNo = (p, student, idx = 0) => {
-  if (p.receiptNumber) return p.receiptNumber;
-  if (p.receiptNo) return p.receiptNo;
-  if (p.referenceNumber) return p.referenceNumber;
-
-  let branchCode = student?.branchCode || student?.branch?.branchCode;
-  if (!branchCode) {
-    const admissionNo = student?.admissionNo || student?.studentId || student?.student?.studentId;
-    if (admissionNo) {
-      const match = String(admissionNo).match(/^\d{2}([A-Z]{2})/i);
-      if (match) {
-        branchCode = match[1].toUpperCase();
-      }
+export function getPaymentReceiptNo(payment, student, index) {
+  if (!payment) return 'N/A';
+  
+  const existingNo = payment.receiptNumber || payment.receiptNo || payment.referenceNumber;
+  if (existingNo) return existingNo;
+  
+  if (payment.id) {
+    const idStr = String(payment.id);
+    if (idStr.startsWith('fs-') || idStr.includes('fs')) {
+      return `REC-FS-${idStr.replace('fs-', '').slice(0, 6)}`.toUpperCase();
     }
+    return idStr.slice(0, 8).toUpperCase();
   }
-  if (!branchCode) {
-    branchCode = 'SO';
-  }
-
-  const dateObj = p.paymentDate || p.date || p.createdAt || new Date();
-  const year = dateObj ? new Date(dateObj).getFullYear() : 2026;
-  const sequence = p.id ? (parseInt(String(p.id).replace(/[^0-9]/g, '').slice(-5), 10) || (idx + 1)) : (idx + 1);
-  return formatReceiptNumber({ year, branchCode, sequence });
-};
+  
+  const studentPrefix = student?.studentId || student?.admissionNo || 'SO';
+  const timePart = payment.paymentDate ? String(new Date(payment.paymentDate).getTime()) : 'TEMP';
+  return `REC-${studentPrefix}-${timePart}-${index || 0}`.toUpperCase();
+}
 
 export const getReceiptHtml = (payment) => {
-  const branchCodeVal = payment.branchCode || 'SO';
-  const yearVal = payment.paymentDate ? new Date(payment.paymentDate).getFullYear() : (payment.date ? String(payment.date).split('-').pop() : 2026);
-  const sequenceVal = payment.sequence || (payment.id ? (parseInt(String(payment.id).replace(/[^0-9]/g, '').slice(-5), 10) || 1) : 1);
-  const receiptNo = payment.receiptNo || payment.receiptNumber || formatReceiptNumber({ year: yearVal, branchCode: branchCodeVal, sequence: sequenceVal });
+  const receiptNo = payment.receiptNo || payment.receiptNumber || 'N/A';
   let date = payment.date;
   if (!date && payment.paymentDate) {
     const d = new Date(payment.paymentDate);

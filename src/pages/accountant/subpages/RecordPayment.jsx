@@ -10,8 +10,7 @@ import { BiReceipt } from 'react-icons/bi';
 import { useApp } from '../../../context/AppContext';
 import { useDataFetch } from '../../../hooks/useDataFetch';
 import { getStudents, getStudentFeeProfile, recordPayment, createFeePlan } from '../../../services/dataService';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '../../../services/firebase';
+
 
 const RecordPayment = () => {
   const navigate = useNavigate();
@@ -270,6 +269,11 @@ const RecordPayment = () => {
       return;
     }
 
+    if (Number(paymentAmount) > feeStats.pending) {
+      alert(`Payment amount cannot exceed the outstanding due of Rs ${feeStats.pending}.`);
+      return;
+    }
+
     setSubmitting(true);
     const receiptSeq = Math.floor(Math.random() * 900000) + 100000;
     const receiptNo = `REC-SD-${Date.now()}-${receiptSeq}`;
@@ -292,27 +296,6 @@ const RecordPayment = () => {
       };
 
       await recordPayment(payload);
-
-      // Write to Firestore fee_payments list
-      try {
-        const docRef = doc(db, 'fee_payments', selectedStudent.id);
-        const snap = await getDoc(docRef);
-        const existing = snap.exists() ? snap.data().list || [] : [];
-        existing.push({
-          id: receiptNo,
-          amount: Number(paymentAmount),
-          paymentDate: formatDateForDb(paymentDate),
-          paymentMode: paymentMode.toUpperCase(),
-          installment: installment,
-          referenceNumber: referenceNumber || '',
-          remarks: remarks || '',
-          createdAt: new Date().toISOString()
-        });
-        await setDoc(docRef, { list: existing });
-        console.log('[RecordPayment] Firestore payment recorded successfully!');
-      } catch (fsErr) {
-        console.warn('[RecordPayment] Firestore write failed:', fsErr.message);
-      }
       
       setShowSuccessModal(true);
       setTimeout(() => {
@@ -324,38 +307,8 @@ const RecordPayment = () => {
         setRemarks('');
       }, 2000);
     } catch (err) {
-      console.warn('DB Mutation failed, fallback to simulation:', err.message);
-
-      // Write to Firestore fee_payments list on GQL failure as fallback
-      try {
-        const docRef = doc(db, 'fee_payments', selectedStudent.id);
-        const snap = await getDoc(docRef);
-        const existing = snap.exists() ? snap.data().list || [] : [];
-        existing.push({
-          id: receiptNo,
-          amount: Number(paymentAmount),
-          paymentDate: formatDateForDb(paymentDate),
-          paymentMode: paymentMode.toUpperCase(),
-          installment: installment,
-          referenceNumber: referenceNumber || '',
-          remarks: remarks || '',
-          createdAt: new Date().toISOString()
-        });
-        await setDoc(docRef, { list: existing });
-        console.log('[RecordPayment] Firestore fallback payment recorded successfully!');
-      } catch (fsErr) {
-        console.warn('[RecordPayment] Firestore fallback write failed:', fsErr.message);
-      }
-
-      setShowSuccessModal(true);
-      setTimeout(() => {
-        setShowSuccessModal(false);
-        setSelectedStudent(null);
-        setSearch('');
-        setPaymentAmount('');
-        setReferenceNumber('');
-        setRemarks('');
-      }, 2000);
+      console.error('DB Mutation failed:', err.message);
+      alert('Failed to record payment in database: ' + err.message);
     } finally {
       setSubmitting(false);
     }

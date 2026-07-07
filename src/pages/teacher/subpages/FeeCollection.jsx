@@ -8,8 +8,7 @@ import {
 import { useApp } from '../../../context/AppContext';
 import { useDataFetch } from '../../../hooks/useDataFetch';
 import { getFeeReports, recordPayment, reversePayment } from '../../../services/dataService';
-import { db } from '../../../services/firebase';
-import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
+
 
 const MOCK_PLANS = [
   { id: 'mock1', name: 'KORADA KARTHIKEYA', class: '7-A', admissionNo: '#26SO0001', paid: 0, pending: 0, total: 0 },
@@ -44,7 +43,7 @@ const FeeCollection = () => {
   const [extraPayments, setExtraPayments] = useState({});
 
   // Firestore payments loaded for the selected student
-  const [firestorePayments, setFirestorePayments] = useState([]);
+
 
   const branchId = user?.branchId || null;
 
@@ -57,63 +56,7 @@ const FeeCollection = () => {
 
   const studentsList = rawFeePlans?.students || [];
 
-  // Temporary one-time cleanup hook for AKKIREDDY SADHVIK
-  useEffect(() => {
-    if (studentsList.length > 0) {
-      const sadhvik = studentsList.find(s => s.fullName && s.fullName.toUpperCase().includes('SADHVIK'));
-      if (sadhvik) {
-        console.log('[Cleanup] Found Sadhvik:', sadhvik);
-        
-        // 1. Delete Firestore payments document
-        const firestoreRef = doc(db, 'fee_payments', sadhvik.id);
-        setDoc(firestoreRef, { list: [] })
-          .then(() => console.log('[Cleanup] Cleared Sadhvik Firestore payments successfully'))
-          .catch(err => console.error('[Cleanup] Firestore clear failed:', err));
-          
-        // 2. Reverse any PostgreSQL payments under his fee plans
-        (sadhvik.reportFeePlans || []).forEach(plan => {
-          (plan.reportFeePayments || []).forEach(pay => {
-            if (pay.status !== 'REVERSED') {
-              console.log('[Cleanup] Reversing PostgreSQL payment:', pay.id);
-              reversePayment({
-                paymentId: pay.id,
-                studentId: sadhvik.id,
-                branchId: branchId,
-                reversedById: user?.id || sadhvik.id,
-                reason: 'Test payment cleanup',
-                actorRole: user?.role || 'PRINCIPAL',
-                oldValue: '',
-                newValue: ''
-              })
-              .then(res => {
-                console.log('[Cleanup] Reversed PostgreSQL payment successfully:', res);
-                triggerFeeRefresh();
-              })
-              .catch(err => console.error('[Cleanup] PostgreSQL reversal failed:', err));
-            }
-          });
-        });
-      }
-    }
-  }, [studentsList, user, branchId]);
 
-  // Fetch Firestore payments when student is selected via onSnapshot
-  useEffect(() => {
-    if (!selectedStudent) {
-      setFirestorePayments([]);
-      return;
-    }
-    const unsub = onSnapshot(doc(db, 'fee_payments', selectedStudent.id), (docSnap) => {
-      if (docSnap.exists()) {
-        setFirestorePayments(docSnap.data().list || []);
-      } else {
-        setFirestorePayments([]);
-      }
-    }, (err) => {
-      console.error('Firestore onSnapshot error:', err);
-    });
-    return () => unsub();
-  }, [selectedStudent]);
 
   // Parse student records from DB (combines details for search)
   const normalizedStudents = useMemo(() => {
@@ -189,16 +132,15 @@ const FeeCollection = () => {
 
     const matched = normalizedStudents.find(s => s.id === selectedStudent.id) || selectedStudent;
     
-    // Add extra session payments and Firestore payments to paid
+    // Add extra session payments to paid
     const localExtra = extraPayments[matched.id] || 0;
-    const firestoreExtra = firestorePayments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
     
-    const paid = (matched.paidAmount || 0) + localExtra + firestoreExtra;
+    const paid = (matched.paidAmount || 0) + localExtra;
     const total = matched.totalAmount || 0;
     const pending = Math.max(total - paid, 0);
 
     return { total, paid, pending };
-  }, [selectedStudent, normalizedStudents, extraPayments, firestorePayments]);
+  }, [selectedStudent, normalizedStudents, extraPayments]);
 
   const handleSelectStudent = (student) => {
     setSelectedStudent(student);
@@ -254,28 +196,7 @@ const FeeCollection = () => {
         setErrorMessage(`PostgreSQL Error: ${err.message || err.toString()}`);
       }
     } else {
-      // 2. If student has no GQL fee plan (e.g. mock student), write to Firestore
-      try {
-        const docRef = doc(db, 'fee_payments', selectedStudent.id);
-        const snap = await getDoc(docRef);
-        const existing = snap.exists() ? snap.data().list || [] : [];
-        existing.push({
-          id: String(Date.now()),
-          amount: parsedAmt,
-          paymentDate,
-          paymentMode,
-          installment,
-          referenceNumber,
-          remarks,
-          createdAt: new Date().toISOString()
-        });
-        await setDoc(docRef, { list: existing });
-        success = true;
-        console.log('[FeeCollection] Firestore payment recorded successfully!');
-      } catch (err) {
-        console.error('[FeeCollection] Firestore fallback failed:', err);
-        setErrorMessage(`Firestore Error: ${err.message || err.toString()}`);
-      }
+      setErrorMessage("This student does not have a fee plan assigned. Please assign a fee plan before collecting payment.");
     }
 
     // 3. Handle success or failure feedback

@@ -253,6 +253,11 @@ const StudentRecords = () => {
                 return (
                   <div
                     key={student.id}
+                    onClick={() => {
+                      if (student.id) {
+                        navigate(`/settings/student/${student.id}`);
+                      }
+                    }}
                     className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/20 transition-all cursor-pointer group active:scale-[0.99]"
                   >
                     <div className="flex items-center gap-4">
@@ -1021,6 +1026,11 @@ const StudentRecords = () => {
             return (
               <div
                 key={student.id}
+                onClick={() => {
+                  if (student.id) {
+                    navigate(`/settings/student/${student.id}`);
+                  }
+                }}
                 className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/20 transition-all cursor-pointer relative group active:scale-[0.99]"
               >
                 <div className="flex items-center gap-4">
