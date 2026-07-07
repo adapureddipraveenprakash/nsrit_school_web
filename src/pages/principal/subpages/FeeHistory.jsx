@@ -10,7 +10,7 @@ import { useDataFetch } from '../../../hooks/useDataFetch';
 import { getPaymentHistory, getStudents } from '../../../services/dataService';
 import { db } from '../../../services/firebase';
 import { collection, getDocs } from 'firebase/firestore';
-import { getReceiptHtml, downloadReceiptPdf, numberToWords } from '../../../utils/recieptGenerator';
+import { getReceiptHtml, downloadReceiptPdf, numberToWords, getPaymentReceiptNo } from '../../../utils/recieptGenerator';
 
 const FeeHistory = () => {
   const navigate = useNavigate();
@@ -147,7 +147,7 @@ const FeeHistory = () => {
 
   const normalizedPayments = useMemo(() => {
     // 1. Map Postgres payments
-    const dbItems = dbPayments.map(p => {
+    const dbItems = dbPayments.map((p, idx) => {
       const student = dbStudents.find(s => s.id === p.studentId);
       const dateObj = p.paymentDate ? new Date(p.paymentDate) : new Date();
       return {
@@ -159,7 +159,7 @@ const FeeHistory = () => {
         date: formatDDMMYYYY(p.paymentDate),
         year: dateObj.getFullYear(),
         mode: p.paymentMode || 'CASH',
-        receiptNo: p.receiptNumber || p.id.slice(0, 8).toUpperCase(),
+        receiptNo: getPaymentReceiptNo(p, (typeof student !== 'undefined' ? student : (typeof selectedStudent !== 'undefined' ? selectedStudent : null)), idx),
         timestamp: dateObj.getTime(),
         remarks: p.remarks || '',
         collectedByName: p.collectedBy?.fullName || 'B. Geetha'
@@ -167,7 +167,7 @@ const FeeHistory = () => {
     });
 
     // 2. Map Firestore payments
-    const fsItems = firestorePayments.map(p => {
+    const fsItems = firestorePayments.map((p, idx) => {
       const student = dbStudents.find(s => s.id === p.studentId);
       const dateObj = p.paymentDate ? new Date(p.paymentDate) : new Date();
       return {
@@ -179,7 +179,7 @@ const FeeHistory = () => {
         date: formatDDMMYYYY(p.paymentDate),
         year: dateObj.getFullYear(),
         mode: p.paymentMode || 'CASH',
-        receiptNo: p.referenceNumber || `REC-FS-${p.id.slice(0, 6)}`.toUpperCase(),
+        receiptNo: getPaymentReceiptNo(p, (typeof student !== 'undefined' ? student : (typeof selectedStudent !== 'undefined' ? selectedStudent : null)), idx),
         timestamp: dateObj.getTime(),
         remarks: p.remarks || '',
         collectedByName: 'B. Geetha'

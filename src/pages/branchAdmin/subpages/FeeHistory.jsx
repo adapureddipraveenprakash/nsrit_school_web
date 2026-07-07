@@ -1,4 +1,4 @@
-import { getReceiptHtml, downloadReceiptPdf, numberToWords } from '../../../utils/recieptGenerator';
+import { getReceiptHtml, downloadReceiptPdf, numberToWords, getPaymentReceiptNo } from '../../../utils/recieptGenerator';
 import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -152,7 +152,7 @@ const handleDownloadPdf = (payment) => {
 
   const normalizedPayments = useMemo(() => {
     // 1. Map Postgres payments
-    const dbItems = dbPayments.map(p => {
+    const dbItems = dbPayments.map((p, idx) => {
       const student = dbStudents.find(s => s.id === p.studentId);
       const dateObj = p.paymentDate ? new Date(p.paymentDate) : new Date();
       return {
@@ -164,7 +164,7 @@ const handleDownloadPdf = (payment) => {
         date: formatDDMMYYYY(p.paymentDate),
         year: dateObj.getFullYear(),
         mode: p.paymentMode || 'CASH',
-        receiptNo: p.receiptNumber || p.id.slice(0, 8).toUpperCase(),
+        receiptNo: getPaymentReceiptNo(p, (typeof student !== 'undefined' ? student : (typeof selectedStudent !== 'undefined' ? selectedStudent : null)), idx),
         timestamp: dateObj.getTime(),
         remarks: p.remarks || '',
         collectedByName: p.collectedBy?.fullName || 'B. Geetha'
@@ -172,7 +172,7 @@ const handleDownloadPdf = (payment) => {
     });
 
     // 2. Map Firestore payments
-    const fsItems = firestorePayments.map(p => {
+    const fsItems = firestorePayments.map((p, idx) => {
       const student = dbStudents.find(s => s.id === p.studentId);
       const dateObj = p.paymentDate ? new Date(p.paymentDate) : new Date();
       return {
@@ -184,7 +184,7 @@ const handleDownloadPdf = (payment) => {
         date: formatDDMMYYYY(p.paymentDate),
         year: dateObj.getFullYear(),
         mode: p.paymentMode || 'CASH',
-        receiptNo: p.referenceNumber || `REC-FS-${p.id.slice(0, 6)}`.toUpperCase(),
+        receiptNo: getPaymentReceiptNo(p, (typeof student !== 'undefined' ? student : (typeof selectedStudent !== 'undefined' ? selectedStudent : null)), idx),
         timestamp: dateObj.getTime(),
         remarks: p.remarks || '',
         collectedByName: 'B. Geetha'

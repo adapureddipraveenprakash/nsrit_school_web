@@ -55,9 +55,51 @@ export function numberToWords(num) {
   return formattedWords + ' Rupees Only';
 }
 
+export const padBranchCode = branchCode => String(branchCode || '').padStart(2, '0').slice(-2);
+export const formatReceiptNumber = ({year, branchCode, sequence}) =>
+  `RCPT-${year}-${padBranchCode(branchCode).toUpperCase()}-${String(sequence).padStart(5, '0')}`;
+
+export const getPaymentReceiptNo = (p, student, idx = 0) => {
+  if (p.receiptNumber) return p.receiptNumber;
+  if (p.receiptNo) return p.receiptNo;
+  if (p.referenceNumber) return p.referenceNumber;
+
+  let branchCode = student?.branchCode || student?.branch?.branchCode;
+  if (!branchCode) {
+    const admissionNo = student?.admissionNo || student?.studentId || student?.student?.studentId;
+    if (admissionNo) {
+      const match = String(admissionNo).match(/^\d{2}([A-Z]{2})/i);
+      if (match) {
+        branchCode = match[1].toUpperCase();
+      }
+    }
+  }
+  if (!branchCode) {
+    branchCode = 'SO';
+  }
+
+  const dateObj = p.paymentDate || p.date || p.createdAt || new Date();
+  const year = dateObj ? new Date(dateObj).getFullYear() : 2026;
+  const sequence = p.id ? (parseInt(String(p.id).replace(/[^0-9]/g, '').slice(-5), 10) || (idx + 1)) : (idx + 1);
+  return formatReceiptNumber({ year, branchCode, sequence });
+};
+
 export const getReceiptHtml = (payment) => {
-  const receiptNo = payment.receiptNo || 'N/A';
-  const date = payment.date || 'N/A';
+  const branchCodeVal = payment.branchCode || 'SO';
+  const yearVal = payment.paymentDate ? new Date(payment.paymentDate).getFullYear() : (payment.date ? String(payment.date).split('-').pop() : 2026);
+  const sequenceVal = payment.sequence || (payment.id ? (parseInt(String(payment.id).replace(/[^0-9]/g, '').slice(-5), 10) || 1) : 1);
+  const receiptNo = payment.receiptNo || payment.receiptNumber || formatReceiptNumber({ year: yearVal, branchCode: branchCodeVal, sequence: sequenceVal });
+  let date = payment.date;
+  if (!date && payment.paymentDate) {
+    const d = new Date(payment.paymentDate);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    date = `${day}-${month}-${year}`;
+  }
+  if (!date) {
+    date = 'N/A';
+  }
   const studentName = payment.studentName || 'N/A';
   const className = payment.class || 'N/A';
   const admissionNo = payment.admissionNo || 'N/A';
@@ -75,310 +117,321 @@ export const getReceiptHtml = (payment) => {
       <meta charset="utf-8">
       <title>Fee Receipt</title>
       <style>
-
         @page {
-          size: 210mm 148.5mm;
-          margin: 2mm;
+          size: A4 landscape;
+          margin: 0;
         }
 
         html,
         body {
-          width: 210mm;
-          min-width: 210mm;
+          width: 297mm;
+          height: 210mm;
           margin: 0;
           padding: 0;
           overflow: hidden;
+          background-color: #ffffff;
+          font-family: 'Outfit', 'Inter', sans-serif;
         }
 
         .container {
-          width: 204mm;
-          margin: 0 auto;
-          border: 2px solid #0f5132;
-          border-radius: 8px;
-          padding: 12px;
+          width: 277mm;
+          height: 190mm;
+          margin: 10mm auto;
+          border: 3px solid #0f5132;
+          border-radius: 16px;
+          padding: 24px;
           box-sizing: border-box;
+          background-color: #ffffff;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
 
           page-break-inside: avoid;
           page-break-before: avoid;
           page-break-after: avoid;
         }
 
-
         /* Header styling */
         .header {
           display: flex;
           align-items: center;
-          
           border-bottom: 2px solid #0f5132;
-          padding-bottom: 8px;
-          margin-bottom: 12px;
-        }
-
-        .header-left-group {
-          width: 120px;              /* Adjust this value */
-          display: flex;
-          justify-content: flex-end; /* Push logo toward center */
-          align-items: center;
-          flex-shrink: 0;
-        }
-
-        .header-logo {
-          width: 50px;
-          height: 50px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          padding-bottom: 12px;
+          margin-bottom: 16px;
         }
 
         .header-center {
           flex: 1;
           text-align: center;
-          padding-right: 130px;      /* Same as header-left-group width */
           box-sizing: border-box;
         }
         .school-name {
-          font-size: 13px;
-          font-weight: bold;
+          font-size: 24px;
+          font-weight: 800;
           color: #0c2340;
           margin: 0;
-          letter-spacing: 0.5px;
+          letter-spacing: 2px;
+          line-height: 1.1;
         }
         .school-sub {
-          font-size: 10px;
-          font-weight: bold;
+          font-size: 13px;
+          font-weight: 700;
           color: #0c2340;
-          margin: 2px 0 5px 0;
+          margin: 4px 0 2px 0;
           letter-spacing: 1px;
+          line-height: 1.1;
         }
         .motto-bar {
-          font-size: 7px;
-          font-weight: bold;
+          font-size: 9px;
+          font-weight: 800;
           color: #198754;
-          margin: 3px 0;
+          margin: 4px 0;
+          letter-spacing: 1.5px;
+          line-height: 1.1;
         }
         .motto-sanskrit {
-          font-size: 9px;
-          font-weight: bold;
+          font-size: 11px;
+          font-weight: 700;
           color: #333;
-          margin: 3px 0;
+          margin: 4px 0;
+          line-height: 1.1;
         }
         .motto-translation {
-          font-size: 7px;
+          font-size: 8.5px;
           font-style: italic;
+          font-weight: 700;
           color: #198754;
           margin: 2px 0 0 0;
+          line-height: 1.1;
         }
-        
 
         /* Meta styling (Receipt No & Date) */
         .meta-row {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 12px;
-          font-size: 11px;
+          margin-bottom: 20px;
+          font-size: 13px;
         }
-        .meta-item {
+        .meta-item-container {
+          display: flex;
+          align-items: baseline;
+        }
+        .meta-label {
           font-weight: bold;
+          color: #000;
+          padding-right: 6px;
         }
-        .meta-value {
-          font-weight: normal;
-          border-bottom: 1px dotted #333;
-          padding-bottom: 2px;
-          padding-left: 5px;
-          min-width: 120px;
+        .meta-value-dotted {
+          border-bottom: 1.5px dotted #333;
+          padding-bottom: 1px;
+          padding-left: 8px;
+          min-width: 220px;
+          font-weight: bold;
+          color: #000;
           display: inline-block;
         }
 
         /* Heading Pill */
         .title-container {
           text-align: center;
-          margin-bottom: 15px;
+          margin-bottom: 24px;
         }
         .title-badge {
-          background-color: #1a2d42;
+          background-color: #0c2340;
           color: white;
-          padding: 5px 20px;
-          border-radius: 18px;
-          font-size: 12px;
-          font-weight: bold;
+          padding: 6px 28px;
+          border-radius: 20px;
+          font-size: 13px;
+          font-weight: 800;
           display: inline-block;
           letter-spacing: 1px;
-          text-transform: uppercase;
         }
 
         /* Details Section */
-        .details-table {
+        .details-section {
+          margin-bottom: 24px;
           width: 100%;
-          border-collapse: collapse;
-          margin-bottom: 12px;
         }
-        .details-row td {
-          padding: 4px 0;
-          vertical-align: bottom;
+        .detail-row {
+          display: flex;
+          align-items: baseline;
+          margin-bottom: 16px;
         }
-        .details-label {
+        .detail-label {
           font-weight: bold;
-          font-size: 11px;
-          width: 160px;
+          font-size: 13px;
+          color: #000;
           white-space: nowrap;
+          padding-right: 6px;
         }
-        .details-value {
-          border-bottom: 1px dashed #333;
-          padding-bottom: 2px;
-          padding-left: 10px;
-          font-size: 11px;
-          width: 100%;
+        .detail-value {
+          flex-grow: 1;
+          border-bottom: 1.5px dotted #333;
+          padding-left: 8px;
+          font-size: 13px;
+          font-weight: bold;
+          color: #000;
         }
 
         /* Paragraph details */
         .receipt-paragraph {
-          font-size: 11px;
-          line-height: 1.5;
+          font-size: 13px;
+          line-height: 2.2;
           text-align: justify;
-          margin-bottom: 12px;
+          margin-bottom: 24px;
+          color: #000;
         }
-        .inline-underline {
-          border-bottom: 1px dashed #333;
-          padding: 0 10px;
+        .inline-underline-value {
+          border-bottom: 1.5px dotted #333;
+          padding: 0 8px;
           font-weight: bold;
+          color: #000;
           display: inline-block;
+          text-align: center;
         }
 
-        /* Signatures */
-        .signature-section {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-          margin-bottom: 10px;
+        /* Received By Section */
+        .received-by-section {
+          margin-bottom: 24px;
         }
-        .sig-row {
+        .received-by-row {
           display: flex;
-          font-size: 11px;
+          align-items: baseline;
+        }
+        .received-by-label {
           font-weight: bold;
-          align-items: bottom;
+          font-size: 13px;
+          color: #000;
+          white-space: nowrap;
+          padding-right: 6px;
         }
-        .sig-label {
-          width: 120px;
-        }
-        .sig-value {
-          border-bottom: 1px dashed #333;
-          width: 180px;
-          display: inline-block;
-          padding-left: 10px;
-          font-weight: normal;
+        .received-by-value {
+          width: 250px;
+          border-bottom: 1.5px dotted #333;
+          padding-left: 8px;
+          font-size: 13px;
+          font-weight: bold;
+          color: #000;
         }
 
         /* Footer Address and Contact */
         .footer {
-          border-top: 2px solid #0f5132;
-          padding-top: 10px;
+          margin-top: auto;
         }
         .address-row {
-          font-size: 7px;
+          font-size: 9.5px;
+          font-weight: bold;
           color: #333;
           text-align: center;
-          margin-bottom: 8px;
+          margin-bottom: 12px;
           display: flex;
           justify-content: center;
           align-items: center;
-          gap: 5px;
+          gap: 4px;
         }
         .footer-bar {
-          background: linear-gradient(90deg, #0c2340 0%, #0c2340 85%, #198754 100%);
+          background: linear-gradient(90deg, #0c2340 0%, #0c2340 80%, #198754 100%);
           color: white;
-          padding: 5px;
-          border-radius: 4px;
+          padding: 8px 16px;
+          border-radius: 8px;
           display: flex;
           justify-content: space-around;
-          font-size: 7px;
+          font-size: 9.5px;
           font-weight: bold;
         }
         .footer-item {
           display: flex;
           align-items: center;
-          gap: 5px;
+          gap: 6px;
         }
       </style>
     </head>
     <body>
       <div class="container">
         <div>
+          <!-- Header with School Info -->
           <div class="header">
-          
-            
-        <div class="header-center">
-              <div class="school-name">NSRIT AI Algo Connect</div>
+            <div class="header-center">
+              <div class="school-name">NSRIT</div>
+              <div class="school-sub">ENGLISH MEDIUM SCHOOL</div>
+              <div class="motto-bar">UNITY • LEARNING • GROWTH</div>
+              <div class="motto-sanskrit">ज्ञानं परमं बलम्</div>
+              <div class="motto-translation">Knowledge is the supreme strength</div>
             </div>
           </div>
           
+          <!-- Meta-Row for Receipt No & Date -->
           <div class="meta-row">
-            <div>
-              <span class="meta-item">Receipt No:</span>
-              <span class="meta-value">${receiptNo}</span>
+            <div class="meta-item-container">
+              <span class="meta-label">Receipt No:</span>
+              <span class="meta-value-dotted">${receiptNo}</span>
             </div>
-            <div>
-              <span class="meta-item">Date:</span>
-              <span class="meta-value">${date}</span>
+            <div class="meta-item-container">
+              <span class="meta-label">Date:</span>
+              <span class="meta-value-dotted">${date}</span>
             </div>
           </div>
           
+          <!-- Badge -->
           <div class="title-container">
-            <div class="title-badge">Fee Receipt</div>
+            <div class="title-badge">FEE RECEIPT</div>
           </div>
           
-          <table class="details-table">
-            <tr class="details-row">
-              <td class="details-label">Name of the student:</td>
-              <td class="details-value">${studentName}</td>
-            </tr>
-            <tr class="details-row">
-              <td class="details-label">Class:</td>
-              <td class="details-value">${className}</td>
-            </tr>
-            <tr class="details-row">
-              <td class="details-label">Admission no. :</td>
-              <td class="details-value">${admissionNo}</td>
-            </tr>
-          </table>
+          <!-- Student Details Section -->
+          <div class="details-section">
+            <div class="detail-row">
+              <span class="detail-label">Name of the student:</span>
+              <span class="detail-value">${studentName}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Class:</span>
+              <span class="detail-value">${className}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Admission no. :</span>
+              <span class="detail-value">${admissionNo}</span>
+            </div>
+          </div>
           
+          <!-- Receipt Paragraph -->
           <div class="receipt-paragraph">
             Received the sum of rupees 
-            <span class="inline-underline" style="min-width: 250px;">${amountWords} (${amountCurrency})</span> 
+            <span class="inline-underline-value" style="min-width: 280px;">${amountWords} (${amountCurrency})</span> 
             for the 
-            <span class="inline-underline" style="min-width: 150px;">${installment}</span> 
+            <span class="inline-underline-value" style="min-width: 140px;">${installment}</span> 
             installment from 
-            <span class="inline-underline" style="min-width: 150px;">${receivedFrom}</span> 
+            <span class="inline-underline-value" style="min-width: 200px;">${receivedFrom}</span> 
             on 
-            <span class="inline-underline" style="min-width: 120px;">${date}</span>.
+            <span class="inline-underline-value" style="min-width: 120px;">${date}</span>.
           </div>
         </div>
         
+        <!-- Footer Area -->
         <div class="footer">
-          <div class="signature-section">
-            <div class="sig-row">
-              <span class="sig-label">Rec by:</span>
-              <span class="sig-value">${receivedBy}</span>
+          <div class="received-by-section">
+            <div class="received-by-row">
+              <span class="received-by-label">Recorded by:</span>
+              <span class="received-by-value">${receivedBy}</span>
             </div>
-          
           </div>
 
           <div class="address-row">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="#333" style="display:inline-block; vertical-align:middle; margin-right:3px;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="#333" style="display:inline-block; vertical-align:middle; margin-right:4px;">
               <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
             </svg>
-            NSRIT AI Algo Connect, Sontyam village, Visakhapatnam, Andhra Pradesh - 531173
+            NSRIT English Medium School, Sontyam village, Visakhapatnam, Andhra Pradesh - 531173
           </div>
           
           <div class="footer-bar">
             <div class="footer-item">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="#fff" style="display:inline-block; vertical-align:middle; margin-right:3px;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="#fff" style="display:inline-block; vertical-align:middle; margin-right:6px;">
                 <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 0 0-1.01.24l-2.2 2.2a15.045 15.045 0 0 1-6.59-6.59l2.2-2.2c.28-.28.36-.67.25-1.02C8.79 6.35 8.59 5.16 8.59 3.93c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.58c0-.56-.45-1-1-1z"/>
               </svg>
               9100046515
             </div>
             <div class="footer-item">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="#fff" style="display:inline-block; vertical-align:middle; margin-right:3px;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="#fff" style="display:inline-block; vertical-align:middle; margin-right:6px;">
                 <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
               </svg>
               nsritschoolprincipal@gmail.com
@@ -392,7 +445,7 @@ export const getReceiptHtml = (payment) => {
 };
 
 export const downloadReceiptPdf = (payment) => {
-  const receiptNo = payment.receiptNo || 'N/A';
+  const receiptNo = payment.receiptNo || payment.receiptNumber || 'N/A';
   const htmlContent = getReceiptHtml(payment);
   
   const tempContainer = document.createElement('div');
@@ -405,7 +458,7 @@ export const downloadReceiptPdf = (payment) => {
   const element = tempContainer.querySelector('.container');
   
   const opt = {
-    margin:       5,
+    margin:       0,
     filename:     `Receipt_${receiptNo}.pdf`,
     image:        { type: 'jpeg', quality: 0.98 },
     html2canvas:  { scale: 2, useCORS: true, logging: false },

@@ -1,4 +1,4 @@
-import { getReceiptHtml, downloadReceiptPdf, numberToWords } from '../../../utils/recieptGenerator';
+import { getReceiptHtml, downloadReceiptPdf, numberToWords, getPaymentReceiptNo } from '../../../utils/recieptGenerator';
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -364,7 +364,7 @@ const handleDownloadPdf = (payment) => {
           date: dateStr,
           displayDate: dateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
           mode: p.paymentMode || 'CASH',
-          receiptNo: p.receiptNumber || p.id.slice(0, 8).toUpperCase(),
+          receiptNo: getPaymentReceiptNo(p, (typeof student !== 'undefined' ? student : (typeof selectedStudent !== 'undefined' ? selectedStudent : null)), idx),
           status: p.status,
           studentName: selectedStudent.fullName,
           class: selectedStudent.className,
@@ -380,7 +380,7 @@ const handleDownloadPdf = (payment) => {
     if (student) {
       const activePlan = (student.reportFeePlans || []).find(p => p.isActive !== false);
       if (activePlan) {
-        dbPaymentsList = (activePlan.reportFeePayments || []).map(p => {
+        dbPaymentsList = (activePlan.reportFeePayments || []).map((p, idx) => {
           const dateObj = p.paymentDate ? new Date(p.paymentDate) : new Date();
           const dateStr = formatDDMMYYYY(p.paymentDate);
           return {
@@ -389,7 +389,7 @@ const handleDownloadPdf = (payment) => {
             date: dateStr,
             displayDate: dateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
             mode: p.paymentMode || 'CASH',
-            receiptNo: p.receiptNumber || p.id.slice(0, 8).toUpperCase(),
+            receiptNo: getPaymentReceiptNo(p, (typeof student !== 'undefined' ? student : (typeof selectedStudent !== 'undefined' ? selectedStudent : null)), idx),
             timestamp: dateObj.getTime(),
             status: p.status,
             studentName: selectedStudent.fullName,
@@ -411,7 +411,7 @@ const handleDownloadPdf = (payment) => {
         date: dateStr,
         displayDate: dateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
         mode: p.paymentMode || 'CASH',
-        receiptNo: p.referenceNumber || `REC-FS-${String(p.id || '').slice(0, 6)}`.toUpperCase(),
+        receiptNo: getPaymentReceiptNo(p, (typeof student !== 'undefined' ? student : (typeof selectedStudent !== 'undefined' ? selectedStudent : null)), idx),
         timestamp: dateObj.getTime(),
         status: 'RECORDED',
         studentName: selectedStudent.fullName,

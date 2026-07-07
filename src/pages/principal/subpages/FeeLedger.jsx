@@ -1,4 +1,4 @@
-import { getReceiptHtml, downloadReceiptPdf, numberToWords } from '../../../utils/recieptGenerator';
+import { getReceiptHtml, downloadReceiptPdf, numberToWords, getPaymentReceiptNo } from '../../../utils/recieptGenerator';
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -194,14 +194,14 @@ const handleDownloadPdf = (payment) => {
     if (student) {
       const activePlan = (student.reportFeePlans || []).find(p => p.isActive !== false);
       if (activePlan) {
-        dbPaymentsList = (activePlan.reportFeePayments || []).map(p => {
+        dbPaymentsList = (activePlan.reportFeePayments || []).map((p, idx) => {
           const dateObj = p.paymentDate ? new Date(p.paymentDate) : new Date();
           return {
             id: p.id,
             amount: p.amount || 0,
             date: dateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
             mode: p.paymentMode || 'CASH',
-            receiptNo: p.receiptNumber || p.id.slice(0, 8).toUpperCase(),
+            receiptNo: getPaymentReceiptNo(p, (typeof student !== 'undefined' ? student : (typeof selectedStudent !== 'undefined' ? selectedStudent : null)), idx),
             timestamp: dateObj.getTime(),
             status: p.status
           };
@@ -216,7 +216,7 @@ const handleDownloadPdf = (payment) => {
         amount: p.amount || 0,
         date: dateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
         mode: p.paymentMode || 'CASH',
-        receiptNo: p.referenceNumber || `REC-FS-${String(p.id || '').slice(0, 6)}`.toUpperCase(),
+        receiptNo: getPaymentReceiptNo(p, (typeof student !== 'undefined' ? student : (typeof selectedStudent !== 'undefined' ? selectedStudent : null)), idx),
         timestamp: dateObj.getTime(),
         status: 'RECORDED'
       };

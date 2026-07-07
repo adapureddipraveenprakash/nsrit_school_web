@@ -1,4 +1,4 @@
-import { getReceiptHtml, downloadReceiptPdf, numberToWords } from '../../utils/recieptGenerator';
+import { getReceiptHtml, downloadReceiptPdf, numberToWords, getPaymentReceiptNo } from '../../utils/recieptGenerator';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useDataFetch } from '../../hooks/useDataFetch';
@@ -192,7 +192,7 @@ const handleDownloadPdf = (payment) => {
 
   // Combine live payments from both sources
   const allPayments = useMemo(() => {
-    const dbItems = dbPayments.map(p => {
+    const dbItems = dbPayments.map((p, idx) => {
       const student = dbStudents.find(s => s.id === p.studentId) || users.find(u => u.id === p.studentId);
       return {
         id: p.id,
@@ -202,14 +202,14 @@ const handleDownloadPdf = (payment) => {
         amount: Number(p.amount || 0),
         paymentDate: p.paymentDate,
         paymentMode: p.paymentMode || 'CASH',
-        receiptNumber: p.receiptNumber || p.id.slice(0, 8).toUpperCase(),
+        receiptNumber: getPaymentReceiptNo(p, (typeof student !== 'undefined' ? student : (typeof selectedStudent !== 'undefined' ? selectedStudent : null)), idx),
         remarks: p.remarks || 'School Fee',
         collectedByName: p.collectedBy?.fullName || 'Accountant',
         student: { fullName: student?.fullName || 'Unknown Student' }
       };
     });
 
-    const fsItems = firestorePayments.map(p => {
+    const fsItems = firestorePayments.map((p, idx) => {
       const student = dbStudents.find(s => s.id === p.studentId) || users.find(u => u.id === p.studentId);
       return {
         id: p.id,
@@ -219,7 +219,7 @@ const handleDownloadPdf = (payment) => {
         amount: Number(p.amount || 0),
         paymentDate: p.paymentDate,
         paymentMode: p.paymentMode || 'CASH',
-        receiptNumber: p.receiptNumber || p.referenceNumber || `REC-FS-${p.id.slice(0, 6)}`.toUpperCase(),
+        receiptNumber: getPaymentReceiptNo(p, (typeof student !== 'undefined' ? student : (typeof selectedStudent !== 'undefined' ? selectedStudent : null)), idx),
         remarks: p.remarks || 'School Fee',
         collectedByName: 'Accountant',
         student: { fullName: student?.fullName || 'Unknown Student' }
@@ -553,7 +553,7 @@ const handleDownloadPdf = (payment) => {
                   const dateStr = formatDate(p.paymentDate);
                   const modeStr = p.paymentMode ? ` - ${p.paymentMode.toUpperCase()}` : '';
                   const displayName = `${studentName}${modeStr}`;
-                  const receiptNo = p.receiptNumber || p.id.slice(0, 8).toUpperCase();
+                  const receiptNo = getPaymentReceiptNo(p, (typeof student !== 'undefined' ? student : (typeof selectedStudent !== 'undefined' ? selectedStudent : null)), idx);
 
                   return (
                     <div

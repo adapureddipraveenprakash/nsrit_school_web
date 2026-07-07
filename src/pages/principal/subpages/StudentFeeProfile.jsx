@@ -1,4 +1,4 @@
-import { getReceiptHtml, downloadReceiptPdf, numberToWords } from '../../../utils/recieptGenerator';
+import { getReceiptHtml, downloadReceiptPdf, numberToWords, getPaymentReceiptNo } from '../../../utils/recieptGenerator';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -146,33 +146,49 @@ const handleDownloadPdf = (payment) => {
 
   // Combine Postgres and Firestore payments
   const allPayments = useMemo(() => {
-    const dbItems = payments.map(p => ({
-      id: p.id,
-      amount: p.amount || 0,
-      paymentMode: p.paymentMode || 'CASH',
-      paymentDate: p.paymentDate,
-      receiptNumber: p.receiptNumber || p.id.slice(0, 8).toUpperCase(),
-      remarks: p.remarks || p.installment || 'School Fee',
-      status: p.status || 'RECORDED',
-      studentName: studentDetails?.fullName || 'Unknown Student',
-      class: studentDetails?.academicClass ? `${studentDetails.academicClass.name}-${studentDetails.section?.name || 'A'}` : 'N/A',
-      admissionNo: studentDetails?.studentId || 'N/A',
-      collectedByName: p.collectedBy?.fullName || 'B. Geetha'
-    }));
+    const dbItems = payments.map((p, idx) => {
+      const receiptNoVal = getPaymentReceiptNo(p, studentDetails, idx);
+      const branchCode = studentDetails?.branch?.branchCode || studentDetails?.branchCode || 'SO';
+      const dateVal = p.paymentDate ? new Date(p.paymentDate).toLocaleDateString('en-GB').replace(/\//g, '-') : 'N/A';
+      return {
+        id: p.id,
+        amount: p.amount || 0,
+        paymentMode: p.paymentMode || 'CASH',
+        paymentDate: p.paymentDate,
+        date: dateVal,
+        receiptNumber: receiptNoVal,
+        receiptNo: receiptNoVal,
+        remarks: p.remarks || p.installment || 'School Fee',
+        status: p.status || 'RECORDED',
+        studentName: studentDetails?.fullName || 'Unknown Student',
+        class: studentDetails?.academicClass ? `${studentDetails.academicClass.name}-${studentDetails.section?.name || 'A'}` : 'N/A',
+        admissionNo: studentDetails?.studentId || 'N/A',
+        collectedByName: p.collectedBy?.fullName || 'B. Geetha',
+        branchCode
+      };
+    });
 
-    const fsItems = fsPayments.map((p, idx) => ({
-      id: p.id || `fs-${idx}`,
-      amount: p.amount || 0,
-      paymentMode: p.paymentMode || 'CASH',
-      paymentDate: p.paymentDate,
-      receiptNumber: p.receiptNumber || p.referenceNumber || `REC-FS-${String(p.id || '').slice(0, 6)}`.toUpperCase(),
-      remarks: p.remarks || 'School Fee',
-      status: p.status || 'RECORDED',
-      studentName: studentDetails?.fullName || 'Unknown Student',
-      class: studentDetails?.academicClass ? `${studentDetails.academicClass.name}-${studentDetails.section?.name || 'A'}` : 'N/A',
-      admissionNo: studentDetails?.studentId || 'N/A',
-      collectedByName: 'B. Geetha'
-    }));
+    const fsItems = fsPayments.map((p, idx) => {
+      const receiptNoVal = getPaymentReceiptNo(p, studentDetails, idx);
+      const branchCode = studentDetails?.branch?.branchCode || studentDetails?.branchCode || 'SO';
+      const dateVal = p.paymentDate ? new Date(p.paymentDate).toLocaleDateString('en-GB').replace(/\//g, '-') : 'N/A';
+      return {
+        id: p.id || `fs-${idx}`,
+        amount: p.amount || 0,
+        paymentMode: p.paymentMode || 'CASH',
+        paymentDate: p.paymentDate,
+        date: dateVal,
+        receiptNumber: receiptNoVal,
+        receiptNo: receiptNoVal,
+        remarks: p.remarks || 'School Fee',
+        status: p.status || 'RECORDED',
+        studentName: studentDetails?.fullName || 'Unknown Student',
+        class: studentDetails?.academicClass ? `${studentDetails.academicClass.name}-${studentDetails.section?.name || 'A'}` : 'N/A',
+        admissionNo: studentDetails?.studentId || 'N/A',
+        collectedByName: 'B. Geetha',
+        branchCode
+      };
+    });
 
     const dbReceipts = new Set(dbItems.map(p => p.receiptNumber?.toUpperCase()));
     const uniqueFsItems = fsItems.filter(p => !dbReceipts.has(p.receiptNumber?.toUpperCase()) && !dbReceipts.has(p.id?.toUpperCase()));
