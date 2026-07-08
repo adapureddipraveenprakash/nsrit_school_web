@@ -120,6 +120,7 @@ const M = {
   RECORD_PAYMENT: 'RecordPayment',
   UPDATE_PAYMENT: 'UpdatePayment',
   REVERSE_PAYMENT: 'ReversePayment',
+  MIGRATE_RECEIPT_NUMBER: 'MigrateReceiptNumber',
   CREATE_ATTENDANCE: 'CreateAttendance',
   UPDATE_ATTENDANCE: 'UpdateAttendance',
   CORRECT_ATTENDANCE: 'CorrectAttendance',
@@ -528,6 +529,10 @@ export const recordPayment = async (payload) => {
 
 export const reversePayment = async (payload) => {
   return dataConnectClient.mutate(M.REVERSE_PAYMENT, payload);
+};
+
+export const migrateReceiptNumber = async (payload) => {
+  return dataConnectClient.mutate(M.MIGRATE_RECEIPT_NUMBER, payload);
 };
 
 // ─── Attendance ───────────────────────────────────────────────────────────────

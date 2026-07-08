@@ -8,6 +8,8 @@ import {
 import { useApp } from '../../../context/AppContext';
 import { useDataFetch } from '../../../hooks/useDataFetch';
 import { getFeeReports, recordPayment, reversePayment } from '../../../services/dataService';
+import { generateReceipt } from '../../../utils/receiptGenerator';
+
 
 
 const MOCK_PLANS = [
@@ -163,8 +165,12 @@ const FeeCollection = () => {
     // 1. If student has a valid GQL fee plan, write ONLY to PostgreSQL GQL
     if (selectedStudent.feePlanId && isValidUUID(selectedStudent.feePlanId) && isValidUUID(selectedStudent.id)) {
       try {
-        const branchCode = user?.branchCode || 'SO';
-        const uniqueSuffix = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+        const targetYear = new Date(paymentDate).getFullYear() || 2026;
+        const rawBranchCode = user?.branchCode || 'SO';
+        const receiptData = await generateReceipt({
+          branchCode: rawBranchCode,
+          year: targetYear
+        });
 
         const payload = {
           studentId: selectedStudent.id,
@@ -173,13 +179,13 @@ const FeeCollection = () => {
           paymentDate,
           paymentMode: paymentMode.toUpperCase(),
           referenceNumber: referenceNumber || null,
-          receiptNumber: `REC-${branchCode}-${uniqueSuffix}`,
+          receiptNumber: receiptData.receiptNumber,
           remarks: remarks || null,
           collectedById: user?.id || selectedStudent.id,
           branchId,
-          receiptYear: new Date(paymentDate).getFullYear() || 2026,
-          branchCode,
-          receiptSequence: Math.floor(Math.random() * 100000) + 1,
+          receiptYear: receiptData.receiptYear,
+          branchCode: receiptData.branchCode,
+          receiptSequence: receiptData.receiptSequence,
           actorRole: user?.role || 'PRINCIPAL',
           oldValue: '',
           newValue: ''

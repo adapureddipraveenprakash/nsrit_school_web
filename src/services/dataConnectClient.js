@@ -285,6 +285,10 @@ const executeConnectorOperation = async ({ operationName, variables = {}, type, 
 
       const data = normalizeUuids(payload.data || {});
 
+      if (operationName !== 'MigrateReceiptNumber' && operationName !== 'RecordAuditLog') {
+        autoMigrateLegacyReceipts(data);
+      }
+
       if (!skipAudit && type === 'mutation') {
         await maybeRecordMainAdminAudit({ operationName, variables, data, token });
       }
@@ -312,6 +316,50 @@ const executeConnectorOperation = async ({ operationName, variables = {}, type, 
         `Retrying in ${Math.round(delay)}ms... (Attempt ${attempt}/${maxRetries})`
       );
       await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+};
+
+const autoMigrateLegacyReceipts = (data) => {
+  if (data === null || typeof data !== 'object') return;
+
+  if (Array.isArray(data)) {
+    data.forEach(autoMigrateLegacyReceipts);
+    return;
+  }
+
+  // If it's a payment object (FeePayment returned from GQL)
+  if (data.id && typeof data.receiptNumber === 'string' && data.receiptNumber.startsWith('REC-')) {
+    const parts = data.receiptNumber.split('-');
+    const lastPart = parts[parts.length - 1];
+    const parsedSeq = Number(lastPart);
+    if (!isNaN(parsedSeq) && parsedSeq > 0) {
+      let branchCode = data.branchCode || 'SO';
+      let year = data.receiptYear || new Date(data.paymentDate || new Date()).getFullYear();
+
+      const formattedCode = String(branchCode).padStart(2, '0').slice(-2);
+      const newReceiptNumber = `RCPT-${year}-${formattedCode}-${String(parsedSeq).padStart(5, '0')}`;
+
+      // Trigger update
+      executeConnectorOperation({
+        operationName: 'MigrateReceiptNumber',
+        type: 'mutation',
+        variables: {
+          paymentId: data.id,
+          receiptNumber: newReceiptNumber
+        },
+        skipAudit: true
+      })
+        .then(() => console.log(`[Auto-Migration] Migrated payment ${data.id} receipt to ${newReceiptNumber}`))
+        .catch(err => console.error('[Auto-Migration] Failed to migrate receipt number:', err));
+
+      data.receiptNumber = newReceiptNumber;
+    }
+  }
+
+  for (const key of Object.keys(data)) {
+    if (data[key] && typeof data[key] === 'object') {
+      autoMigrateLegacyReceipts(data[key]);
     }
   }
 };

@@ -237,6 +237,8 @@ You can also follow the instructions from the [Data Connect documentation](https
   - [*UpdateStudentStatus*](#updatestudentstatus)
   - [*UpdateStudentSection*](#updatestudentsection)
   - [*UpdateCoordinator*](#updatecoordinator)
+  - [*MigrateReceiptNumber*](#migratereceiptnumber)
+  - [*UpsertReceiptSequence*](#upsertreceiptsequence)
 
 # TanStack Query Firebase & TanStack React Query
 This SDK provides [React](https://react.dev/) hooks generated specific to your application, for the operations found in the connector `nsrit`. These hooks are generated using [TanStack Query Firebase](https://react-query-firebase.invertase.dev/) by our partners at Invertase, a library built on top of [TanStack React Query v5](https://tanstack.com/query/v5/docs/framework/react/overview).
@@ -24744,6 +24746,200 @@ export default function UpdateCoordinatorComponent() {
   if (mutation.isSuccess) {
     console.log(mutation.data.user_update);
     console.log(mutation.data.coordinator_update);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## MigrateReceiptNumber
+You can execute the `MigrateReceiptNumber` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useMigrateReceiptNumber(options?: useDataConnectMutationOptions<MigrateReceiptNumberData, FirebaseError, MigrateReceiptNumberVariables>): UseDataConnectMutationResult<MigrateReceiptNumberData, MigrateReceiptNumberVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useMigrateReceiptNumber(dc: DataConnect, options?: useDataConnectMutationOptions<MigrateReceiptNumberData, FirebaseError, MigrateReceiptNumberVariables>): UseDataConnectMutationResult<MigrateReceiptNumberData, MigrateReceiptNumberVariables>;
+```
+
+### Variables
+The `MigrateReceiptNumber` Mutation requires an argument of type `MigrateReceiptNumberVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface MigrateReceiptNumberVariables {
+  paymentId: UUIDString;
+  receiptNumber: string;
+}
+```
+### Return Type
+Recall that calling the `MigrateReceiptNumber` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `MigrateReceiptNumber` Mutation is of type `MigrateReceiptNumberData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface MigrateReceiptNumberData {
+  feePayment_update?: FeePayment_Key | null;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `MigrateReceiptNumber`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, MigrateReceiptNumberVariables } from '@dataconnect/generated';
+import { useMigrateReceiptNumber } from '@dataconnect/generated/react'
+
+export default function MigrateReceiptNumberComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useMigrateReceiptNumber();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useMigrateReceiptNumber(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useMigrateReceiptNumber(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useMigrateReceiptNumber(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useMigrateReceiptNumber` Mutation requires an argument of type `MigrateReceiptNumberVariables`:
+  const migrateReceiptNumberVars: MigrateReceiptNumberVariables = {
+    paymentId: ..., 
+    receiptNumber: ..., 
+  };
+  mutation.mutate(migrateReceiptNumberVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ paymentId: ..., receiptNumber: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(migrateReceiptNumberVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.feePayment_update);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## UpsertReceiptSequence
+You can execute the `UpsertReceiptSequence` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useUpsertReceiptSequence(options?: useDataConnectMutationOptions<UpsertReceiptSequenceData, FirebaseError, UpsertReceiptSequenceVariables>): UseDataConnectMutationResult<UpsertReceiptSequenceData, UpsertReceiptSequenceVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useUpsertReceiptSequence(dc: DataConnect, options?: useDataConnectMutationOptions<UpsertReceiptSequenceData, FirebaseError, UpsertReceiptSequenceVariables>): UseDataConnectMutationResult<UpsertReceiptSequenceData, UpsertReceiptSequenceVariables>;
+```
+
+### Variables
+The `UpsertReceiptSequence` Mutation requires an argument of type `UpsertReceiptSequenceVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface UpsertReceiptSequenceVariables {
+  year: number;
+  branchCode: string;
+  lastSequence: number;
+}
+```
+### Return Type
+Recall that calling the `UpsertReceiptSequence` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `UpsertReceiptSequence` Mutation is of type `UpsertReceiptSequenceData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface UpsertReceiptSequenceData {
+  receiptSequence_upsert: ReceiptSequence_Key;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `UpsertReceiptSequence`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, UpsertReceiptSequenceVariables } from '@dataconnect/generated';
+import { useUpsertReceiptSequence } from '@dataconnect/generated/react'
+
+export default function UpsertReceiptSequenceComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useUpsertReceiptSequence();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useUpsertReceiptSequence(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useUpsertReceiptSequence(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useUpsertReceiptSequence(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useUpsertReceiptSequence` Mutation requires an argument of type `UpsertReceiptSequenceVariables`:
+  const upsertReceiptSequenceVars: UpsertReceiptSequenceVariables = {
+    year: ..., 
+    branchCode: ..., 
+    lastSequence: ..., 
+  };
+  mutation.mutate(upsertReceiptSequenceVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ year: ..., branchCode: ..., lastSequence: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(upsertReceiptSequenceVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.receiptSequence_upsert);
   }
   return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
 }

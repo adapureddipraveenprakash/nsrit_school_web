@@ -230,6 +230,8 @@ This README will guide you through the process of using the generated JavaScript
   - [*UpdateStudentStatus*](#updatestudentstatus)
   - [*UpdateStudentSection*](#updatestudentsection)
   - [*UpdateCoordinator*](#updatecoordinator)
+  - [*MigrateReceiptNumber*](#migratereceiptnumber)
+  - [*UpsertReceiptSequence*](#upsertreceiptsequence)
 
 # Accessing the connector
 A connector is a collection of Queries and Mutations. One SDK is generated for each connector - this SDK is generated for the connector `nsrit`. You can find more information about connectors in the [Data Connect documentation](https://firebase.google.com/docs/data-connect#how-does).
@@ -30511,6 +30513,233 @@ executeMutation(ref).then((response) => {
   const data = response.data;
   console.log(data.user_update);
   console.log(data.coordinator_update);
+});
+```
+
+## MigrateReceiptNumber
+You can execute the `MigrateReceiptNumber` mutation using the following action shortcut function, or by calling `executeMutation()` after calling the following `MutationRef` function, both of which are defined in [dataconnect-generated/index.d.ts](./index.d.ts):
+```typescript
+migrateReceiptNumber(vars: MigrateReceiptNumberVariables): MutationPromise<MigrateReceiptNumberData, MigrateReceiptNumberVariables>;
+
+interface MigrateReceiptNumberRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: MigrateReceiptNumberVariables): MutationRef<MigrateReceiptNumberData, MigrateReceiptNumberVariables>;
+}
+export const migrateReceiptNumberRef: MigrateReceiptNumberRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `MutationRef` function.
+```typescript
+migrateReceiptNumber(dc: DataConnect, vars: MigrateReceiptNumberVariables): MutationPromise<MigrateReceiptNumberData, MigrateReceiptNumberVariables>;
+
+interface MigrateReceiptNumberRef {
+  ...
+  (dc: DataConnect, vars: MigrateReceiptNumberVariables): MutationRef<MigrateReceiptNumberData, MigrateReceiptNumberVariables>;
+}
+export const migrateReceiptNumberRef: MigrateReceiptNumberRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the migrateReceiptNumberRef:
+```typescript
+const name = migrateReceiptNumberRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `MigrateReceiptNumber` mutation requires an argument of type `MigrateReceiptNumberVariables`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+
+```typescript
+export interface MigrateReceiptNumberVariables {
+  paymentId: UUIDString;
+  receiptNumber: string;
+}
+```
+### Return Type
+Recall that executing the `MigrateReceiptNumber` mutation returns a `MutationPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `MigrateReceiptNumberData`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface MigrateReceiptNumberData {
+  feePayment_update?: FeePayment_Key | null;
+}
+```
+### Using `MigrateReceiptNumber`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, migrateReceiptNumber, MigrateReceiptNumberVariables } from '@dataconnect/generated';
+
+// The `MigrateReceiptNumber` mutation requires an argument of type `MigrateReceiptNumberVariables`:
+const migrateReceiptNumberVars: MigrateReceiptNumberVariables = {
+  paymentId: ..., 
+  receiptNumber: ..., 
+};
+
+// Call the `migrateReceiptNumber()` function to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await migrateReceiptNumber(migrateReceiptNumberVars);
+// Variables can be defined inline as well.
+const { data } = await migrateReceiptNumber({ paymentId: ..., receiptNumber: ..., });
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await migrateReceiptNumber(dataConnect, migrateReceiptNumberVars);
+
+console.log(data.feePayment_update);
+
+// Or, you can use the `Promise` API.
+migrateReceiptNumber(migrateReceiptNumberVars).then((response) => {
+  const data = response.data;
+  console.log(data.feePayment_update);
+});
+```
+
+### Using `MigrateReceiptNumber`'s `MutationRef` function
+
+```typescript
+import { getDataConnect, executeMutation } from 'firebase/data-connect';
+import { connectorConfig, migrateReceiptNumberRef, MigrateReceiptNumberVariables } from '@dataconnect/generated';
+
+// The `MigrateReceiptNumber` mutation requires an argument of type `MigrateReceiptNumberVariables`:
+const migrateReceiptNumberVars: MigrateReceiptNumberVariables = {
+  paymentId: ..., 
+  receiptNumber: ..., 
+};
+
+// Call the `migrateReceiptNumberRef()` function to get a reference to the mutation.
+const ref = migrateReceiptNumberRef(migrateReceiptNumberVars);
+// Variables can be defined inline as well.
+const ref = migrateReceiptNumberRef({ paymentId: ..., receiptNumber: ..., });
+
+// You can also pass in a `DataConnect` instance to the `MutationRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = migrateReceiptNumberRef(dataConnect, migrateReceiptNumberVars);
+
+// Call `executeMutation()` on the reference to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeMutation(ref);
+
+console.log(data.feePayment_update);
+
+// Or, you can use the `Promise` API.
+executeMutation(ref).then((response) => {
+  const data = response.data;
+  console.log(data.feePayment_update);
+});
+```
+
+## UpsertReceiptSequence
+You can execute the `UpsertReceiptSequence` mutation using the following action shortcut function, or by calling `executeMutation()` after calling the following `MutationRef` function, both of which are defined in [dataconnect-generated/index.d.ts](./index.d.ts):
+```typescript
+upsertReceiptSequence(vars: UpsertReceiptSequenceVariables): MutationPromise<UpsertReceiptSequenceData, UpsertReceiptSequenceVariables>;
+
+interface UpsertReceiptSequenceRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: UpsertReceiptSequenceVariables): MutationRef<UpsertReceiptSequenceData, UpsertReceiptSequenceVariables>;
+}
+export const upsertReceiptSequenceRef: UpsertReceiptSequenceRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `MutationRef` function.
+```typescript
+upsertReceiptSequence(dc: DataConnect, vars: UpsertReceiptSequenceVariables): MutationPromise<UpsertReceiptSequenceData, UpsertReceiptSequenceVariables>;
+
+interface UpsertReceiptSequenceRef {
+  ...
+  (dc: DataConnect, vars: UpsertReceiptSequenceVariables): MutationRef<UpsertReceiptSequenceData, UpsertReceiptSequenceVariables>;
+}
+export const upsertReceiptSequenceRef: UpsertReceiptSequenceRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the upsertReceiptSequenceRef:
+```typescript
+const name = upsertReceiptSequenceRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `UpsertReceiptSequence` mutation requires an argument of type `UpsertReceiptSequenceVariables`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+
+```typescript
+export interface UpsertReceiptSequenceVariables {
+  year: number;
+  branchCode: string;
+  lastSequence: number;
+}
+```
+### Return Type
+Recall that executing the `UpsertReceiptSequence` mutation returns a `MutationPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `UpsertReceiptSequenceData`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface UpsertReceiptSequenceData {
+  receiptSequence_upsert: ReceiptSequence_Key;
+}
+```
+### Using `UpsertReceiptSequence`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, upsertReceiptSequence, UpsertReceiptSequenceVariables } from '@dataconnect/generated';
+
+// The `UpsertReceiptSequence` mutation requires an argument of type `UpsertReceiptSequenceVariables`:
+const upsertReceiptSequenceVars: UpsertReceiptSequenceVariables = {
+  year: ..., 
+  branchCode: ..., 
+  lastSequence: ..., 
+};
+
+// Call the `upsertReceiptSequence()` function to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await upsertReceiptSequence(upsertReceiptSequenceVars);
+// Variables can be defined inline as well.
+const { data } = await upsertReceiptSequence({ year: ..., branchCode: ..., lastSequence: ..., });
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await upsertReceiptSequence(dataConnect, upsertReceiptSequenceVars);
+
+console.log(data.receiptSequence_upsert);
+
+// Or, you can use the `Promise` API.
+upsertReceiptSequence(upsertReceiptSequenceVars).then((response) => {
+  const data = response.data;
+  console.log(data.receiptSequence_upsert);
+});
+```
+
+### Using `UpsertReceiptSequence`'s `MutationRef` function
+
+```typescript
+import { getDataConnect, executeMutation } from 'firebase/data-connect';
+import { connectorConfig, upsertReceiptSequenceRef, UpsertReceiptSequenceVariables } from '@dataconnect/generated';
+
+// The `UpsertReceiptSequence` mutation requires an argument of type `UpsertReceiptSequenceVariables`:
+const upsertReceiptSequenceVars: UpsertReceiptSequenceVariables = {
+  year: ..., 
+  branchCode: ..., 
+  lastSequence: ..., 
+};
+
+// Call the `upsertReceiptSequenceRef()` function to get a reference to the mutation.
+const ref = upsertReceiptSequenceRef(upsertReceiptSequenceVars);
+// Variables can be defined inline as well.
+const ref = upsertReceiptSequenceRef({ year: ..., branchCode: ..., lastSequence: ..., });
+
+// You can also pass in a `DataConnect` instance to the `MutationRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = upsertReceiptSequenceRef(dataConnect, upsertReceiptSequenceVars);
+
+// Call `executeMutation()` on the reference to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeMutation(ref);
+
+console.log(data.receiptSequence_upsert);
+
+// Or, you can use the `Promise` API.
+executeMutation(ref).then((response) => {
+  const data = response.data;
+  console.log(data.receiptSequence_upsert);
 });
 ```
 
