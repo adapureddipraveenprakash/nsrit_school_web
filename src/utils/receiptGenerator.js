@@ -427,7 +427,7 @@ export const getReceiptHtml = (payment) => {
           <div class="header">
             <div class="header-center">
               <div class="school-name">NSRIT</div>
-              <div class="school-sub">ENGLISH MEDIUM SCHOOL</div>
+              <div class="school-sub">AI ALGO</div>
               <div class="motto-bar">UNITY • LEARNING • GROWTH</div>
               <div class="motto-sanskrit">ज्ञानं परमं बलम्</div>
               <div class="motto-translation">Knowledge is the supreme strength</div>
@@ -493,7 +493,7 @@ export const getReceiptHtml = (payment) => {
             <svg width="11" height="11" viewBox="0 0 24 24" fill="#333" style="display:inline-block; vertical-align:middle; margin-right:4px;">
               <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
             </svg>
-            NSRIT English Medium School, Sontyam village, Visakhapatnam, Andhra Pradesh - 531173
+            NSRIT AI ALGO, Sontyam village, Visakhapatnam, Andhra Pradesh - 531173
           </div>
           
           <div class="footer-bar">

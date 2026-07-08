@@ -82,7 +82,7 @@ const handleDownloadPdf = (payment) => {
     const amountCurrency = `Rs ${payment.amount.toLocaleString('en-IN')}`;
     const amountWords = numberToWords(payment.amount);
     
-    const details = `NSRIT ENGLISH MEDIUM SCHOOL\nFee Receipt\nReceipt No: ${receiptNo}\nDate: ${paymentDateStr}\nStudent: ${studentName}\nAmount: ${amountCurrency} (${amountWords})\nCollected By: ${payment.collectedByName || 'B. Geetha'}`;
+    const details = `NSRIT AI ALGO\nFee Receipt\nReceipt No: ${receiptNo}\nDate: ${paymentDateStr}\nStudent: ${studentName}\nAmount: ${amountCurrency} (${amountWords})\nCollected By: ${payment.collectedByName || 'B. Geetha'}`;
     
     navigator.clipboard.writeText(details)
       .then(() => {

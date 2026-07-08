@@ -40,14 +40,36 @@ const FeeHistory = () => {
     };
   };
 
-  const handleNativeShare = (payment) => {
+  const handleNativeShare = async (payment) => {
+    const receiptNo = payment.receiptNo || 'N/A';
+    const studentName = payment.studentName || 'Unknown Student';
+    const amountCurrency = `Rs ${payment.amount.toLocaleString('en-IN')}`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Fee Receipt - ${receiptNo}`,
+          text: `Fee receipt generated for ${studentName} of amount ${amountCurrency}. Receipt No: ${receiptNo}.`,
+          url: window.location.href
+        });
+      } catch (err) {
+        console.error('Error sharing:', err);
+      }
+    }
+  };
+
+  const handleDownloadPdf = (payment) => {
+    downloadReceiptPdf(payment);
+  };
+
+  const handleCopyDetails = (payment) => {
     const receiptNo = payment.receiptNo || 'N/A';
     const dateStr = payment.date || 'N/A';
     const studentName = payment.studentName || 'Unknown Student';
     const amountCurrency = `Rs ${payment.amount.toLocaleString('en-IN')}`;
     const amountWords = numberToWords(payment.amount);
     
-    const details = `NSRIT ENGLISH MEDIUM SCHOOL\nFee Receipt\nReceipt No: ${receiptNo}\nDate: ${dateStr}\nStudent: ${studentName}\nAmount: ${amountCurrency} (${amountWords})\nCollected By: ${payment.collectedByName || 'B. Geetha'}`;
+    const details = `NSRIT AI ALGO\nFee Receipt\nReceipt No: ${receiptNo}\nDate: ${dateStr}\nStudent: ${studentName}\nAmount: ${amountCurrency} (${amountWords})\nCollected By: ${payment.collectedByName || 'B. Geetha'}`;
     
     navigator.clipboard.writeText(details)
       .then(() => {
