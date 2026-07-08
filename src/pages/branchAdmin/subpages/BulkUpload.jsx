@@ -21,7 +21,10 @@ const BulkUpload = () => {
   const branchCode = user?.branchCode || 'SO';
 
   const defaultCsvHeaders = 'Full Name,Gender,DOB,Father Name,Father Mobile,Mother Name,Mother Mobile,Guardian Name,Guardian Mobile,Class,Section,Admission Date';
-  const [csvContent, setCsvContent] = useState(defaultCsvHeaders + '\n');
+  const [csvContent, setCsvContent] = useState(
+    defaultCsvHeaders + '\n' +
+    'Student One,Male,15-08-2015,Rajesh Kumar,9876543210,,,,,2,A,01-06-2026\n'
+  );
   const [error, setError] = useState('');
 
   // Dropdowns lists & loading state
@@ -205,16 +208,20 @@ const BulkUpload = () => {
         // 5. Run mutation to persist Student
         await createStudent({
           studentId,
+          admissionYear,
+          branchCode,
+          serialNumber,
           fullName,
           gender,
           dateOfBirth: convertDate(dobStr),
           branchId,
+          wingId: matchedClass.wingId || null,
+          wingCode: matchedClass.wing?.code || null,
           academicClassId: matchedClass.id,
           sectionId: matchedSection.id,
           parentId,
           phoneNumber: parentPhone,
-          admissionDate: convertDate(admissionDateStr),
-          serialNumber
+          admissionDate: convertDate(admissionDateStr)
         });
 
         successCount++;
@@ -277,11 +284,22 @@ const BulkUpload = () => {
           </div>
 
           {/* Required columns info banner */}
-          <div className="flex gap-3 p-4 bg-[#EEF5FB] border border-[#1597E5]/15 rounded-[24px] text-[10px] leading-relaxed text-[#1597E5] font-bold">
-            <FiInfo className="w-4 h-4 shrink-0 mt-0.5 text-[#1597E5]" />
-            <p>
-              Required columns: Full Name, Gender, DOB, Class, Section, and at least one of Father Mobile, Mother Mobile, or Guardian Mobile.
-            </p>
+          <div className="flex flex-col gap-3.5 p-5 bg-[#EEF5FB] border border-[#1597E5]/15 rounded-[24px] text-[10px] leading-relaxed text-[#1597E5] font-bold">
+            <div className="flex gap-3">
+              <FiInfo className="w-4 h-4 shrink-0 mt-0.5 text-[#1597E5]" />
+              <p>
+                Required columns: Full Name, Gender, DOB, Class, Section, and at least one of Father Mobile, Mother Mobile, or Guardian Mobile.
+              </p>
+            </div>
+            <div className="border-t border-[#1597E5]/10 pt-3">
+              <p className="text-[9px] uppercase tracking-wider text-[#1597E5]/80 mb-1.5 font-extrabold">Example CSV Row:</p>
+              <code className="block bg-white/60 p-2.5 rounded-xl font-mono text-[9px] break-all select-all border border-[#1597E5]/10 text-slate-700">
+                Student One,Male,15-08-2015,Rajesh Kumar,9876543210,,,,,2,A,01-06-2026
+              </code>
+              <p className="text-[8.5px] text-[#1597E5]/75 mt-2 font-medium">
+                Enter the student rows directly below the headers and example row in the text box.
+              </p>
+            </div>
           </div>
 
           {/* Action button */}
@@ -309,9 +327,14 @@ const BulkUpload = () => {
         <div className="lg:col-span-2 space-y-6">
           {!showResults ? (
             <div className="bg-white rounded-[28px] border border-[#e2e8f0]/40 p-6 card-shadow space-y-4">
-              <span className="text-[10px] font-extrabold text-secondaryText uppercase tracking-widest px-1 block">
-                CSV Content
-              </span>
+              <div className="flex flex-col gap-1 px-1">
+                <span className="text-[10px] font-extrabold text-secondaryText uppercase tracking-widest">
+                  CSV Content
+                </span>
+                <span className="text-[9px] text-[#A0AEC0] font-bold">
+                  Enter your student rows below the headers and the example row.
+                </span>
+              </div>
 
               <textarea
                 required

@@ -185,81 +185,135 @@ const getFallbackBranchId = async () => {
 };
 
 const executeConnectorOperation = async ({ operationName, variables = {}, type, tokenOverride, skipAudit = false }) => {
-  // If variables contain 'sontyam-branch-id', replace it dynamically with the actual branch UUID
-  if (operationName !== 'GetBranches') {
-    const fallbackId = await getFallbackBranchId();
-    if (fallbackId) {
-      for (const key of Object.keys(variables || {})) {
-        if (variables[key] === 'sontyam-branch-id') {
-          variables[key] = fallbackId;
+  let attempt = 0;
+  const maxRetries = 3;
+  const initialDelay = 500;
+
+  while (true) {
+    try {
+      // If variables contain 'sontyam-branch-id', replace it dynamically with the actual branch UUID
+      if (operationName !== 'GetBranches') {
+        const fallbackId = await getFallbackBranchId();
+        if (fallbackId) {
+          for (const key of Object.keys(variables || {})) {
+            if (variables[key] === 'sontyam-branch-id') {
+              variables[key] = fallbackId;
+            }
+          }
         }
       }
-    }
-  }
 
-  const invalidUuidEntry = Object.entries(variables || {}).find(([key, val]) => {
-    if (typeof val === 'string' && (key.endsWith('Id') || key.toLowerCase().includes('uuid'))) {
-      if (key === 'studentId' || key === 'employeeId') {
+      const invalidUuidEntry = Object.entries(variables || {}).find(([key, val]) => {
+        if (typeof val === 'string' && (key.endsWith('Id') || key.toLowerCase().includes('uuid'))) {
+          if (key === 'studentId' || key === 'employeeId') {
+            return false;
+          }
+          if (val.includes('-placeholder') || val === 'sontyam-branch-id' || val === 'mock-plan-id' || val === 'mock-student-id') {
+            return true;
+          }
+          if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val)) {
+            return true;
+          }
+        }
         return false;
+      });
+
+      if (invalidUuidEntry) {
+        const [failedKey, failedValue] = invalidUuidEntry;
+        // If the value is 'sontyam-branch-id' and we haven't reached max retries, it's possible that
+        // getFallbackBranchId failed due to transient network issues. Let's retry!
+        if (failedValue === 'sontyam-branch-id' && attempt < maxRetries) {
+          const err = new Error('sontyam-branch-id fallback could not be resolved due to network error');
+          err.isTransient = true;
+          throw err;
+        }
+
+        console.warn(`[DataConnect] Request for ${operationName} bypassed: invalid UUID in variables. Key: ${failedKey}, Value: ${failedValue}`, variables);
+        if (type === 'mutation') {
+          throw new Error(`Invalid UUID parameter passed to mutation ${operationName}: "${failedKey}" has invalid UUID value "${failedValue}"`);
+        }
+        return {};
       }
-      if (val.includes('-placeholder') || val === 'sontyam-branch-id' || val === 'mock-plan-id' || val === 'mock-student-id') {
-        return true;
+
+      const token = tokenOverride || (await getAuthToken());
+      const apiKey = firebaseConfig.apiKey;
+      const connectorName = buildConnectorName();
+      const endpoint = type === 'mutation' ? 'executeMutation' : 'executeQuery';
+
+      if (!token) throw new Error('Authentication required. Please sign in again.');
+
+      const response = await fetch(
+        `${dataConnectConfig.apiBaseURL}/${connectorName}:${endpoint}?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Goog-Api-Client': 'gl-js/web/nsrit-connect',
+            ...(token ? { 'X-Firebase-Auth-Token': token } : {}),
+          },
+          body: JSON.stringify({
+            name: connectorName,
+            operationName,
+            variables: normalizeUuids(variables),
+          }),
+        },
+      );
+
+      const payload = await response.json();
+
+      if (!response.ok || payload.errors?.length || payload.error) {
+        const status = response.status;
+        const isTransientStatus =
+          status === 0 ||
+          status === 408 ||
+          status === 429 ||
+          status === 502 ||
+          status === 503 ||
+          status === 504;
+
+        if (isTransientStatus && attempt < maxRetries) {
+          const errMsg = payload.errors?.[0]?.message || payload.error?.message || `Status ${status}`;
+          const err = new Error(errMsg);
+          err.isTransient = true;
+          throw err;
+        }
+
+        console.error('[DataConnect] Request failed:', { operationName, status: response.status, payload });
+        const message = payload.errors?.[0]?.message || payload.error?.message || 'Data Connect request failed';
+        throw new Error(message);
       }
-      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val)) {
-        return true;
+
+      const data = normalizeUuids(payload.data || {});
+
+      if (!skipAudit && type === 'mutation') {
+        await maybeRecordMainAdminAudit({ operationName, variables, data, token });
       }
+
+      return data;
+    } catch (error) {
+      attempt++;
+      
+      const isNetworkError =
+        error.isTransient ||
+        error instanceof TypeError ||
+        error.name === 'TypeError' ||
+        error.message?.includes('fetch') ||
+        error.message?.includes('network') ||
+        error.message?.includes('NETWORK_CHANGED') ||
+        error.message?.includes('Failed to fetch');
+
+      if (attempt > maxRetries || !isNetworkError) {
+        throw error;
+      }
+
+      const delay = initialDelay * Math.pow(2, attempt - 1) + Math.random() * 200;
+      console.warn(
+        `[DataConnect] Request for ${operationName} failed (${error.message || 'network error'}). ` +
+        `Retrying in ${Math.round(delay)}ms... (Attempt ${attempt}/${maxRetries})`
+      );
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
-    return false;
-  });
-
-  if (invalidUuidEntry) {
-    const [failedKey, failedValue] = invalidUuidEntry;
-    console.warn(`[DataConnect] Request for ${operationName} bypassed: invalid UUID in variables. Key: ${failedKey}, Value: ${failedValue}`, variables);
-    if (type === 'mutation') {
-      throw new Error(`Invalid UUID parameter passed to mutation ${operationName}: "${failedKey}" has invalid UUID value "${failedValue}"`);
-    }
-    return {};
   }
-
-  const token = tokenOverride || (await getAuthToken());
-  const apiKey = firebaseConfig.apiKey;
-  const connectorName = buildConnectorName();
-  const endpoint = type === 'mutation' ? 'executeMutation' : 'executeQuery';
-
-  if (!token) throw new Error('Authentication required. Please sign in again.');
-
-  const response = await fetch(
-    `${dataConnectConfig.apiBaseURL}/${connectorName}:${endpoint}?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Goog-Api-Client': 'gl-js/web/nsrit-connect',
-        ...(token ? { 'X-Firebase-Auth-Token': token } : {}),
-      },
-      body: JSON.stringify({
-        name: connectorName,
-        operationName,
-        variables: normalizeUuids(variables),
-      }),
-    },
-  );
-
-  const payload = await response.json();
-
-  if (!response.ok || payload.errors?.length || payload.error) {
-    console.error('[DataConnect] Request failed:', { operationName, status: response.status, payload });
-    const message = payload.errors?.[0]?.message || payload.error?.message || 'Data Connect request failed';
-    throw new Error(message);
-  }
-
-  const data = normalizeUuids(payload.data || {});
-
-  if (!skipAudit && type === 'mutation') {
-    await maybeRecordMainAdminAudit({ operationName, variables, data, token });
-  }
-
-  return data;
 };
 
 export const dataConnectClient = {
