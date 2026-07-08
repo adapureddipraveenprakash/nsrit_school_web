@@ -10,13 +10,15 @@ import { BiReceipt } from 'react-icons/bi';
 import { useApp } from '../../../context/AppContext';
 import { useDataFetch } from '../../../hooks/useDataFetch';
 import { getStudents, getStudentFeeProfile, recordPayment, createFeePlan } from '../../../services/dataService';
+import { generateReceipt } from '../../../utils/receiptGenerator';
+
 
 
 const RecordPayment = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const queryStudentId = searchParams.get('studentId');
-  const { user } = useApp();
+  const { user, triggerFeeRefresh } = useApp();
   const [search, setSearch] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
   
@@ -275,10 +277,16 @@ const RecordPayment = () => {
     }
 
     setSubmitting(true);
-    const receiptSeq = Math.floor(Math.random() * 900000) + 100000;
-    const receiptNo = `REC-SD-${Date.now()}-${receiptSeq}`;
 
     try {
+      const targetYear = Number(paymentDate.split('-')[2]) || new Date().getFullYear();
+      const rawBranchCode = user?.branchCode || 'SD';
+      
+      const receiptData = await generateReceipt({
+        branchCode: rawBranchCode,
+        year: targetYear
+      });
+
       const payload = {
         studentId: selectedStudent.id,
         feePlanId: feeStats.activePlanId || 'plan-uuid-placeholder',
@@ -286,16 +294,17 @@ const RecordPayment = () => {
         paymentDate: formatDateForDb(paymentDate),
         paymentMode: paymentMode.toUpperCase(),
         referenceNumber: referenceNumber || '',
-        receiptNumber: receiptNo,
+        receiptNumber: receiptData.receiptNumber,
         remarks: remarks || '',
         collectedById: user?.id || 'collected-by-id-placeholder',
         branchId: user?.branchId || selectedStudent.branchId || 'sontyam-branch-id',
-        receiptYear: new Date().getFullYear(),
-        branchCode: user?.branchCode || 'SD',
-        receiptSequence: receiptSeq
+        receiptYear: receiptData.receiptYear,
+        branchCode: receiptData.branchCode,
+        receiptSequence: receiptData.receiptSequence
       };
 
       await recordPayment(payload);
+      triggerFeeRefresh();
       
       setShowSuccessModal(true);
       setTimeout(() => {

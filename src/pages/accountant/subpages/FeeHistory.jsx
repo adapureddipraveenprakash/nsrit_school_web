@@ -89,6 +89,12 @@ const FeeHistory = () => {
       const parts = dateStr.split('/');
       if (parts[0].length === 2 && parts[2]?.length === 4) return dateStr;
     }
+    if (dateStr.includes('-')) {
+      const parts = dateStr.split('-');
+      if (parts.length === 3 && parts[0].length === 4) {
+        return `${parts[2]}-${parts[1]}-${parts[0]}`; // YYYY-MM-DD to DD-MM-YYYY
+      }
+    }
     const d = new Date(dateStr);
     const day = String(d.getDate()).padStart(2, '0');
     const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -168,13 +174,7 @@ const FeeHistory = () => {
 
   // Combine live and mock payments
   const displayPayments = useMemo(() => {
-    const combined = [...normalizedPayments];
-    mockPayments.forEach(mp => {
-      if (!combined.some(p => p.receiptNo === mp.receiptNo)) {
-        combined.push(mp);
-      }
-    });
-    return combined;
+    return normalizedPayments.length > 0 ? normalizedPayments : mockPayments;
   }, [normalizedPayments]);
 
   const handleShare = (payment) => {

@@ -1,4 +1,6 @@
 import html2pdf from 'html2pdf.js';
+import dataConnectClient from '../services/dataConnectClient';
+
 
 // Helper to convert numbers to words in Indian numbering system
 export function numberToWords(num) {
@@ -55,27 +57,111 @@ export function numberToWords(num) {
   return formattedWords + ' Rupees Only';
 }
 
+export const padBranchCode = branchCode =>
+  String(branchCode || '').padStart(2, '0').slice(-2);
+
+export const formatReceiptNumber = ({ year, branchCode, sequence }) =>
+  `RCPT-${year}-${padBranchCode(branchCode)}-${String(sequence).padStart(5, '0')}`;
+
+export async function generateReceipt({ branchCode, year }) {
+  const currentYearVal = year || new Date().getFullYear();
+  const response = await dataConnectClient.query(
+    'GetReceiptSequence',
+    {
+      year: currentYearVal,
+      branchCode: padBranchCode(branchCode),
+    }
+  );
+
+  let lastSequence =
+    response?.receiptSequences?.[0]?.lastSequence || 0;
+
+  if (lastSequence >= 10000) {
+    lastSequence = 0;
+  }
+
+  const sequence = lastSequence + 1;
+
+  return {
+    receiptYear: currentYearVal,
+    branchCode: padBranchCode(branchCode),
+    receiptSequence: sequence,
+    receiptNumber: formatReceiptNumber({
+      year: currentYearVal,
+      branchCode,
+      sequence,
+    }),
+  };
+}
+
 export function getPaymentReceiptNo(payment, student, index) {
   if (!payment) return 'N/A';
-  
-  const existingNo = payment.receiptNumber || payment.receiptNo || payment.referenceNumber;
-  if (existingNo) return existingNo;
-  
-  if (payment.id) {
-    const idStr = String(payment.id);
-    if (idStr.startsWith('fs-') || idStr.includes('fs')) {
-      return `REC-FS-${idStr.replace('fs-', '').slice(0, 6)}`.toUpperCase();
+
+  // Extract sequence first
+  let sequence = payment.receiptSequence;
+  const rawNo = payment.receiptNumber || payment.receiptNo || payment.referenceNumber;
+  if (!sequence && rawNo) {
+    const parts = String(rawNo).split('-');
+    const lastPart = parts[parts.length - 1];
+    const parsed = Number(lastPart);
+    if (!isNaN(parsed) && parsed > 0) {
+      sequence = parsed;
     }
-    return idStr.slice(0, 8).toUpperCase();
   }
-  
-  const studentPrefix = student?.studentId || student?.admissionNo || 'SO';
-  const timePart = payment.paymentDate ? String(new Date(payment.paymentDate).getTime()) : 'TEMP';
-  return `REC-${studentPrefix}-${timePart}-${index || 0}`.toUpperCase();
+
+  // If sequence is legacy random (>= 10000), ignore it and use index-based fallback
+  if (sequence >= 10000) {
+    sequence = null;
+  }
+
+  // If we have a clean valid sequence and it's already formatted, return early!
+  if (sequence && rawNo && String(rawNo).startsWith('RCPT-') && !String(rawNo).includes('REC-')) {
+    const parts = String(rawNo).split('-');
+    const lastPart = Number(parts[parts.length - 1]);
+    if (lastPart < 10000) {
+      return rawNo;
+    }
+  }
+
+  if (!sequence) {
+    sequence = (index || 0) + 1;
+  }
+
+  // Extract year
+  let year = payment.receiptYear;
+  if (!year && payment.paymentDate) {
+    const parts = String(payment.paymentDate).split('-');
+    if (parts.length === 3) {
+      if (parts[2].length === 4) year = Number(parts[2]);
+      else if (parts[0].length === 4) year = Number(parts[0]);
+    }
+  }
+  if (!year && payment.date) {
+    const parts = String(payment.date).split('-');
+    if (parts.length === 3) {
+      if (parts[2].length === 4) year = Number(parts[2]);
+      else if (parts[0].length === 4) year = Number(parts[0]);
+    }
+  }
+  if (!year) {
+    year = new Date().getFullYear();
+  }
+
+  // Extract branchCode
+  let branchCode = payment.branchCode;
+  if (!branchCode && student) {
+    branchCode = student.branchCode || student.branch?.branchCode || student.branch?.code;
+  }
+  if (!branchCode) {
+    branchCode = 'SD';
+  }
+  branchCode = padBranchCode(branchCode);
+
+  return formatReceiptNumber({ year, branchCode, sequence });
 }
 
 export const getReceiptHtml = (payment) => {
-  const receiptNo = payment.receiptNo || payment.receiptNumber || 'N/A';
+  const receiptNo = getPaymentReceiptNo(payment, null, 0);
   let date = payment.date;
   if (!date && payment.paymentDate) {
     const d = new Date(payment.paymentDate);
