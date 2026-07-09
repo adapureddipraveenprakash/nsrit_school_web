@@ -23,7 +23,12 @@ import {
   FiUser,
   FiHome,
   FiBook,
-  FiMenu
+  FiMenu,
+  FiSend,
+  FiEyeOff,
+  FiCopy,
+  FiFileText,
+  FiCalendar
 } from 'react-icons/fi';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../../../services/firebase';
@@ -32,7 +37,7 @@ import {
   getStudentsBySection,
   getTeachers,
   getTimetableForSection,
-  upsertTimetablePeriod,
+  upsertTimetablePeriodFull,
   clearTimetableForSection
 } from '../../../services/dataService';
 
@@ -89,6 +94,9 @@ const Timetable = () => {
   // Firestore Publish Status Map for all sections
   const [timetableStatuses, setTimetableStatuses] = useState({});
   const [isPublished, setIsPublished] = useState(false);
+  const [showPublishConfirm, setShowPublishConfirm] = useState(false);
+  const [showPublishSuccess, setShowPublishSuccess] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Fetch sections and teachers on mount
   useEffect(() => {
@@ -106,11 +114,16 @@ const Timetable = () => {
         // Fetch publish statuses for all sections
         const statuses = {};
         for (const sec of secList) {
-          const docRef = doc(db, 'timetable_status', sec.id);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            statuses[sec.id] = !!docSnap.data().published;
-          } else {
+          try {
+            const docRef = doc(db, 'timetable_status', sec.id);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+              statuses[sec.id] = !!docSnap.data().published;
+            } else {
+              statuses[sec.id] = false;
+            }
+          } catch (firestoreErr) {
+            console.warn(`Could not fetch publish status for section ${sec.id} (offline fallback to draft):`, firestoreErr);
             statuses[sec.id] = false;
           }
         }
@@ -247,25 +260,24 @@ const Timetable = () => {
     return sections.filter(s => !timetableStatuses[s.id]).length;
   }, [sections, timetableStatuses]);
 
-  // Publish / Unpublish timetable
+  // Publish timetable
   const handlePublish = async () => {
     if (!selectedSectionId) return;
     setActionLoading(true);
     try {
-      const newPublishState = !isPublished;
       const docRef = doc(db, 'timetable_status', selectedSectionId);
-      await setDoc(docRef, { published: newPublishState }, { merge: true });
+      await setDoc(docRef, { published: true }, { merge: true });
       
       // Update local state map
       setTimetableStatuses(prev => ({
         ...prev,
-        [selectedSectionId]: newPublishState
+        [selectedSectionId]: true
       }));
-      setIsPublished(newPublishState);
+      setIsPublished(true);
 
       // Update SQL status column
       for (const p of periods) {
-        await upsertTimetablePeriod({
+        await upsertTimetablePeriodFull({
           sectionId: selectedSectionId,
           branchId,
           day: p.day,
@@ -277,34 +289,83 @@ const Timetable = () => {
           startTime: p.startTime || null,
           endTime: p.endTime || null,
           timetableType: p.timetableType || 'Regular',
-          status: newPublishState ? 'PUBLISHED' : 'DRAFT'
+          status: 'PUBLISHED'
         });
       }
 
       await refetchTimetable();
-      alert(newPublishState ? 'Timetable published successfully!' : 'Timetable saved as draft.');
+      setShowPublishConfirm(false);
+      setShowPublishSuccess(true);
     } catch (err) {
-      console.error('Error toggling publish status:', err);
+      console.error('Error publishing timetable:', err);
+      alert('Failed to publish timetable.');
     } finally {
       setActionLoading(false);
     }
   };
 
-  // Clear Timetable completely
+  // Unpublish timetable
+  const handleUnpublish = async () => {
+    if (!selectedSectionId) return;
+    if (!window.confirm('Are you sure you want to unpublish this timetable?')) return;
+    
+    setActionLoading(true);
+    try {
+      const docRef = doc(db, 'timetable_status', selectedSectionId);
+      await setDoc(docRef, { published: false }, { merge: true });
+      
+      // Update local state map
+      setTimetableStatuses(prev => ({
+        ...prev,
+        [selectedSectionId]: false
+      }));
+      setIsPublished(false);
+
+      // Update SQL status column
+      for (const p of periods) {
+        await upsertTimetablePeriodFull({
+          sectionId: selectedSectionId,
+          branchId,
+          day: p.day,
+          periodNum: p.periodNum,
+          subject: p.subject,
+          teacherId: p.teacherId || null,
+          teacherName: p.teacherName || null,
+          room: p.room || null,
+          startTime: p.startTime || null,
+          endTime: p.endTime || null,
+          timetableType: p.timetableType || 'Regular',
+          status: 'DRAFT'
+        });
+      }
+
+      await refetchTimetable();
+    } catch (err) {
+      console.error('Error unpublishing timetable:', err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Clear Timetable completely (triggered from modal)
   const handleClearTimetable = async () => {
     if (!selectedSectionId || !branchId) return;
-    if (!window.confirm('Are you sure you want to clear the entire timetable for this section?')) return;
-
     setActionLoading(true);
     try {
       await clearTimetableForSection({ sectionId: selectedSectionId, branchId });
       await refetchTimetable();
+      setShowDeleteConfirm(false);
     } catch (err) {
       console.error('Error clearing timetable:', err);
       alert('Failed to clear timetable.');
     } finally {
       setActionLoading(false);
     }
+  };
+
+  // Download PDF / Print copies
+  const handleDownloadPDF = () => {
+    window.print();
   };
 
   // Import Timetable from another section
@@ -318,7 +379,7 @@ const Timetable = () => {
       await clearTimetableForSection({ sectionId: targetId, branchId });
 
       for (const p of sourcePeriods) {
-        await upsertTimetablePeriod({
+        await upsertTimetablePeriodFull({
           sectionId: targetId,
           branchId,
           day: p.day,
@@ -394,7 +455,7 @@ const Timetable = () => {
 
     setActionLoading(true);
     try {
-      await upsertTimetablePeriod({
+      await upsertTimetablePeriodFull({
         sectionId: selectedSectionId,
         branchId,
         day: editingCell.day,
@@ -424,7 +485,7 @@ const Timetable = () => {
     
     setActionLoading(true);
     try {
-      await upsertTimetablePeriod({
+      await upsertTimetablePeriodFull({
         sectionId: selectedSectionId,
         branchId,
         day: editingCell.day,
@@ -661,7 +722,10 @@ const Timetable = () => {
             <div className="absolute top-[-30px] right-[-30px] w-36 h-36 rounded-full border-[10px] border-white/5 pointer-events-none" />
             <div className="absolute top-[-10px] right-[-10px] w-24 h-24 rounded-full border-[8px] border-white/10 pointer-events-none" />
 
-            <div className="flex justify-between items-start z-10 relative">
+            <div className="flex items-center gap-4 z-10 relative">
+              <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center shrink-0">
+                <FiCalendar className="w-6 h-6 text-white" />
+              </div>
               <div className="space-y-1">
                 <h2 className="text-xl font-black font-sans leading-tight">
                   {activeSec.academicClass?.name} — Section {activeSec.name}
@@ -672,55 +736,95 @@ const Timetable = () => {
               </div>
             </div>
 
-            {/* Bottom Row containing status pill and actions (Draft, Times, Import, Publish, Trash) */}
-            <div className="flex justify-between items-center mt-6 relative z-10 select-none">
-              <div className="flex gap-2">
-                <span className="px-3.5 py-1.5 rounded-full text-[10.5px] font-black uppercase tracking-wide bg-amber-500/20 text-[#FAF089] flex items-center gap-1 border border-white/10">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                  <span>{isPublished ? 'Published' : 'Draft'}</span>
-                </span>
-                
-                <button
-                  onClick={() => setShowTimesInfo(true)}
-                  className="px-4 py-1.5 bg-white/15 border border-white/20 hover:bg-white/25 rounded-full text-[10.5px] font-extrabold flex items-center gap-1 transition-colors cursor-pointer"
-                >
-                  <FiClock className="w-3.5 h-3.5" />
-                  <span>Times</span>
-                </button>
-
-                <button
-                  onClick={() => {
-                    setImportSourceSectionId('');
-                    setImportTargetSectionId('');
-                    setShowImportModal(true);
-                  }}
-                  className="px-4 py-1.5 bg-white/15 border border-white/20 hover:bg-white/25 rounded-full text-[10.5px] font-extrabold flex items-center gap-1 transition-colors cursor-pointer"
-                >
-                  <FiUpload className="w-3.5 h-3.5" />
-                  <span>Import</span>
-                </button>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {isEditable && (
+            {/* Bottom Row containing status pill and actions (Draft/Published, Times, Copy, Publish, PDF, Unpublish, Trash) */}
+            <div className="flex flex-col gap-3 mt-6 relative z-10 select-none">
+              {/* Row 1 */}
+              <div className="flex justify-between items-center w-full">
+                <div className="flex items-center gap-2">
+                  {isPublished ? (
+                    <span className="px-3.5 py-1.5 rounded-full text-[10.5px] font-black uppercase tracking-wide bg-emerald-500/20 text-[#68D391] flex items-center gap-1 border border-white/10">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                      <span>Published</span>
+                    </span>
+                  ) : (
+                    <span className="px-3.5 py-1.5 rounded-full text-[10.5px] font-black uppercase tracking-wide bg-amber-500/20 text-[#FAF089] flex items-center gap-1 border border-white/10">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                      <span>Draft</span>
+                    </span>
+                  )}
+                  
                   <button
-                    disabled={actionLoading}
-                    onClick={handlePublish}
-                    className="px-5 py-1.5 bg-[#23C16B] hover:bg-[#1EAB5D] disabled:opacity-50 rounded-full text-[10.5px] font-black flex items-center gap-1.5 transition-colors cursor-pointer"
+                    onClick={() => setShowTimesInfo(true)}
+                    className="px-4 py-1.5 bg-white/10 border border-white/15 hover:bg-white/20 rounded-full text-[10.5px] font-extrabold flex items-center gap-1.5 transition-colors cursor-pointer"
                   >
-                    <FiSave className="w-3.5 h-3.5" />
-                    <span>{isPublished ? 'Draft' : 'Publish'}</span>
+                    <FiClock className="w-3.5 h-3.5" />
+                    <span>Times</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setImportSourceSectionId('');
+                      setImportTargetSectionId('');
+                      setShowImportModal(true);
+                    }}
+                    className="px-4 py-1.5 bg-white/10 border border-white/15 hover:bg-white/25 rounded-full text-[10.5px] font-extrabold flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <FiCopy className="w-3.5 h-3.5" />
+                    <span>Copy</span>
+                  </button>
+
+                  {isPublished ? (
+                    <button
+                      onClick={handleDownloadPDF}
+                      className="px-4 py-1.5 bg-white/10 border border-white/15 hover:bg-white/25 rounded-full text-[10.5px] font-extrabold flex items-center gap-1.5 transition-colors cursor-pointer text-white"
+                    >
+                      <FiFileText className="w-3.5 h-3.5 text-white" />
+                      <span>PDF</span>
+                    </button>
+                  ) : (
+                    isEditable && (
+                      <button
+                        onClick={() => setShowPublishConfirm(true)}
+                        className="px-4 py-1.5 bg-emerald-500/20 border border-emerald-400/35 hover:bg-emerald-500/30 rounded-full text-[10.5px] font-black flex items-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <FiSend className="w-3.5 h-3.5 text-white" />
+                        <span>Publish</span>
+                      </button>
+                    )
+                  )}
+                </div>
+
+                {!isPublished && (
+                  <button
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="p-1.5 text-white/70 hover:text-red-300 rounded-full hover:bg-white/10 transition-colors cursor-pointer"
+                    title="Clear timetable"
+                  >
+                    <FiTrash2 className="w-4 h-4" />
                   </button>
                 )}
-
-                <button
-                  onClick={handleClearTimetable}
-                  className="p-1.5 text-white/70 hover:text-red-300 rounded-full hover:bg-white/10 transition-colors cursor-pointer"
-                  title="Clear timetable"
-                >
-                  <FiTrash2 className="w-4 h-4" />
-                </button>
               </div>
+
+              {/* Row 2 (Only if Published) */}
+              {isPublished && (
+                <div className="flex justify-between items-center w-full">
+                  <button
+                    onClick={handleUnpublish}
+                    className="px-4 py-1.5 bg-white/10 border border-white/15 hover:bg-white/25 rounded-full text-[10.5px] font-extrabold flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <FiEyeOff className="w-3.5 h-3.5" />
+                    <span>Unpublish</span>
+                  </button>
+
+                  <button
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="p-1.5 text-white/70 hover:text-red-300 rounded-full hover:bg-white/10 transition-colors cursor-pointer"
+                    title="Clear timetable"
+                  >
+                    <FiTrash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -1174,6 +1278,142 @@ const Timetable = () => {
                     </div>
                   );
                 })}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Publish Timetable? Confirmation Dialog */}
+      <AnimatePresence>
+        {showPublishConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark/40 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-[32px] w-full max-w-sm p-6 card-shadow space-y-6 border border-[#e2e8f0]/40 relative text-center flex flex-col items-center justify-center select-none"
+            >
+              <button
+                onClick={() => setShowPublishConfirm(false)}
+                className="absolute top-4 right-4 p-1.5 hover:bg-slate-100 rounded-full text-[#A0AEC0] cursor-pointer"
+              >
+                <FiX className="w-5 h-5" />
+              </button>
+
+              <div className="w-16 h-16 rounded-full bg-blue-50/50 flex items-center justify-center mt-2">
+                <div className="w-12 h-12 rounded-full bg-[#00A1FF] flex items-center justify-center text-white text-xl font-bold select-none">
+                  ?
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="text-base font-black text-dark font-sans">
+                  Publish Timetable?
+                </h3>
+                <p className="text-xs text-secondaryText leading-relaxed font-semibold max-w-[280px]">
+                  Once published, students, parents, and teachers will immediately see this timetable.
+                </p>
+              </div>
+
+              <div className="flex gap-3 w-full pt-2">
+                <button
+                  onClick={() => setShowPublishConfirm(false)}
+                  className="flex-1 py-3.5 border border-slate-200 hover:bg-slate-50 text-xs font-black text-[#A0AEC0] rounded-[20px] transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handlePublish}
+                  disabled={actionLoading}
+                  className="flex-1 py-3.5 bg-[#00A1FF] hover:bg-[#0088ff] text-white text-xs font-black rounded-[20px] transition-colors cursor-pointer shadow-md shadow-brand-blue/20"
+                >
+                  {actionLoading ? 'Publishing...' : 'Publish Now'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Published! Success Alert */}
+      <AnimatePresence>
+        {showPublishSuccess && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark/40 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-[24px] w-full max-w-sm p-6 card-shadow space-y-5 border border-[#e2e8f0]/40 relative select-none"
+            >
+              <div className="space-y-2">
+                <h3 className="text-base font-black text-dark font-sans">
+                  Published!
+                </h3>
+                <p className="text-xs text-[#A0AEC0] leading-relaxed font-semibold">
+                  The timetable is now visible to students, parents, and teachers.
+                </p>
+              </div>
+
+              <div className="flex justify-end pt-1">
+                <button
+                  onClick={() => setShowPublishSuccess(false)}
+                  className="text-xs font-black text-emerald-500 hover:text-emerald-600 transition-colors cursor-pointer px-4 py-2"
+                >
+                  OK
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Timetable? Confirmation Dialog */}
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark/40 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-[32px] w-full max-w-sm p-6 card-shadow space-y-6 border border-[#e2e8f0]/40 relative text-center flex flex-col items-center justify-center select-none"
+            >
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="absolute top-4 right-4 p-1.5 hover:bg-slate-100 rounded-full text-[#A0AEC0] cursor-pointer"
+              >
+                <FiX className="w-5 h-5" />
+              </button>
+
+              <div className="w-16 h-16 rounded-full bg-red-50/50 flex items-center justify-center mt-2">
+                <div className="w-12 h-12 rounded-full bg-[#EF4444] flex items-center justify-center text-white text-xl font-bold select-none">
+                  !
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="text-base font-black text-dark font-sans">
+                  Delete Timetable?
+                </h3>
+                <p className="text-xs text-[#A0AEC0] leading-relaxed font-semibold max-w-[280px]">
+                  Remove all timetable data for {activeSec?.academicClass?.name} {activeSec?.name}? This cannot be undone.
+                </p>
+              </div>
+
+              <div className="flex gap-3 w-full pt-2">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1 py-3.5 border border-slate-200 hover:bg-slate-50 text-xs font-black text-[#A0AEC0] rounded-[20px] transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleClearTimetable}
+                  disabled={actionLoading}
+                  className="flex-1 py-3.5 bg-[#EF4444] hover:bg-[#dc2626] text-white text-xs font-black rounded-[20px] transition-colors cursor-pointer shadow-md shadow-red-500/20"
+                >
+                  {actionLoading ? 'Deleting...' : 'Yes, Delete'}
+                </button>
               </div>
             </motion.div>
           </div>

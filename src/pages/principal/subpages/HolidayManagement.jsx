@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiArrowLeft, FiPlus, FiEdit2, FiTrash2, FiInfo, FiCalendar, FiX } from 'react-icons/fi';
+import { FiArrowLeft, FiPlus, FiEdit2, FiTrash2, FiInfo, FiCalendar, FiX, FiFlag, FiChevronDown } from 'react-icons/fi';
 import { useApp } from '../../../context/AppContext';
 import { subscribeHolidays, saveHolidays } from '../../../services/holidayService';
 
@@ -34,7 +34,7 @@ const HolidayManagement = () => {
   const [editingId, setEditingId] = useState(null);
   const [holidayName, setHolidayName] = useState('');
   const [holidayDesc, setHolidayDesc] = useState('');
-  const [holidayType, setHolidayType] = useState('Festival Holiday'); // 'Festival Holiday' | 'National Holiday' | 'State Holiday'
+  const [holidayType, setHolidayType] = useState('School Holiday'); // 'School Holiday' | 'Festival Holiday' | 'National Holiday' | 'State Holiday'
   const [holidayDate, setHolidayDate] = useState('');
 
   // Subscribe to realtime database logs
@@ -80,6 +80,7 @@ const HolidayManagement = () => {
 
   // Seed default mockup values to DB
   const handleSeedPublic = async () => {
+    if (dbHolidays.length > 0) return;
     try {
       await saveHolidays(branchId, MOCK_HOLIDAYS);
     } catch (err) {
@@ -91,8 +92,15 @@ const HolidayManagement = () => {
     setEditingId(null);
     setHolidayName('');
     setHolidayDesc('');
-    setHolidayType('Festival Holiday');
-    setHolidayDate('');
+    setHolidayType('School Holiday');
+    
+    // Set date to today's date dynamically
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    setHolidayDate(`${yyyy}-${mm}-${dd}`);
+    
     setIsModalOpen(true);
   };
 
@@ -100,7 +108,7 @@ const HolidayManagement = () => {
     setEditingId(h.id);
     setHolidayName(h.name);
     setHolidayDesc(h.desc || '');
-    setHolidayType(h.type);
+    setHolidayType(h.type || 'Festival Holiday');
     setHolidayDate(h.date);
     setIsModalOpen(true);
   };
@@ -166,7 +174,7 @@ const HolidayManagement = () => {
         <h1 className="text-sm font-bold text-dark pr-8 mx-auto">Holiday Management</h1>
       </header>
 
-      {/* Top banner info row (Screenshot 4) */}
+      {/* Top banner info row */}
       <div className="flex justify-between items-center bg-[#EEF5FB]/75 rounded-[18px] p-3.5 px-4.5 text-[10px] font-black text-secondaryText font-sans uppercase tracking-wider">
         <span className="flex items-center gap-1.5">
           <span>📅</span> 2026-27 · 2026-06-12 ~ 2027-04-24
@@ -176,25 +184,29 @@ const HolidayManagement = () => {
         </span>
       </div>
 
-      {/* Info warning / Seed button (Screenshot 4) */}
-      {dbHolidays.length === 0 && (
-        <div className="flex justify-between items-center bg-amber-50/75 border border-amber-100 rounded-[20px] p-4 font-sans">
-          <div className="flex items-center gap-2">
-            <FiInfo className="w-4 h-4 text-amber-500 shrink-0" />
-            <span className="text-[10px] font-extrabold text-amber-700 uppercase tracking-wide">
-              13 public holidays can be added
-            </span>
-          </div>
-          <button
-            onClick={handleSeedPublic}
-            className="px-3.5 py-1.5 bg-white border border-blue-200 text-[#1597E5] hover:bg-[#EEF5FB] rounded-full text-[10.5px] font-black cursor-pointer transition-all active:scale-95 flex items-center gap-1 shadow-sm"
-          >
-            <span>➕ Seed Public</span>
-          </button>
+      {/* Seeding Warning Banner Row (Screenshot 1 Layout) */}
+      <div className="flex justify-between items-center bg-slate-50 border border-[#e2e8f0]/60 rounded-[20px] p-4 font-sans select-none">
+        <div className="flex items-center gap-2">
+          <FiInfo className="w-4 h-4 text-slate-400 shrink-0" />
+          <span className="text-[10px] font-extrabold text-slate-600 uppercase tracking-wide">
+            {dbHolidays.length > 0 ? 'All standard public holidays already seeded' : '13 public holidays can be added'}
+          </span>
         </div>
-      )}
+        <button
+          onClick={handleSeedPublic}
+          disabled={dbHolidays.length > 0}
+          className={`px-3.5 py-1.5 border rounded-full text-[10.5px] font-black cursor-pointer transition-all active:scale-95 flex items-center gap-1.5 shadow-sm ${
+            dbHolidays.length > 0
+              ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
+              : 'bg-white border-[#e2e8f0] text-[#1597E5] hover:bg-[#EEF5FB]'
+          }`}
+        >
+          <FiFlag className="w-3.5 h-3.5" />
+          <span>Seed Public</span>
+        </button>
+      </div>
 
-      {/* Holidays List grouped by Month (Screenshot 4 layout) */}
+      {/* Holidays List grouped by Month (Screenshot 1 layout) */}
       <div className="space-y-6 pt-1 select-none">
         {Object.keys(holidaysByMonth).map(monthYear => (
           <div key={monthYear} className="space-y-3.5">
@@ -219,17 +231,24 @@ const HolidayManagement = () => {
                       <h4 className="text-xs font-black text-dark leading-tight font-sans">
                         {holiday.name}
                       </h4>
-                      <p className="text-[9.5px] text-secondaryText font-bold mt-1 font-sans">
-                        {holiday.desc}
-                      </p>
+                      {holiday.desc && (
+                        <p className="text-[9.5px] text-secondaryText font-bold mt-1 font-sans">
+                          {holiday.desc}
+                        </p>
+                      )}
 
                       {/* Type Badge */}
-                      <span className={`inline-block mt-2 px-2.5 py-0.5 rounded-full text-[7.5px] font-black uppercase tracking-wider border ${
+                      <span className={`inline-flex items-center gap-1 mt-2 px-2.5 py-0.5 rounded-full text-[7.5px] font-black uppercase tracking-wider border ${
                         holiday.type === 'National Holiday' ? 'bg-red-50 text-red-600 border-red-100' :
                         holiday.type === 'State Holiday' ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                        holiday.type === 'School Holiday' ? 'bg-blue-50 text-blue-600 border-blue-100' :
                         'bg-purple-50 text-purple-600 border-purple-100'
                       }`}>
-                        {holiday.type}
+                        {holiday.type === 'National Holiday' && '🚩 '}
+                        {holiday.type === 'Festival Holiday' && '✨ '}
+                        {holiday.type === 'State Holiday' && '🏛 '}
+                        {holiday.type === 'School Holiday' && '🏫 '}
+                        {holiday.type || 'Holiday'}
                       </span>
                     </div>
                   </div>
@@ -261,11 +280,11 @@ const HolidayManagement = () => {
         onClick={handleOpenAdd}
         className="fixed bottom-6 right-6 py-3.5 px-6 bg-[#00A1FF] hover:bg-[#0088ff] text-white rounded-full font-extrabold text-xs flex items-center gap-2 shadow-lg shadow-brand-blue/35 transition-all cursor-pointer hover:scale-105 active:scale-95 z-45"
       >
-        <FiPlus className="w-4.5 h-4.5" />
+        <FiPlus className="w-4.5 h-4.5 text-white" />
         <span>Add Holiday</span>
       </button>
 
-      {/* Modal Dialog for Add/Edit Holiday */}
+      {/* Modal Dialog for Add/Edit Holiday (Screenshots 2 & 3) */}
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 bg-[#0F172A]/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -277,55 +296,31 @@ const HolidayManagement = () => {
             >
               <div className="flex justify-between items-center pb-2 border-b border-slate-100 select-none">
                 <h3 className="text-sm font-black text-dark font-sans">
-                  {editingId ? 'Edit Holiday' : 'Add New Holiday'}
+                  {editingId ? 'Edit Holiday' : 'Add Holiday'}
                 </h3>
                 <button
                   onClick={() => setIsModalOpen(false)}
-                  className="p-1 hover:bg-slate-100 rounded-full text-secondaryText transition-colors"
+                  className="p-1 hover:bg-slate-100 rounded-full text-secondaryText transition-colors cursor-pointer"
                 >
                   <FiX className="w-5 h-5" />
                 </button>
               </div>
 
               <form onSubmit={handleSave} className="space-y-4 font-sans text-xs">
-                <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-dark block">Holiday Name</label>
+                <div className="space-y-1.5">
+                  <label className="text-[10.5px] font-black text-dark block">Holiday Name *</label>
                   <input
                     type="text"
                     required
                     value={holidayName}
                     onChange={(e) => setHolidayName(e.target.value)}
-                    placeholder="e.g. Diwali"
+                    placeholder="e.g. Diwali, Sports Day"
                     className="w-full bg-white border border-[#e2e8f0] rounded-[20px] px-4 py-3.5 text-xs font-semibold focus:outline-none focus:border-[#1597E5]"
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-dark block">Description</label>
-                  <input
-                    type="text"
-                    value={holidayDesc}
-                    onChange={(e) => setHolidayDesc(e.target.value)}
-                    placeholder="e.g. Festival of Lights"
-                    className="w-full bg-white border border-[#e2e8f0] rounded-[20px] px-4 py-3.5 text-xs font-semibold focus:outline-none focus:border-[#1597E5]"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-dark block">Holiday Type</label>
-                  <select
-                    value={holidayType}
-                    onChange={(e) => setHolidayType(e.target.value)}
-                    className="w-full bg-white border border-[#e2e8f0] rounded-[20px] px-4 py-3.5 text-xs font-semibold focus:outline-none focus:border-[#1597E5] cursor-pointer"
-                  >
-                    <option value="Festival Holiday">Festival Holiday</option>
-                    <option value="National Holiday">National Holiday</option>
-                    <option value="State Holiday">State Holiday</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10.5px] font-black text-dark block">Date</label>
+                <div className="space-y-1.5">
+                  <label className="text-[10.5px] font-black text-dark block">Date *</label>
                   <input
                     type="date"
                     required
@@ -333,21 +328,57 @@ const HolidayManagement = () => {
                     onChange={(e) => setHolidayDate(e.target.value)}
                     className="w-full bg-white border border-[#e2e8f0] rounded-[20px] px-4 py-3.5 text-xs font-semibold focus:outline-none focus:border-[#1597E5] cursor-pointer"
                   />
+                  <span className="text-[9px] text-[#A0AEC0] font-bold block mt-1 select-none">
+                    AY range: 2026-06-12 - 2027-04-24
+                  </span>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10.5px] font-black text-dark block">Holiday Type *</label>
+                  <div className="relative">
+                    <select
+                      value={holidayType}
+                      onChange={(e) => setHolidayType(e.target.value)}
+                      className="w-full bg-white border border-[#e2e8f0] rounded-[20px] px-4 py-3.5 text-xs font-semibold focus:outline-none focus:border-[#1597E5] appearance-none cursor-pointer text-dark font-extrabold"
+                    >
+                      <option value="School Holiday">School Holiday</option>
+                      <option value="Festival Holiday">Festival Holiday</option>
+                      <option value="National Holiday">National Holiday</option>
+                      <option value="State Holiday">State Holiday</option>
+                    </select>
+                    <FiChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-[#A0AEC0] pointer-events-none" />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10.5px] font-black text-dark block">Description (optional)</label>
+                  <input
+                    type="text"
+                    value={holidayDesc}
+                    onChange={(e) => setHolidayDesc(e.target.value)}
+                    placeholder="Add a note about this holiday"
+                    className="w-full bg-white border border-[#e2e8f0] rounded-[20px] px-4 py-3.5 text-xs font-semibold focus:outline-none focus:border-[#1597E5]"
+                  />
                 </div>
 
                 <div className="flex gap-3 pt-2">
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="flex-1 py-3.5 bg-slate-100 hover:bg-slate-200 text-dark rounded-[20px] font-bold transition-all"
+                    className="flex-1 py-3.5 bg-white border border-slate-200 hover:bg-slate-50 text-dark rounded-[20px] font-bold transition-all cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 py-3.5 bg-[#1597E5] hover:bg-[#00A1FF] text-white rounded-[20px] font-bold transition-all shadow-md shadow-brand-blue/20"
+                    disabled={!holidayName || !holidayDate}
+                    className={`flex-1 py-3.5 rounded-[20px] font-bold transition-all shadow-md ${
+                      (!holidayName || !holidayDate)
+                        ? 'bg-[#EEF5FB] text-slate-400 cursor-not-allowed shadow-none'
+                        : 'bg-[#00A1FF] hover:bg-[#0088ff] text-white cursor-pointer shadow-brand-blue/20'
+                    }`}
                   >
-                    Save Holiday
+                    {editingId ? 'Update' : 'Add Holiday'}
                   </button>
                 </div>
               </form>

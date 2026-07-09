@@ -147,7 +147,7 @@ const M = {
   UPDATE_HOLIDAY: 'UpdateHoliday',
   DELETE_HOLIDAY: 'DeleteHoliday',
   CREATE_PUBLIC_HOLIDAY: 'CreatePublicHoliday',
-  UPSERT_TIMETABLE_PERIOD_FULL: 'UpsertTimetablePeriod',
+  UPSERT_TIMETABLE_PERIOD_FULL: 'UpsertTimetablePeriodFull',
   PUBLISH_TIMETABLE_SECTION: 'PublishTimetableSection',
   UNPUBLISH_TIMETABLE_SECTION: 'UnpublishTimetableSection',
 };
