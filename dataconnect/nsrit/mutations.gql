@@ -5213,3 +5213,58 @@ mutation UpsertReceiptSequence(
     }
   )
 }
+
+mutation CreateScheduledNotification(
+  $branchId: UUID!
+  $title: String!
+  $message: String!
+  $target: String!
+  $scheduledTime: Timestamp!
+  $createdById: UUID
+  $createdByRole: String
+) @auth(level: USER) @transaction {
+  scheduledNotification_insert(
+    data: {
+      branchId: $branchId
+      title: $title
+      message: $message
+      target: $target
+      scheduledTime: $scheduledTime
+      status: "pending"
+      createdById: $createdById
+      createdByRole: $createdByRole
+    }
+  )
+}
+
+mutation UpdateScheduledNotificationStatus(
+  $id: UUID!
+  $status: String!
+  $statsSent: Int
+  $statsFailed: Int
+) @auth(level: USER) @transaction {
+  scheduledNotification_update(
+    id: $id
+    data: {
+      status: $status
+      statsSent: $statsSent
+      statsFailed: $statsFailed
+    }
+  )
+}
+
+mutation LockScheduledNotification(
+  $id: UUID!
+) @auth(level: USER) @transaction {
+  query @redact {
+    targetRow: scheduledNotifications(where: {id: {eq: $id}, status: {eq: "pending"}}, limit: 1) @check(expr: "this.exists(row, true)", message: "Row is no longer pending") {
+      id
+    }
+  }
+  scheduledNotification_update(
+    id: $id
+    data: {
+      status: "processing"
+    }
+  )
+}

@@ -132,6 +132,8 @@ This README will guide you through the process of using the generated JavaScript
   - [*GetExamAnalytics*](#getexamanalytics)
   - [*GetPublishedExamsForSection*](#getpublishedexamsforsection)
   - [*GetExamsBySection*](#getexamsbysection)
+  - [*GetScheduledNotificationsByBranch*](#getschedulednotificationsbybranch)
+  - [*GetPendingScheduledNotifications*](#getpendingschedulednotifications)
 - [**Mutations**](#mutations)
   - [*CreateBranch*](#createbranch)
   - [*UpdateBranch*](#updatebranch)
@@ -232,6 +234,9 @@ This README will guide you through the process of using the generated JavaScript
   - [*UpdateCoordinator*](#updatecoordinator)
   - [*MigrateReceiptNumber*](#migratereceiptnumber)
   - [*UpsertReceiptSequence*](#upsertreceiptsequence)
+  - [*CreateScheduledNotification*](#createschedulednotification)
+  - [*UpdateScheduledNotificationStatus*](#updateschedulednotificationstatus)
+  - [*LockScheduledNotification*](#lockschedulednotification)
 
 # Accessing the connector
 A connector is a collection of Queries and Mutations. One SDK is generated for each connector - this SDK is generated for the connector `nsrit`. You can find more information about connectors in the [Data Connect documentation](https://firebase.google.com/docs/data-connect#how-does).
@@ -356,6 +361,10 @@ export interface GetCurrentUserData {
     teacherProfile?: {
       id: UUIDString;
       branchId: UUIDString;
+      classTeacherAssignments: ({
+        id: UUIDString;
+        sectionId: UUIDString;
+      } & TeacherSectionAssignment_Key)[];
     } & Teacher_Key;
     accountantProfile?: {
       id: UUIDString;
@@ -9658,7 +9667,17 @@ export interface GetTeacherProfileData {
           id: UUIDString;
           studentId: string;
           fullName: string;
+          gender?: string | null;
+          phoneNumber?: string | null;
           status: string;
+          parent: {
+            id: UUIDString;
+            fullName: string;
+            fatherName?: string | null;
+            motherName?: string | null;
+            phoneNumber: string;
+            email?: string | null;
+          } & Parent_Key;
         } & Student_Key)[];
         profileSectionAttendance: ({
           id: UUIDString;
@@ -11823,6 +11842,7 @@ export interface GetFeeReportsData {
       name: string;
     } & Section_Key;
     branchId: UUIDString;
+    phoneNumber?: string | null;
     reportLinkedParents: ({
       userId: UUIDString;
     })[];
@@ -17947,6 +17967,247 @@ console.log(data.examSections);
 executeQuery(ref).then((response) => {
   const data = response.data;
   console.log(data.examSections);
+});
+```
+
+## GetScheduledNotificationsByBranch
+You can execute the `GetScheduledNotificationsByBranch` query using the following action shortcut function, or by calling `executeQuery()` after calling the following `QueryRef` function, both of which are defined in [dataconnect-generated/index.d.ts](./index.d.ts):
+```typescript
+getScheduledNotificationsByBranch(vars: GetScheduledNotificationsByBranchVariables, options?: ExecuteQueryOptions): QueryPromise<GetScheduledNotificationsByBranchData, GetScheduledNotificationsByBranchVariables>;
+
+interface GetScheduledNotificationsByBranchRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: GetScheduledNotificationsByBranchVariables): QueryRef<GetScheduledNotificationsByBranchData, GetScheduledNotificationsByBranchVariables>;
+}
+export const getScheduledNotificationsByBranchRef: GetScheduledNotificationsByBranchRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `QueryRef` function.
+```typescript
+getScheduledNotificationsByBranch(dc: DataConnect, vars: GetScheduledNotificationsByBranchVariables, options?: ExecuteQueryOptions): QueryPromise<GetScheduledNotificationsByBranchData, GetScheduledNotificationsByBranchVariables>;
+
+interface GetScheduledNotificationsByBranchRef {
+  ...
+  (dc: DataConnect, vars: GetScheduledNotificationsByBranchVariables): QueryRef<GetScheduledNotificationsByBranchData, GetScheduledNotificationsByBranchVariables>;
+}
+export const getScheduledNotificationsByBranchRef: GetScheduledNotificationsByBranchRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the getScheduledNotificationsByBranchRef:
+```typescript
+const name = getScheduledNotificationsByBranchRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `GetScheduledNotificationsByBranch` query requires an argument of type `GetScheduledNotificationsByBranchVariables`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+
+```typescript
+export interface GetScheduledNotificationsByBranchVariables {
+  branchId: UUIDString;
+}
+```
+### Return Type
+Recall that executing the `GetScheduledNotificationsByBranch` query returns a `QueryPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `GetScheduledNotificationsByBranchData`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface GetScheduledNotificationsByBranchData {
+  scheduledNotifications: ({
+    id: UUIDString;
+    branchId: UUIDString;
+    title: string;
+    message: string;
+    target: string;
+    scheduledTime: TimestampString;
+    status: string;
+    createdById?: UUIDString | null;
+    createdByRole?: string | null;
+    createdAt: TimestampString;
+    statsSent?: number | null;
+    statsFailed?: number | null;
+  } & ScheduledNotification_Key)[];
+}
+```
+### Using `GetScheduledNotificationsByBranch`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, getScheduledNotificationsByBranch, GetScheduledNotificationsByBranchVariables } from '@dataconnect/generated';
+
+// The `GetScheduledNotificationsByBranch` query requires an argument of type `GetScheduledNotificationsByBranchVariables`:
+const getScheduledNotificationsByBranchVars: GetScheduledNotificationsByBranchVariables = {
+  branchId: ..., 
+};
+
+// Call the `getScheduledNotificationsByBranch()` function to execute the query.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await getScheduledNotificationsByBranch(getScheduledNotificationsByBranchVars);
+// Variables can be defined inline as well.
+const { data } = await getScheduledNotificationsByBranch({ branchId: ..., });
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await getScheduledNotificationsByBranch(dataConnect, getScheduledNotificationsByBranchVars);
+
+console.log(data.scheduledNotifications);
+
+// Or, you can use the `Promise` API.
+getScheduledNotificationsByBranch(getScheduledNotificationsByBranchVars).then((response) => {
+  const data = response.data;
+  console.log(data.scheduledNotifications);
+});
+```
+
+### Using `GetScheduledNotificationsByBranch`'s `QueryRef` function
+
+```typescript
+import { getDataConnect, executeQuery } from 'firebase/data-connect';
+import { connectorConfig, getScheduledNotificationsByBranchRef, GetScheduledNotificationsByBranchVariables } from '@dataconnect/generated';
+
+// The `GetScheduledNotificationsByBranch` query requires an argument of type `GetScheduledNotificationsByBranchVariables`:
+const getScheduledNotificationsByBranchVars: GetScheduledNotificationsByBranchVariables = {
+  branchId: ..., 
+};
+
+// Call the `getScheduledNotificationsByBranchRef()` function to get a reference to the query.
+const ref = getScheduledNotificationsByBranchRef(getScheduledNotificationsByBranchVars);
+// Variables can be defined inline as well.
+const ref = getScheduledNotificationsByBranchRef({ branchId: ..., });
+
+// You can also pass in a `DataConnect` instance to the `QueryRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = getScheduledNotificationsByBranchRef(dataConnect, getScheduledNotificationsByBranchVars);
+
+// Call `executeQuery()` on the reference to execute the query.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeQuery(ref);
+
+console.log(data.scheduledNotifications);
+
+// Or, you can use the `Promise` API.
+executeQuery(ref).then((response) => {
+  const data = response.data;
+  console.log(data.scheduledNotifications);
+});
+```
+
+## GetPendingScheduledNotifications
+You can execute the `GetPendingScheduledNotifications` query using the following action shortcut function, or by calling `executeQuery()` after calling the following `QueryRef` function, both of which are defined in [dataconnect-generated/index.d.ts](./index.d.ts):
+```typescript
+getPendingScheduledNotifications(vars: GetPendingScheduledNotificationsVariables, options?: ExecuteQueryOptions): QueryPromise<GetPendingScheduledNotificationsData, GetPendingScheduledNotificationsVariables>;
+
+interface GetPendingScheduledNotificationsRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: GetPendingScheduledNotificationsVariables): QueryRef<GetPendingScheduledNotificationsData, GetPendingScheduledNotificationsVariables>;
+}
+export const getPendingScheduledNotificationsRef: GetPendingScheduledNotificationsRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `QueryRef` function.
+```typescript
+getPendingScheduledNotifications(dc: DataConnect, vars: GetPendingScheduledNotificationsVariables, options?: ExecuteQueryOptions): QueryPromise<GetPendingScheduledNotificationsData, GetPendingScheduledNotificationsVariables>;
+
+interface GetPendingScheduledNotificationsRef {
+  ...
+  (dc: DataConnect, vars: GetPendingScheduledNotificationsVariables): QueryRef<GetPendingScheduledNotificationsData, GetPendingScheduledNotificationsVariables>;
+}
+export const getPendingScheduledNotificationsRef: GetPendingScheduledNotificationsRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the getPendingScheduledNotificationsRef:
+```typescript
+const name = getPendingScheduledNotificationsRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `GetPendingScheduledNotifications` query requires an argument of type `GetPendingScheduledNotificationsVariables`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+
+```typescript
+export interface GetPendingScheduledNotificationsVariables {
+  now: TimestampString;
+}
+```
+### Return Type
+Recall that executing the `GetPendingScheduledNotifications` query returns a `QueryPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `GetPendingScheduledNotificationsData`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface GetPendingScheduledNotificationsData {
+  scheduledNotifications: ({
+    id: UUIDString;
+    branchId: UUIDString;
+    title: string;
+    message: string;
+    target: string;
+    scheduledTime: TimestampString;
+    status: string;
+    createdById?: UUIDString | null;
+    createdByRole?: string | null;
+  } & ScheduledNotification_Key)[];
+}
+```
+### Using `GetPendingScheduledNotifications`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, getPendingScheduledNotifications, GetPendingScheduledNotificationsVariables } from '@dataconnect/generated';
+
+// The `GetPendingScheduledNotifications` query requires an argument of type `GetPendingScheduledNotificationsVariables`:
+const getPendingScheduledNotificationsVars: GetPendingScheduledNotificationsVariables = {
+  now: ..., 
+};
+
+// Call the `getPendingScheduledNotifications()` function to execute the query.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await getPendingScheduledNotifications(getPendingScheduledNotificationsVars);
+// Variables can be defined inline as well.
+const { data } = await getPendingScheduledNotifications({ now: ..., });
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await getPendingScheduledNotifications(dataConnect, getPendingScheduledNotificationsVars);
+
+console.log(data.scheduledNotifications);
+
+// Or, you can use the `Promise` API.
+getPendingScheduledNotifications(getPendingScheduledNotificationsVars).then((response) => {
+  const data = response.data;
+  console.log(data.scheduledNotifications);
+});
+```
+
+### Using `GetPendingScheduledNotifications`'s `QueryRef` function
+
+```typescript
+import { getDataConnect, executeQuery } from 'firebase/data-connect';
+import { connectorConfig, getPendingScheduledNotificationsRef, GetPendingScheduledNotificationsVariables } from '@dataconnect/generated';
+
+// The `GetPendingScheduledNotifications` query requires an argument of type `GetPendingScheduledNotificationsVariables`:
+const getPendingScheduledNotificationsVars: GetPendingScheduledNotificationsVariables = {
+  now: ..., 
+};
+
+// Call the `getPendingScheduledNotificationsRef()` function to get a reference to the query.
+const ref = getPendingScheduledNotificationsRef(getPendingScheduledNotificationsVars);
+// Variables can be defined inline as well.
+const ref = getPendingScheduledNotificationsRef({ now: ..., });
+
+// You can also pass in a `DataConnect` instance to the `QueryRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = getPendingScheduledNotificationsRef(dataConnect, getPendingScheduledNotificationsVars);
+
+// Call `executeQuery()` on the reference to execute the query.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeQuery(ref);
+
+console.log(data.scheduledNotifications);
+
+// Or, you can use the `Promise` API.
+executeQuery(ref).then((response) => {
+  const data = response.data;
+  console.log(data.scheduledNotifications);
 });
 ```
 
@@ -30740,6 +31001,360 @@ console.log(data.receiptSequence_upsert);
 executeMutation(ref).then((response) => {
   const data = response.data;
   console.log(data.receiptSequence_upsert);
+});
+```
+
+## CreateScheduledNotification
+You can execute the `CreateScheduledNotification` mutation using the following action shortcut function, or by calling `executeMutation()` after calling the following `MutationRef` function, both of which are defined in [dataconnect-generated/index.d.ts](./index.d.ts):
+```typescript
+createScheduledNotification(vars: CreateScheduledNotificationVariables): MutationPromise<CreateScheduledNotificationData, CreateScheduledNotificationVariables>;
+
+interface CreateScheduledNotificationRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: CreateScheduledNotificationVariables): MutationRef<CreateScheduledNotificationData, CreateScheduledNotificationVariables>;
+}
+export const createScheduledNotificationRef: CreateScheduledNotificationRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `MutationRef` function.
+```typescript
+createScheduledNotification(dc: DataConnect, vars: CreateScheduledNotificationVariables): MutationPromise<CreateScheduledNotificationData, CreateScheduledNotificationVariables>;
+
+interface CreateScheduledNotificationRef {
+  ...
+  (dc: DataConnect, vars: CreateScheduledNotificationVariables): MutationRef<CreateScheduledNotificationData, CreateScheduledNotificationVariables>;
+}
+export const createScheduledNotificationRef: CreateScheduledNotificationRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the createScheduledNotificationRef:
+```typescript
+const name = createScheduledNotificationRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `CreateScheduledNotification` mutation requires an argument of type `CreateScheduledNotificationVariables`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+
+```typescript
+export interface CreateScheduledNotificationVariables {
+  branchId: UUIDString;
+  title: string;
+  message: string;
+  target: string;
+  scheduledTime: TimestampString;
+  createdById?: UUIDString | null;
+  createdByRole?: string | null;
+}
+```
+### Return Type
+Recall that executing the `CreateScheduledNotification` mutation returns a `MutationPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `CreateScheduledNotificationData`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface CreateScheduledNotificationData {
+  scheduledNotification_insert: ScheduledNotification_Key;
+}
+```
+### Using `CreateScheduledNotification`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, createScheduledNotification, CreateScheduledNotificationVariables } from '@dataconnect/generated';
+
+// The `CreateScheduledNotification` mutation requires an argument of type `CreateScheduledNotificationVariables`:
+const createScheduledNotificationVars: CreateScheduledNotificationVariables = {
+  branchId: ..., 
+  title: ..., 
+  message: ..., 
+  target: ..., 
+  scheduledTime: ..., 
+  createdById: ..., // optional
+  createdByRole: ..., // optional
+};
+
+// Call the `createScheduledNotification()` function to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await createScheduledNotification(createScheduledNotificationVars);
+// Variables can be defined inline as well.
+const { data } = await createScheduledNotification({ branchId: ..., title: ..., message: ..., target: ..., scheduledTime: ..., createdById: ..., createdByRole: ..., });
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await createScheduledNotification(dataConnect, createScheduledNotificationVars);
+
+console.log(data.scheduledNotification_insert);
+
+// Or, you can use the `Promise` API.
+createScheduledNotification(createScheduledNotificationVars).then((response) => {
+  const data = response.data;
+  console.log(data.scheduledNotification_insert);
+});
+```
+
+### Using `CreateScheduledNotification`'s `MutationRef` function
+
+```typescript
+import { getDataConnect, executeMutation } from 'firebase/data-connect';
+import { connectorConfig, createScheduledNotificationRef, CreateScheduledNotificationVariables } from '@dataconnect/generated';
+
+// The `CreateScheduledNotification` mutation requires an argument of type `CreateScheduledNotificationVariables`:
+const createScheduledNotificationVars: CreateScheduledNotificationVariables = {
+  branchId: ..., 
+  title: ..., 
+  message: ..., 
+  target: ..., 
+  scheduledTime: ..., 
+  createdById: ..., // optional
+  createdByRole: ..., // optional
+};
+
+// Call the `createScheduledNotificationRef()` function to get a reference to the mutation.
+const ref = createScheduledNotificationRef(createScheduledNotificationVars);
+// Variables can be defined inline as well.
+const ref = createScheduledNotificationRef({ branchId: ..., title: ..., message: ..., target: ..., scheduledTime: ..., createdById: ..., createdByRole: ..., });
+
+// You can also pass in a `DataConnect` instance to the `MutationRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = createScheduledNotificationRef(dataConnect, createScheduledNotificationVars);
+
+// Call `executeMutation()` on the reference to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeMutation(ref);
+
+console.log(data.scheduledNotification_insert);
+
+// Or, you can use the `Promise` API.
+executeMutation(ref).then((response) => {
+  const data = response.data;
+  console.log(data.scheduledNotification_insert);
+});
+```
+
+## UpdateScheduledNotificationStatus
+You can execute the `UpdateScheduledNotificationStatus` mutation using the following action shortcut function, or by calling `executeMutation()` after calling the following `MutationRef` function, both of which are defined in [dataconnect-generated/index.d.ts](./index.d.ts):
+```typescript
+updateScheduledNotificationStatus(vars: UpdateScheduledNotificationStatusVariables): MutationPromise<UpdateScheduledNotificationStatusData, UpdateScheduledNotificationStatusVariables>;
+
+interface UpdateScheduledNotificationStatusRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: UpdateScheduledNotificationStatusVariables): MutationRef<UpdateScheduledNotificationStatusData, UpdateScheduledNotificationStatusVariables>;
+}
+export const updateScheduledNotificationStatusRef: UpdateScheduledNotificationStatusRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `MutationRef` function.
+```typescript
+updateScheduledNotificationStatus(dc: DataConnect, vars: UpdateScheduledNotificationStatusVariables): MutationPromise<UpdateScheduledNotificationStatusData, UpdateScheduledNotificationStatusVariables>;
+
+interface UpdateScheduledNotificationStatusRef {
+  ...
+  (dc: DataConnect, vars: UpdateScheduledNotificationStatusVariables): MutationRef<UpdateScheduledNotificationStatusData, UpdateScheduledNotificationStatusVariables>;
+}
+export const updateScheduledNotificationStatusRef: UpdateScheduledNotificationStatusRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the updateScheduledNotificationStatusRef:
+```typescript
+const name = updateScheduledNotificationStatusRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `UpdateScheduledNotificationStatus` mutation requires an argument of type `UpdateScheduledNotificationStatusVariables`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+
+```typescript
+export interface UpdateScheduledNotificationStatusVariables {
+  id: UUIDString;
+  status: string;
+  statsSent?: number | null;
+  statsFailed?: number | null;
+}
+```
+### Return Type
+Recall that executing the `UpdateScheduledNotificationStatus` mutation returns a `MutationPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `UpdateScheduledNotificationStatusData`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface UpdateScheduledNotificationStatusData {
+  scheduledNotification_update?: ScheduledNotification_Key | null;
+}
+```
+### Using `UpdateScheduledNotificationStatus`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, updateScheduledNotificationStatus, UpdateScheduledNotificationStatusVariables } from '@dataconnect/generated';
+
+// The `UpdateScheduledNotificationStatus` mutation requires an argument of type `UpdateScheduledNotificationStatusVariables`:
+const updateScheduledNotificationStatusVars: UpdateScheduledNotificationStatusVariables = {
+  id: ..., 
+  status: ..., 
+  statsSent: ..., // optional
+  statsFailed: ..., // optional
+};
+
+// Call the `updateScheduledNotificationStatus()` function to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await updateScheduledNotificationStatus(updateScheduledNotificationStatusVars);
+// Variables can be defined inline as well.
+const { data } = await updateScheduledNotificationStatus({ id: ..., status: ..., statsSent: ..., statsFailed: ..., });
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await updateScheduledNotificationStatus(dataConnect, updateScheduledNotificationStatusVars);
+
+console.log(data.scheduledNotification_update);
+
+// Or, you can use the `Promise` API.
+updateScheduledNotificationStatus(updateScheduledNotificationStatusVars).then((response) => {
+  const data = response.data;
+  console.log(data.scheduledNotification_update);
+});
+```
+
+### Using `UpdateScheduledNotificationStatus`'s `MutationRef` function
+
+```typescript
+import { getDataConnect, executeMutation } from 'firebase/data-connect';
+import { connectorConfig, updateScheduledNotificationStatusRef, UpdateScheduledNotificationStatusVariables } from '@dataconnect/generated';
+
+// The `UpdateScheduledNotificationStatus` mutation requires an argument of type `UpdateScheduledNotificationStatusVariables`:
+const updateScheduledNotificationStatusVars: UpdateScheduledNotificationStatusVariables = {
+  id: ..., 
+  status: ..., 
+  statsSent: ..., // optional
+  statsFailed: ..., // optional
+};
+
+// Call the `updateScheduledNotificationStatusRef()` function to get a reference to the mutation.
+const ref = updateScheduledNotificationStatusRef(updateScheduledNotificationStatusVars);
+// Variables can be defined inline as well.
+const ref = updateScheduledNotificationStatusRef({ id: ..., status: ..., statsSent: ..., statsFailed: ..., });
+
+// You can also pass in a `DataConnect` instance to the `MutationRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = updateScheduledNotificationStatusRef(dataConnect, updateScheduledNotificationStatusVars);
+
+// Call `executeMutation()` on the reference to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeMutation(ref);
+
+console.log(data.scheduledNotification_update);
+
+// Or, you can use the `Promise` API.
+executeMutation(ref).then((response) => {
+  const data = response.data;
+  console.log(data.scheduledNotification_update);
+});
+```
+
+## LockScheduledNotification
+You can execute the `LockScheduledNotification` mutation using the following action shortcut function, or by calling `executeMutation()` after calling the following `MutationRef` function, both of which are defined in [dataconnect-generated/index.d.ts](./index.d.ts):
+```typescript
+lockScheduledNotification(vars: LockScheduledNotificationVariables): MutationPromise<LockScheduledNotificationData, LockScheduledNotificationVariables>;
+
+interface LockScheduledNotificationRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: LockScheduledNotificationVariables): MutationRef<LockScheduledNotificationData, LockScheduledNotificationVariables>;
+}
+export const lockScheduledNotificationRef: LockScheduledNotificationRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `MutationRef` function.
+```typescript
+lockScheduledNotification(dc: DataConnect, vars: LockScheduledNotificationVariables): MutationPromise<LockScheduledNotificationData, LockScheduledNotificationVariables>;
+
+interface LockScheduledNotificationRef {
+  ...
+  (dc: DataConnect, vars: LockScheduledNotificationVariables): MutationRef<LockScheduledNotificationData, LockScheduledNotificationVariables>;
+}
+export const lockScheduledNotificationRef: LockScheduledNotificationRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the lockScheduledNotificationRef:
+```typescript
+const name = lockScheduledNotificationRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `LockScheduledNotification` mutation requires an argument of type `LockScheduledNotificationVariables`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+
+```typescript
+export interface LockScheduledNotificationVariables {
+  id: UUIDString;
+}
+```
+### Return Type
+Recall that executing the `LockScheduledNotification` mutation returns a `MutationPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `LockScheduledNotificationData`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface LockScheduledNotificationData {
+  scheduledNotification_update?: ScheduledNotification_Key | null;
+}
+```
+### Using `LockScheduledNotification`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, lockScheduledNotification, LockScheduledNotificationVariables } from '@dataconnect/generated';
+
+// The `LockScheduledNotification` mutation requires an argument of type `LockScheduledNotificationVariables`:
+const lockScheduledNotificationVars: LockScheduledNotificationVariables = {
+  id: ..., 
+};
+
+// Call the `lockScheduledNotification()` function to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await lockScheduledNotification(lockScheduledNotificationVars);
+// Variables can be defined inline as well.
+const { data } = await lockScheduledNotification({ id: ..., });
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await lockScheduledNotification(dataConnect, lockScheduledNotificationVars);
+
+console.log(data.scheduledNotification_update);
+
+// Or, you can use the `Promise` API.
+lockScheduledNotification(lockScheduledNotificationVars).then((response) => {
+  const data = response.data;
+  console.log(data.scheduledNotification_update);
+});
+```
+
+### Using `LockScheduledNotification`'s `MutationRef` function
+
+```typescript
+import { getDataConnect, executeMutation } from 'firebase/data-connect';
+import { connectorConfig, lockScheduledNotificationRef, LockScheduledNotificationVariables } from '@dataconnect/generated';
+
+// The `LockScheduledNotification` mutation requires an argument of type `LockScheduledNotificationVariables`:
+const lockScheduledNotificationVars: LockScheduledNotificationVariables = {
+  id: ..., 
+};
+
+// Call the `lockScheduledNotificationRef()` function to get a reference to the mutation.
+const ref = lockScheduledNotificationRef(lockScheduledNotificationVars);
+// Variables can be defined inline as well.
+const ref = lockScheduledNotificationRef({ id: ..., });
+
+// You can also pass in a `DataConnect` instance to the `MutationRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = lockScheduledNotificationRef(dataConnect, lockScheduledNotificationVars);
+
+// Call `executeMutation()` on the reference to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeMutation(ref);
+
+console.log(data.scheduledNotification_update);
+
+// Or, you can use the `Promise` API.
+executeMutation(ref).then((response) => {
+  const data = response.data;
+  console.log(data.scheduledNotification_update);
 });
 ```
 

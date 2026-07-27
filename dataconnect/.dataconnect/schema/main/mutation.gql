@@ -243,6 +243,15 @@ extend type Mutation {
     data: ReceiptSequence_Data!
   ): ReceiptSequence_KeyOutput! @fdc_generated(from: "ReceiptSequence", purpose: INSERT_SINGLE)
   """
+  ✨ Insert a single `ScheduledNotification` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  scheduledNotification_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: ScheduledNotification_Data!
+  ): ScheduledNotification_KeyOutput! @fdc_generated(from: "ScheduledNotification", purpose: INSERT_SINGLE)
+  """
   ✨ Insert a single `Section` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
   """
   section_insert(
@@ -710,6 +719,15 @@ extend type Mutation {
     """
     data: [ReceiptSequence_Data!]!
   ): [ReceiptSequence_KeyOutput!]! @fdc_generated(from: "ReceiptSequence", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `ScheduledNotification` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  scheduledNotification_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [ScheduledNotification_Data!]!
+  ): [ScheduledNotification_KeyOutput!]! @fdc_generated(from: "ScheduledNotification", purpose: INSERT_MULTIPLE)
   """
   ✨ Insert `Section` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
   """
@@ -1179,6 +1197,15 @@ extend type Mutation {
     data: ReceiptSequence_Data!
   ): ReceiptSequence_KeyOutput! @fdc_generated(from: "ReceiptSequence", purpose: UPSERT_SINGLE)
   """
+  ✨ Insert or update a single `ScheduledNotification` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `ScheduledNotification`.
+  """
+  scheduledNotification_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: ScheduledNotification_Data!
+  ): ScheduledNotification_KeyOutput! @fdc_generated(from: "ScheduledNotification", purpose: UPSERT_SINGLE)
+  """
   ✨ Insert or update a single `Section` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Section`.
   """
   section_upsert(
@@ -1646,6 +1673,15 @@ extend type Mutation {
     """
     data: [ReceiptSequence_Data!]!
   ): [ReceiptSequence_KeyOutput!]! @fdc_generated(from: "ReceiptSequence", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `ScheduledNotification` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `ScheduledNotification`.
+  """
+  scheduledNotification_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [ScheduledNotification_Data!]!
+  ): [ScheduledNotification_KeyOutput!]! @fdc_generated(from: "ScheduledNotification", purpose: UPSERT_MULTIPLE)
   """
   ✨ Insert or update `Section` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Section`.
   """
@@ -2499,6 +2535,30 @@ extend type Mutation {
     """
     data: ReceiptSequence_Data!
   ): ReceiptSequence_KeyOutput @fdc_generated(from: "ReceiptSequence", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `ScheduledNotification` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `ScheduledNotification` or `null` if not found.
+  """
+  scheduledNotification_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: ScheduledNotification_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: ScheduledNotification_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: ScheduledNotification_Data!
+  ): ScheduledNotification_KeyOutput @fdc_generated(from: "ScheduledNotification", purpose: UPDATE_SINGLE)
   """
   ✨ Update a single `Section` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `Section` or `null` if not found.
   """
@@ -3573,6 +3633,25 @@ extend type Mutation {
     data: ReceiptSequence_Data!
   ): Int! @fdc_generated(from: "ReceiptSequence", purpose: UPDATE_MULTIPLE)
   """
+  ✨ Update `ScheduledNotification` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  scheduledNotification_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: ScheduledNotification_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: ScheduledNotification_Data!
+  ): Int! @fdc_generated(from: "ScheduledNotification", purpose: UPDATE_MULTIPLE)
+  """
   ✨ Update `Section` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
   """
   section_updateMany(
@@ -4541,6 +4620,25 @@ extend type Mutation {
     first: ReceiptSequence_FirstRow
   ): ReceiptSequence_KeyOutput @fdc_generated(from: "ReceiptSequence", purpose: DELETE_SINGLE)
   """
+  ✨ Delete a single `ScheduledNotification` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  scheduledNotification_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: ScheduledNotification_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: ScheduledNotification_FirstRow
+  ): ScheduledNotification_KeyOutput @fdc_generated(from: "ScheduledNotification", purpose: DELETE_SINGLE)
+  """
   ✨ Delete a single `Section` based on `id`, `key` or `first` and return its key (or `null` if not found).
   """
   section_delete(
@@ -5353,6 +5451,20 @@ extend type Mutation {
     """
     all: Boolean = false
   ): Int! @fdc_generated(from: "ReceiptSequence", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `ScheduledNotification` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  scheduledNotification_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: ScheduledNotification_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "ScheduledNotification", purpose: DELETE_MULTIPLE)
   """
   ✨ Delete `Section` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
   """

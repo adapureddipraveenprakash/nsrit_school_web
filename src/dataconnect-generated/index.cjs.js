@@ -1399,6 +1399,48 @@ exports.upsertReceiptSequence = function upsertReceiptSequence(dcOrVars, vars) {
 }
 ;
 
+const createScheduledNotificationRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'CreateScheduledNotification', inputVars);
+}
+createScheduledNotificationRef.operationName = 'CreateScheduledNotification';
+exports.createScheduledNotificationRef = createScheduledNotificationRef;
+
+exports.createScheduledNotification = function createScheduledNotification(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(createScheduledNotificationRef(dcInstance, inputVars));
+}
+;
+
+const updateScheduledNotificationStatusRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'UpdateScheduledNotificationStatus', inputVars);
+}
+updateScheduledNotificationStatusRef.operationName = 'UpdateScheduledNotificationStatus';
+exports.updateScheduledNotificationStatusRef = updateScheduledNotificationStatusRef;
+
+exports.updateScheduledNotificationStatus = function updateScheduledNotificationStatus(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(updateScheduledNotificationStatusRef(dcInstance, inputVars));
+}
+;
+
+const lockScheduledNotificationRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'LockScheduledNotification', inputVars);
+}
+lockScheduledNotificationRef.operationName = 'LockScheduledNotification';
+exports.lockScheduledNotificationRef = lockScheduledNotificationRef;
+
+exports.lockScheduledNotification = function lockScheduledNotification(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(lockScheduledNotificationRef(dcInstance, inputVars));
+}
+;
+
 const getCurrentUserRef = (dcOrVars, vars) => {
   const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
   dcInstance._useGeneratedSdk();
@@ -3226,5 +3268,35 @@ exports.getExamsBySection = function getExamsBySection(dcOrVars, varsOrOptions, 
   
   const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
   return executeQuery(getExamsBySectionRef(dcInstance, inputVars), inputOpts && { fetchPolicy: inputOpts.fetchPolicy });
+}
+;
+
+const getScheduledNotificationsByBranchRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return queryRef(dcInstance, 'GetScheduledNotificationsByBranch', inputVars);
+}
+getScheduledNotificationsByBranchRef.operationName = 'GetScheduledNotificationsByBranch';
+exports.getScheduledNotificationsByBranchRef = getScheduledNotificationsByBranchRef;
+
+exports.getScheduledNotificationsByBranch = function getScheduledNotificationsByBranch(dcOrVars, varsOrOptions, options) {
+  
+  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
+  return executeQuery(getScheduledNotificationsByBranchRef(dcInstance, inputVars), inputOpts && { fetchPolicy: inputOpts.fetchPolicy });
+}
+;
+
+const getPendingScheduledNotificationsRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return queryRef(dcInstance, 'GetPendingScheduledNotifications', inputVars);
+}
+getPendingScheduledNotificationsRef.operationName = 'GetPendingScheduledNotifications';
+exports.getPendingScheduledNotificationsRef = getPendingScheduledNotificationsRef;
+
+exports.getPendingScheduledNotifications = function getPendingScheduledNotifications(dcOrVars, varsOrOptions, options) {
+  
+  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
+  return executeQuery(getPendingScheduledNotificationsRef(dcInstance, inputVars), inputOpts && { fetchPolicy: inputOpts.fetchPolicy });
 }
 ;

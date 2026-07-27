@@ -1198,6 +1198,42 @@ export function upsertReceiptSequence(dcOrVars, vars) {
   return executeMutation(upsertReceiptSequenceRef(dcInstance, inputVars));
 }
 
+export const createScheduledNotificationRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'CreateScheduledNotification', inputVars);
+}
+createScheduledNotificationRef.operationName = 'CreateScheduledNotification';
+
+export function createScheduledNotification(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(createScheduledNotificationRef(dcInstance, inputVars));
+}
+
+export const updateScheduledNotificationStatusRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'UpdateScheduledNotificationStatus', inputVars);
+}
+updateScheduledNotificationStatusRef.operationName = 'UpdateScheduledNotificationStatus';
+
+export function updateScheduledNotificationStatus(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(updateScheduledNotificationStatusRef(dcInstance, inputVars));
+}
+
+export const lockScheduledNotificationRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'LockScheduledNotification', inputVars);
+}
+lockScheduledNotificationRef.operationName = 'LockScheduledNotification';
+
+export function lockScheduledNotification(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(lockScheduledNotificationRef(dcInstance, inputVars));
+}
+
 export const getCurrentUserRef = (dcOrVars, vars) => {
   const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
   dcInstance._useGeneratedSdk();
@@ -2782,5 +2818,31 @@ export function getExamsBySection(dcOrVars, varsOrOptions, options) {
   
   const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
   return executeQuery(getExamsBySectionRef(dcInstance, inputVars), inputOpts && { fetchPolicy: inputOpts.fetchPolicy });
+}
+
+export const getScheduledNotificationsByBranchRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return queryRef(dcInstance, 'GetScheduledNotificationsByBranch', inputVars);
+}
+getScheduledNotificationsByBranchRef.operationName = 'GetScheduledNotificationsByBranch';
+
+export function getScheduledNotificationsByBranch(dcOrVars, varsOrOptions, options) {
+  
+  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
+  return executeQuery(getScheduledNotificationsByBranchRef(dcInstance, inputVars), inputOpts && { fetchPolicy: inputOpts.fetchPolicy });
+}
+
+export const getPendingScheduledNotificationsRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return queryRef(dcInstance, 'GetPendingScheduledNotifications', inputVars);
+}
+getPendingScheduledNotificationsRef.operationName = 'GetPendingScheduledNotifications';
+
+export function getPendingScheduledNotifications(dcOrVars, varsOrOptions, options) {
+  
+  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
+  return executeQuery(getPendingScheduledNotificationsRef(dcInstance, inputVars), inputOpts && { fetchPolicy: inputOpts.fetchPolicy });
 }
 

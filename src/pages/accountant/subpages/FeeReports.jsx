@@ -158,26 +158,123 @@ const FeeReports = () => {
   }, [filteredStudents]);
 
   // Exporters
+  // Helper to map student list to required report columns
+  const getExportData = () => {
+    const headers = [
+      "s.no",
+      "admission number",
+      "class",
+      "name of student",
+      "phone number",
+      "actual fee",
+      "amount",
+      "payment mode",
+      "date",
+      "fees",
+      "concession",
+      "demand fee",
+      "payment mode- cash/online",
+      "1st term-total fee",
+      "paid",
+      "balance",
+      "2nd term-total fee",
+      "paid",
+      "balance",
+      "3rd term-total fee",
+      "paid",
+      "balance"
+    ];
+
+    const rows = filteredStudents.map((r, index) => {
+      const rawStudent = studentsList.find(fs => fs.id === r.id);
+      const plans = rawStudent?.reportFeePlans || [];
+      const activePlan = plans.find(p => p.isActive !== false) || plans[0];
+
+      const studentName = rawStudent?.fullName || r.fullName || 'Unknown Student';
+      const admissionNo = rawStudent?.studentId || r.admissionNo || 'N/A';
+      
+      const className = rawStudent?.academicClass?.name || r.className || '';
+      const sectionName = rawStudent?.section?.name || r.sectionName || '';
+      const classStr = `${className}-${sectionName}`.toUpperCase();
+
+      const phoneStr = rawStudent?.phoneNumber || 'N/A';
+
+      const actualFee = activePlan ? (activePlan.grossAmount || 0) : 0;
+      const concessionAmount = activePlan ? (activePlan.concessionAmount || 0) : 0;
+      const feesAmount = activePlan ? (activePlan.totalAmount || 0) : 0;
+
+      const payments = activePlan ? (activePlan.reportFeePayments || []) : [];
+      const validPayments = payments.filter(p => String(p.status || 'RECORDED').toUpperCase() !== 'REVERSED');
+      
+      const totalPaid = validPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+      const balanceDue = Math.max(feesAmount - totalPaid, 0);
+
+      const allModes = validPayments.map(p => p.paymentMode).filter(Boolean);
+      const paymentModeStr = allModes.length > 0 ? Array.from(new Set(allModes)).join(', ') : 'N/A';
+
+      const sortedPayments = [...validPayments].sort((a, b) => new Date(b.paymentDate) - new Date(a.paymentDate));
+      const latestPayment = sortedPayments[0];
+      
+      const latestDate = latestPayment ? new Date(latestPayment.paymentDate).toLocaleDateString('en-GB') : 'N/A';
+      const latestMode = latestPayment ? latestPayment.paymentMode : 'N/A';
+
+      let remainingPaid = totalPaid;
+      const term1Fee = activePlan ? (activePlan.term1Fee || 0) : 0;
+      const term2Fee = activePlan ? (activePlan.term2Fee || 0) : 0;
+      const term3Fee = activePlan ? (activePlan.term3Fee || 0) : 0;
+
+      const term1Paid = Math.min(remainingPaid, term1Fee);
+      remainingPaid -= term1Paid;
+      const term1Balance = Math.max(term1Fee - term1Paid, 0);
+
+      const term2Paid = Math.min(remainingPaid, term2Fee);
+      remainingPaid -= term2Paid;
+      const term2Balance = Math.max(term2Fee - term2Paid, 0);
+
+      const term3Paid = Math.min(remainingPaid, term3Fee);
+      remainingPaid -= term3Paid;
+      const term3Balance = Math.max(term3Fee - term3Paid, 0);
+
+      return [
+        index + 1,
+        admissionNo,
+        classStr,
+        studentName,
+        phoneStr,
+        actualFee,
+        totalPaid,
+        paymentModeStr,
+        latestDate,
+        feesAmount,
+        concessionAmount,
+        balanceDue,
+        latestMode,
+        term1Fee,
+        term1Paid,
+        term1Balance,
+        term2Fee,
+        term2Paid,
+        term2Balance,
+        term3Fee,
+        term3Paid,
+        term3Balance
+      ];
+    });
+
+    return [headers, ...rows];
+  };
+
   const handleExportCSV = () => {
     if (filteredStudents.length === 0) return;
-    const headers = ['Student Name', 'Admission No', 'Class-Section', 'Total Fee (Rs)', 'Paid Amount (Rs)', 'Pending Balance (Rs)', 'Concession (Rs)', 'Status'];
-    const rows = filteredStudents.map(s => [
-      s.fullName,
-      s.admissionNo,
-      s.classSection,
-      s.totalAmount,
-      s.paidAmount,
-      s.dueAmount,
-      s.concessionAmount,
-      s.status
-    ]);
+    const csvContent = "\uFEFF" + getExportData().map(e => e.map(val => {
+      const cleanVal = String(val).replace(/"/g, '""');
+      return `"${cleanVal}"`;
+    }).join(",")).join("\n");
 
-    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" 
-      + [headers.join(','), ...rows.map(e => e.map(val => `"${val}"`).join(','))].join('\n');
-    
-    const encodedUri = encodeURI(csvContent);
+    const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
+    link.setAttribute('href', url);
     link.setAttribute('download', `fee_report_${activeTab.toLowerCase()}_${Date.now()}.csv`);
     document.body.appendChild(link);
     link.click();
@@ -186,24 +283,15 @@ const FeeReports = () => {
 
   const handleExportExcel = () => {
     if (filteredStudents.length === 0) return;
-    const headers = ['Student Name', 'Admission No', 'Class-Section', 'Total Fee (Rs)', 'Paid Amount (Rs)', 'Pending Balance (Rs)', 'Concession (Rs)', 'Status'];
-    const rows = filteredStudents.map(s => [
-      s.fullName,
-      s.admissionNo,
-      s.classSection,
-      s.totalAmount,
-      s.paidAmount,
-      s.dueAmount,
-      s.concessionAmount,
-      s.status
-    ]);
+    const csvContent = "\uFEFF" + getExportData().map(e => e.map(val => {
+      const cleanVal = String(val).replace(/"/g, '""');
+      return `"${cleanVal}"`;
+    }).join(",")).join("\n");
 
-    const tsvContent = [headers.join('\t'), ...rows.map(e => e.join('\t'))].join('\n');
-    const blob = new Blob([tsvContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
-    const encodedUri = URL.createObjectURL(blob);
-    
+    const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
+    link.setAttribute('href', url);
     link.setAttribute('download', `fee_report_${activeTab.toLowerCase()}_${Date.now()}.xls`);
     document.body.appendChild(link);
     link.click();

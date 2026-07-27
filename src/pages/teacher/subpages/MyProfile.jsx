@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useApp } from '../../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -8,6 +8,8 @@ import {
   FiMail, FiCalendar, FiDroplet, FiGrid, FiBookOpen, FiBriefcase
 } from 'react-icons/fi';
 import { BiBuildingHouse } from 'react-icons/bi';
+import { useDataFetch } from '../../../hooks/useDataFetch';
+import { getTeacherProfile } from '../../../services/dataService';
 
 const MyProfile = () => {
   const { user, logout, activeRole, switchRole } = useApp();
@@ -15,6 +17,14 @@ const MyProfile = () => {
   const [offlineCache, setOfflineCache] = useState(true);
   const [timeoutActive, setTimeoutActive] = useState(true);
   const [biometricActive, setBiometricActive] = useState(false);
+
+  const teacherId = user?.teacherId || null;
+  const { data: dbTeacher, loading: teacherLoading } = useDataFetch(
+    () => (activeRole === 'TEACHER' || activeRole === 'CLASS_TEACHER') && teacherId
+      ? getTeacherProfile(teacherId)
+      : Promise.resolve(null),
+    [teacherId, activeRole]
+  );
 
   const handleSignOut = () => {
     logout();
@@ -357,10 +367,61 @@ const MyProfile = () => {
   }
 
   if (activeRole === 'TEACHER' || activeRole === 'CLASS_TEACHER') {
-    const tchrName = user?.name || 'Salapu Vasanthi';
-    const tchrPhone = user?.phoneNumber || user?.phone || '+919347339048';
-    const tchrBranch = user?.branchName || 'Sontyam';
-    const tchrEmpId = user?.employeeId || '26SOTS004';
+    if (teacherLoading) {
+      return (
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="w-8 h-8 border-4 border-[#1597E5] border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      );
+    }
+
+    const tchrName = dbTeacher?.user?.fullName || user?.name || user?.fullName || '—';
+    const tchrPhone = dbTeacher?.user?.phoneNumber || user?.phoneNumber || user?.phone || '—';
+    const tchrBranch = dbTeacher?.branch?.name || user?.branchName || '—';
+    const tchrEmpId = dbTeacher?.employeeId || user?.employeeId || '—';
+
+    // Active assignments list
+    const activeAssignments = (dbTeacher?.assignments || []).filter(a => a.isActive);
+
+    // Dynamic metrics
+    const sectionsCount = activeAssignments.length;
+    const studentsCount = (() => {
+      const studentIds = new Set();
+      activeAssignments.forEach(a => {
+        (a.section?.profileActiveStudents || []).forEach(s => studentIds.add(s.id || s.studentId));
+      });
+      return studentIds.size;
+    })();
+
+    const markedCount = (() => {
+      let count = 0;
+      activeAssignments.forEach(a => {
+        count += (a.section?.profileSectionAttendance || []).length;
+      });
+      return count;
+    })();
+
+    // Dynamic Personal Information
+    const gender = dbTeacher?.gender || '—';
+    const email = dbTeacher?.email || '—';
+    const dateOfBirth = dbTeacher?.dateOfBirth || '—';
+    const bloodGroup = dbTeacher?.bloodGroup || '—';
+
+    // Dynamic Employment Information
+    const joiningDate = dbTeacher?.joiningDate || '—';
+    const designation = dbTeacher?.designation || 'Teacher';
+    const qualification = dbTeacher?.qualification || '—';
+    const experience = dbTeacher?.experience || '—';
+
+    // Dynamic Academic Assignments
+    const subjectsList = dbTeacher?.subjects?.map(s => s.subject?.name).filter(Boolean).join(', ') || 'None';
+    
+    const classTeacherSections = activeAssignments.filter(a => a.isClassTeacher);
+    const classTeacherValue = classTeacherSections.map(a => `${a.section?.academicClass?.name || ''} - ${a.section?.name || ''}`).join(', ') || 'None';
+    
+    const assignedSectionsValue = activeAssignments.map(a => `${a.section?.academicClass?.name || ''} - ${a.section?.name || ''}`).join(', ') || 'None';
+
+    const rolesList = dbTeacher?.user?.roles?.map(r => r.role) || user?.roles || [activeRole];
 
     return (
       <motion.div
@@ -368,7 +429,7 @@ const MyProfile = () => {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -15 }}
         transition={{ duration: 0.3 }}
-        className="p-4 md:p-8 space-y-6 pb-20 max-w-[640px] mx-auto relative select-none animate-fade-in"
+        className="p-4 md:p-8 space-y-6 pb-20 max-w-5xl mx-auto relative select-none animate-fade-in"
       >
         {/* Top Header Bar */}
         <header className="flex items-center justify-between py-2 border-b border-[#e2e8f0]/40 shrink-0">
@@ -381,132 +442,139 @@ const MyProfile = () => {
           <h1 className="text-sm font-bold text-dark pr-8 mx-auto font-sans">Teacher Profile</h1>
         </header>
 
-        {/* Blue Header Card */}
-        <div className="relative rounded-[28px] bg-gradient-to-br from-[#1597E5] to-[#00A1FF] p-6 text-white card-shadow overflow-hidden pb-12">
-          <div className="absolute top-[-30px] right-[-30px] w-36 h-36 rounded-full bg-white/10 pointer-events-none" />
-          <div className="absolute bottom-[-40px] left-[10%] w-48 h-48 rounded-full bg-white/5 pointer-events-none" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+          {/* Left Column: Profile Card & Badges */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Blue Header Card */}
+            <div className="relative rounded-[28px] bg-gradient-to-br from-[#1597E5] to-[#00A1FF] p-6 text-white card-shadow overflow-hidden pb-12">
+              <div className="absolute top-[-30px] right-[-30px] w-36 h-36 rounded-full bg-white/10 pointer-events-none" />
+              <div className="absolute bottom-[-40px] left-[10%] w-48 h-48 rounded-full bg-white/5 pointer-events-none" />
 
-          {/* User Row */}
-          <div className="flex items-center gap-4 relative z-10 select-none">
-            {/* Avatar circle */}
-            <div className="w-16 h-16 rounded-full bg-white/20 border-2 border-white/35 flex items-center justify-center text-xl font-black font-sans shadow-inner shrink-0">
-              {getInitials(tchrName)}
-            </div>
-            <div>
-              <h2 className="text-xl font-bold">{tchrName}</h2>
-              <p className="text-xs text-white/80 font-semibold mt-0.5">{user?.wing ? `${user.wing} Teacher` : 'Teacher'} · {tchrBranch}</p>
-            </div>
-          </div>
-
-          {/* Stats Row */}
-          <div className="grid grid-cols-3 gap-2 pt-5 mt-5 border-t border-white/15 text-center font-sans relative z-10 select-none">
-            <div>
-              <p className="text-lg font-black">1</p>
-              <p className="text-[9px] text-white/70 font-black uppercase tracking-wider mt-0.5">Sections</p>
-            </div>
-            <div>
-              <p className="text-lg font-black">14</p>
-              <p className="text-[9px] text-white/70 font-black uppercase tracking-wider mt-0.5">Students</p>
-            </div>
-            <div>
-              <p className="text-lg font-black">56</p>
-              <p className="text-[9px] text-white/70 font-black uppercase tracking-wider mt-0.5">Att. Marked</p>
-            </div>
-          </div>
-
-          {/* Active status indicator badge */}
-          <div className="absolute bottom-4 left-4 flex items-center gap-1.5 px-3 py-1 bg-white/20 border border-white/20 rounded-full text-[9px] font-black uppercase tracking-widest pointer-events-none">
-            <span className="w-1.5 h-1.5 bg-[#23C16B] rounded-full animate-pulse" />
-            <span>Active</span>
-          </div>
-        </div>
-
-        {/* Role badges row */}
-        <div className="flex gap-2 select-none">
-          <span className="px-3.5 py-1.5 rounded-full text-[10px] font-extrabold bg-[#F3E8FF] text-[#8B5CF6] border border-[#8B5CF6]/15 uppercase tracking-wider">
-            ● Class Teacher
-          </span>
-          <span className="px-3.5 py-1.5 rounded-full text-[10px] font-extrabold bg-[#F3E8FF] text-[#8B5CF6] border border-[#8B5CF6]/15 uppercase tracking-wider">
-            ● Teacher
-          </span>
-        </div>
-
-        {/* Personal Information */}
-        <div className="bg-white rounded-[28px] border border-[#e2e8f0]/40 p-5 card-shadow space-y-4">
-          <h3 className="text-[10px] font-extrabold text-secondaryText uppercase tracking-widest px-1">
-            Personal Information
-          </h3>
-
-          <div className="divide-y divide-[#e2e8f0]/60 text-xs">
-            {[
-              { label: 'MOBILE', value: tchrPhone, icon: <FiPhone className="w-4 h-4 text-brand-blue" /> },
-              { label: 'GENDER', value: 'Female', icon: <FiUser className="w-4 h-4 text-brand-blue" /> },
-              { label: 'EMAIL', value: '—', icon: <FiMail className="w-4 h-4 text-brand-blue" /> },
-              { label: 'DATE OF BIRTH', value: '—', icon: <FiCalendar className="w-4 h-4 text-brand-blue" /> },
-              { label: 'BLOOD GROUP', value: '—', icon: <FiDroplet className="w-4 h-4 text-brand-blue" /> }
-            ].map((item, idx) => (
-              <div key={idx} className="flex items-center justify-between py-3.5">
-                <span className="text-secondaryText font-extrabold flex items-center gap-2.5 uppercase tracking-wider text-[10px]">
-                  <div className="w-8 h-8 rounded-lg bg-[#EEF5FB] flex items-center justify-center shrink-0">
-                    {item.icon}
-                  </div>
-                  {item.label}
-                </span>
-                <span className="text-dark font-extrabold">{item.value}</span>
+              {/* User Row */}
+              <div className="flex items-center gap-4 relative z-10 select-none">
+                {/* Avatar circle */}
+                <div className="w-16 h-16 rounded-full bg-white/20 border-2 border-white/35 flex items-center justify-center text-xl font-black font-sans shadow-inner shrink-0">
+                  {getInitials(tchrName)}
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold">{tchrName}</h2>
+                  <p className="text-xs text-white/80 font-semibold mt-0.5">{dbTeacher?.designation || 'Teacher'} · {tchrBranch}</p>
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
 
-        {/* Employment Information */}
-        <div className="bg-white rounded-[28px] border border-[#e2e8f0]/40 p-5 card-shadow space-y-4">
-          <h3 className="text-[10px] font-extrabold text-secondaryText uppercase tracking-widest px-1">
-            Employment Information
-          </h3>
-
-          <div className="divide-y divide-[#e2e8f0]/60 text-xs">
-            {[
-              { label: 'EMPLOYEE ID', value: tchrEmpId, icon: <span className="text-[9px] font-black text-brand-blue uppercase tracking-widest">ID</span> },
-              { label: 'JOINING DATE', value: '03-04-2026', icon: <FiCalendar className="w-4 h-4 text-brand-blue" /> },
-              { label: 'DESIGNATION', value: 'LKG Teacher', icon: <FiAward className="w-4 h-4 text-brand-blue" /> },
-              { label: 'QUALIFICATION', value: '—', icon: <FiAward className="w-4 h-4 text-brand-blue" /> },
-              { label: 'EXPERIENCE', value: '—', icon: <FiBriefcase className="w-4 h-4 text-brand-blue" /> }
-            ].map((item, idx) => (
-              <div key={idx} className="flex items-center justify-between py-3.5">
-                <span className="text-secondaryText font-extrabold flex items-center gap-2.5 uppercase tracking-wider text-[10px]">
-                  <div className="w-8 h-8 rounded-lg bg-[#EEF5FB] flex items-center justify-center shrink-0">
-                    {item.icon}
-                  </div>
-                  {item.label}
-                </span>
-                <span className="text-dark font-extrabold">{item.value}</span>
+              {/* Stats Row */}
+              <div className="grid grid-cols-3 gap-2 pt-5 mt-5 border-t border-white/15 text-center font-sans relative z-10 select-none">
+                <div>
+                  <p className="text-lg font-black">{sectionsCount}</p>
+                  <p className="text-[9px] text-white/70 font-black uppercase tracking-wider mt-0.5">Sections</p>
+                </div>
+                <div>
+                  <p className="text-lg font-black">{studentsCount}</p>
+                  <p className="text-[9px] text-white/70 font-black uppercase tracking-wider mt-0.5">Students</p>
+                </div>
+                <div>
+                  <p className="text-lg font-black">{markedCount}</p>
+                  <p className="text-[9px] text-white/70 font-black uppercase tracking-wider mt-0.5">Att. Marked</p>
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
 
-        {/* Academic Assignments */}
-        <div className="bg-white rounded-[28px] border border-[#e2e8f0]/40 p-5 card-shadow space-y-4">
-          <h3 className="text-[10px] font-extrabold text-secondaryText uppercase tracking-widest px-1">
-            Academic Assignments
-          </h3>
-
-          <div className="divide-y divide-[#e2e8f0]/60 text-xs">
-            {[
-              { label: 'ASSIGNED SUBJECTS', value: 'None', icon: <FiBookOpen className="w-4 h-4 text-brand-blue" /> },
-              { label: 'CLASS TEACHER', value: '1-A (Class Teacher)', icon: <FiUser className="w-4 h-4 text-brand-blue" /> },
-              { label: 'ASSIGNED SECTIONS', value: '1-A', icon: <FiGrid className="w-4 h-4 text-brand-blue" /> }
-            ].map((item, idx) => (
-              <div key={idx} className="flex items-center justify-between py-3.5">
-                <span className="text-secondaryText font-extrabold flex items-center gap-2.5 uppercase tracking-wider text-[10px]">
-                  <div className="w-8 h-8 rounded-lg bg-[#EEF5FB] flex items-center justify-center shrink-0">
-                    {item.icon}
-                  </div>
-                  {item.label}
-                </span>
-                <span className="text-dark font-extrabold">{item.value}</span>
+              {/* Active status indicator badge */}
+              <div className="absolute bottom-4 left-4 flex items-center gap-1.5 px-3 py-1 bg-white/20 border border-white/20 rounded-full text-[9px] font-black uppercase tracking-widest pointer-events-none">
+                <span className="w-1.5 h-1.5 bg-[#23C16B] rounded-full animate-pulse" />
+                <span>Active</span>
               </div>
-            ))}
+            </div>
+
+            {/* Role badges row */}
+            <div className="flex flex-wrap gap-2 select-none">
+              {rolesList.map((roleName) => (
+                <span key={roleName} className="px-3.5 py-1.5 rounded-full text-[10px] font-extrabold bg-[#F3E8FF] text-[#8B5CF6] border border-[#8B5CF6]/15 uppercase tracking-wider">
+                  ● {roleName.replace('_', ' ')}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Right Column: details sections */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Personal Information */}
+            <div className="bg-white rounded-[28px] border border-[#e2e8f0]/40 p-5 card-shadow space-y-4">
+              <h3 className="text-[10px] font-extrabold text-secondaryText uppercase tracking-widest px-1">
+                Personal Information
+              </h3>
+
+              <div className="divide-y divide-[#e2e8f0]/60 text-xs">
+                {[
+                  { label: 'MOBILE', value: tchrPhone, icon: <FiPhone className="w-4 h-4 text-brand-blue" /> },
+                  { label: 'GENDER', value: gender, icon: <FiUser className="w-4 h-4 text-brand-blue" /> },
+                  { label: 'EMAIL', value: email, icon: <FiMail className="w-4 h-4 text-brand-blue" /> },
+                  { label: 'DATE OF BIRTH', value: dateOfBirth, icon: <FiCalendar className="w-4 h-4 text-brand-blue" /> },
+                  { label: 'BLOOD GROUP', value: bloodGroup, icon: <FiDroplet className="w-4 h-4 text-brand-blue" /> }
+                ].map((item, idx) => (
+                  <div key={idx} className="flex items-center justify-between py-3.5">
+                    <span className="text-secondaryText font-extrabold flex items-center gap-2.5 uppercase tracking-wider text-[10px]">
+                      <div className="w-8 h-8 rounded-lg bg-[#EEF5FB] flex items-center justify-center shrink-0">
+                        {item.icon}
+                      </div>
+                      {item.label}
+                    </span>
+                    <span className="text-dark font-extrabold">{item.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Employment Information */}
+            <div className="bg-white rounded-[28px] border border-[#e2e8f0]/40 p-5 card-shadow space-y-4">
+              <h3 className="text-[10px] font-extrabold text-secondaryText uppercase tracking-widest px-1">
+                Employment Information
+              </h3>
+
+              <div className="divide-y divide-[#e2e8f0]/60 text-xs">
+                {[
+                  { label: 'EMPLOYEE ID', value: tchrEmpId, icon: <span className="text-[9px] font-black text-brand-blue uppercase tracking-widest">ID</span> },
+                  { label: 'JOINING DATE', value: joiningDate, icon: <FiCalendar className="w-4 h-4 text-brand-blue" /> },
+                  { label: 'DESIGNATION', value: designation, icon: <FiAward className="w-4 h-4 text-brand-blue" /> },
+                  { label: 'QUALIFICATION', value: qualification, icon: <FiAward className="w-4 h-4 text-brand-blue" /> },
+                  { label: 'EXPERIENCE', value: experience, icon: <FiBriefcase className="w-4 h-4 text-brand-blue" /> }
+                ].map((item, idx) => (
+                  <div key={idx} className="flex items-center justify-between py-3.5">
+                    <span className="text-secondaryText font-extrabold flex items-center gap-2.5 uppercase tracking-wider text-[10px]">
+                      <div className="w-8 h-8 rounded-lg bg-[#EEF5FB] flex items-center justify-center shrink-0">
+                        {item.icon}
+                      </div>
+                      {item.label}
+                    </span>
+                    <span className="text-dark font-extrabold">{item.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Academic Assignments */}
+            <div className="bg-white rounded-[28px] border border-[#e2e8f0]/40 p-5 card-shadow space-y-4">
+              <h3 className="text-[10px] font-extrabold text-secondaryText uppercase tracking-widest px-1">
+                Academic Assignments
+              </h3>
+
+              <div className="divide-y divide-[#e2e8f0]/60 text-xs">
+                {[
+                  { label: 'ASSIGNED SUBJECTS', value: subjectsList, icon: <FiBookOpen className="w-4 h-4 text-brand-blue" /> },
+                  { label: 'CLASS TEACHER', value: classTeacherValue, icon: <FiUser className="w-4 h-4 text-brand-blue" /> },
+                  { label: 'ASSIGNED SECTIONS', value: assignedSectionsValue, icon: <FiGrid className="w-4 h-4 text-brand-blue" /> }
+                ].map((item, idx) => (
+                  <div key={idx} className="flex items-center justify-between py-3.5">
+                    <span className="text-secondaryText font-extrabold flex items-center gap-2.5 uppercase tracking-wider text-[10px]">
+                      <div className="w-8 h-8 rounded-lg bg-[#EEF5FB] flex items-center justify-center shrink-0">
+                        {item.icon}
+                      </div>
+                      {item.label}
+                    </span>
+                    <span className="text-dark font-extrabold">{item.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </motion.div>

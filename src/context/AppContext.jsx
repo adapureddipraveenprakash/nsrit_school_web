@@ -471,6 +471,58 @@ export const AppProvider = ({ children }) => {
     }
   }, [currentBranchContext, user]);
 
+  // ─── Scheduled Notifications Checker ──────────────────────────────────────────
+  useEffect(() => {
+    if (!user || !activeRole) return;
+    const isAuthorized = ['MAIN_ADMIN', 'BRANCH_ADMIN', 'PRINCIPAL', 'COORDINATOR'].includes(activeRole.toUpperCase());
+    if (!isAuthorized) return;
+
+    const checkScheduledNotifications = async () => {
+      try {
+        const nowIso = new Date().toISOString();
+        const pendingList = await dataService.getPendingScheduledNotifications({ now: nowIso });
+        if (!pendingList || pendingList.length === 0) return;
+
+        console.log(`[ScheduledNotifications] Found ${pendingList.length} pending notifications to dispatch.`);
+
+        for (const item of pendingList) {
+          const docId = item.id;
+
+          try {
+            // Attempt to lock row first (atomically checked in SQL mutation via query @check)
+            await dataService.lockScheduledNotification({ id: docId });
+
+            console.log(`[ScheduledNotifications] Dispatching scheduled notification: "${item.title}"`);
+            const res = await dataService.broadcastNotification({
+              branchId: item.branchId,
+              title: item.title,
+              message: item.message,
+              target: item.target,
+            });
+
+            // Update status to sent with execution stats
+            await dataService.updateScheduledNotificationStatus({
+              id: docId,
+              status: 'sent',
+              statsSent: res?.sent || 0,
+              statsFailed: res?.failed || 0
+            });
+            console.log(`[ScheduledNotifications] Dispatch success for: "${item.title}"`, res);
+          } catch (txErr) {
+            console.warn(`[ScheduledNotifications] Dispatch skipped/failed for ${docId}:`, txErr.message);
+          }
+        }
+      } catch (err) {
+        console.error('[ScheduledNotifications] Error checking schedule queue:', err.message);
+      }
+    };
+
+    // Initial check, then every 30 seconds
+    checkScheduledNotifications();
+    const interval = setInterval(checkScheduledNotifications, 30000);
+    return () => clearInterval(interval);
+  }, [user, activeRole]);
+
   const addLog = useCallback((action) => {
     console.log('[Audit Log]', action);
   }, []);

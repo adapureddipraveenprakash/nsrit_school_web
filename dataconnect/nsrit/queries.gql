@@ -34,6 +34,12 @@ query GetCurrentUser($firebaseUID: String!) @auth(level: USER) {
     teacherProfile: teacher_on_user {
       id
       branchId
+      classTeacherAssignments: teacherSectionAssignments_on_teacher(
+        where: {isClassTeacher: {eq: true}, isActive: {eq: true}}
+      ) {
+        id
+        sectionId
+      }
     }
     accountantProfile: accountant_on_user {
       id
@@ -3073,7 +3079,17 @@ query GetTeacherProfile($teacherId: UUID!) @auth(level: USER) {
           id
           studentId
           fullName
+          gender
+          phoneNumber
           status
+          parent {
+            id
+            fullName
+            fatherName
+            motherName
+            phoneNumber
+            email
+          }
         }
         profileSectionAttendance: attendances_on_section(limit: 1000) {
           id
@@ -3930,6 +3946,7 @@ query GetFeeReports($branchId: UUID!, $limit: Int = 1000, $offset: Int = 0) @aut
       name
     }
     branchId
+    phoneNumber
     reportLinkedParents: studentParents_on_student {
       userId
     }
@@ -5708,5 +5725,38 @@ query GetExamsBySection(
         academicClassId
       }
     }
+  }
+}
+
+query GetScheduledNotificationsByBranch($branchId: UUID!) @auth(level: USER) {
+  scheduledNotifications(where: {branchId: {eq: $branchId}}, orderBy: [{scheduledTime: DESC}]) {
+    id
+    branchId
+    title
+    message
+    target
+    scheduledTime
+    status
+    createdById
+    createdByRole
+    createdAt
+    statsSent
+    statsFailed
+  }
+}
+
+query GetPendingScheduledNotifications($now: Timestamp!) @auth(level: USER) {
+  scheduledNotifications(
+    where: {status: {eq: "pending"}, scheduledTime: {le: $now}}
+  ) {
+    id
+    branchId
+    title
+    message
+    target
+    scheduledTime
+    status
+    createdById
+    createdByRole
   }
 }

@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiX, FiUser, FiBell, FiSend, FiSettings, FiLogOut, FiUsers, FiHome, FiCalendar, FiBriefcase, FiDollarSign } from 'react-icons/fi';
 import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
+import { useDataFetch } from '../hooks/useDataFetch';
+import { getUnreadNotificationCount } from '../services/dataService';
 
 const ROLE_META = {
   MAIN_ADMIN:    { label: 'Main Admin',    bg: 'bg-[#EEF5FB]', text: 'text-brand-blue', desc: 'Full system management and branch oversight', icon: 'MA' },
@@ -21,6 +23,19 @@ const Drawer = ({ isOpen, onClose, position = 'left' }) => {
   const [showRoleSelector, setShowRoleSelector] = useState(false);
   const [isSwitchUserModalOpen, setIsSwitchUserModalOpen] = useState(false);
   const navigate = useNavigate();
+
+  const userId = user?.id || null;
+  const { data: unreadCount = 0 } = useDataFetch(
+    () => userId ? getUnreadNotificationCount({ userId }) : Promise.resolve(0),
+    [userId]
+  );
+
+  const teacherInitials = (user?.name || user?.fullName || '?')
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
 
   const handleNav = (path) => {
     navigate(path);
@@ -128,11 +143,21 @@ const Drawer = ({ isOpen, onClose, position = 'left' }) => {
                         className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-[#EEF5FB] transition-all text-left text-dark group cursor-pointer"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-amber-50 group-hover:bg-white flex items-center justify-center text-amber-500 font-semibold border border-transparent group-hover:border-[#e2e8f0]/40 transition-colors shrink-0">
+                          <div className="w-9 h-9 rounded-xl bg-amber-50 group-hover:bg-white flex items-center justify-center text-amber-500 font-semibold border border-transparent group-hover:border-[#e2e8f0]/40 transition-colors shrink-0 relative">
                             <FiBell className="w-4 h-4" />
+                            {unreadCount > 0 && (
+                              <span className="absolute top-[-2px] right-[-2px] w-2 h-2 bg-[#EF4444] rounded-full animate-ping" />
+                            )}
                           </div>
                           <div>
-                            <p className="text-sm font-bold">Notifications</p>
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-bold">Notifications</p>
+                              {unreadCount > 0 && (
+                                <span className="px-2 py-0.5 bg-[#EF4444]/10 text-[#EF4444] text-[9px] font-extrabold rounded-full font-sans">
+                                  {unreadCount} new
+                                </span>
+                              )}
+                            </div>
                             <p className="text-[10px] text-secondaryText">Alerts and announcements</p>
                           </div>
                         </div>
@@ -346,11 +371,21 @@ const Drawer = ({ isOpen, onClose, position = 'left' }) => {
                         className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-[#EEF5FB] transition-all text-left text-dark group cursor-pointer"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-[#FFF9E5] group-hover:bg-white flex items-center justify-center text-[#FF9F0A] border border-amber-50 transition-colors shrink-0">
+                          <div className="w-9 h-9 rounded-full bg-[#FFF9E5] group-hover:bg-white flex items-center justify-center text-[#FF9F0A] border border-amber-50 transition-colors shrink-0 relative">
                             <FiBell className="w-4 h-4" />
+                            {unreadCount > 0 && (
+                              <span className="absolute top-[-2px] right-[-2px] w-2 h-2 bg-[#EF4444] rounded-full animate-ping" />
+                            )}
                           </div>
                           <div>
-                            <p className="text-sm font-bold text-[#0F172A]">Notifications</p>
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-bold text-[#0F172A]">Notifications</p>
+                              {unreadCount > 0 && (
+                                <span className="px-2 py-0.5 bg-[#EF4444]/10 text-[#EF4444] text-[9px] font-extrabold rounded-full font-sans">
+                                  {unreadCount} new
+                                </span>
+                              )}
+                            </div>
                             <p className="text-[10px] text-secondaryText font-semibold">Alerts and announcements</p>
                           </div>
                         </div>
@@ -496,10 +531,12 @@ const Drawer = ({ isOpen, onClose, position = 'left' }) => {
                   {/* Profile Details */}
                   <div className="flex flex-col gap-4 mt-6">
                     <div className="w-16 h-16 rounded-full bg-white/20 border-2 border-white/30 flex items-center justify-center text-xl font-bold font-sans shadow-inner select-none">
-                      SV
+                      {teacherInitials}
                     </div>
                     <div>
-                      <h3 className="text-xl font-extrabold tracking-tight select-none">Salapu Vasanthi</h3>
+                      <h3 className="text-xl font-extrabold tracking-tight select-none">
+                        {user?.name || user?.fullName || 'Salapu Vasanthi'}
+                      </h3>
                       
                       {/* Active Status Badge matching screenshot */}
                       <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 border border-white/25 rounded-full mt-2 text-[10px] font-bold uppercase tracking-wider select-none">
@@ -510,8 +547,8 @@ const Drawer = ({ isOpen, onClose, position = 'left' }) => {
                       </div>
                       
                       <p className="text-xs opacity-90 mt-3 font-semibold flex items-center gap-3 select-none">
-                        <span className="flex items-center gap-1 font-sans">📞 +919347339048</span>
-                        <span className="flex items-center gap-1">🏢 Sontyam</span>
+                        <span className="flex items-center gap-1 font-sans">📞 +91{user?.phoneNumber || user?.phone || '9347339048'}</span>
+                        <span className="flex items-center gap-1">🏢 {user?.branchName || user?.branch?.name || 'Sontyam'}</span>
                       </p>
                     </div>
                   </div>
@@ -544,11 +581,21 @@ const Drawer = ({ isOpen, onClose, position = 'left' }) => {
                         className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-[#EEF5FB] transition-all text-left text-dark group cursor-pointer"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-amber-50 group-hover:bg-white flex items-center justify-center text-amber-500 font-semibold border border-transparent group-hover:border-[#e2e8f0]/40 transition-colors shrink-0">
+                          <div className="w-9 h-9 rounded-xl bg-amber-50 group-hover:bg-white flex items-center justify-center text-amber-500 font-semibold border border-transparent group-hover:border-[#e2e8f0]/40 transition-colors shrink-0 relative">
                             <FiBell className="w-4 h-4" />
+                            {unreadCount > 0 && (
+                              <span className="absolute top-[-2px] right-[-2px] w-2 h-2 bg-[#EF4444] rounded-full animate-ping" />
+                            )}
                           </div>
                           <div>
-                            <p className="text-sm font-bold">Notifications</p>
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-bold">Notifications</p>
+                              {unreadCount > 0 && (
+                                <span className="px-2 py-0.5 bg-[#EF4444]/10 text-[#EF4444] text-[9px] font-extrabold rounded-full font-sans">
+                                  {unreadCount} new
+                                </span>
+                              )}
+                            </div>
                             <p className="text-[10px] text-secondaryText">Alerts and announcements</p>
                           </div>
                         </div>
@@ -780,11 +827,21 @@ const Drawer = ({ isOpen, onClose, position = 'left' }) => {
                             className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-[#EEF5FB] transition-all text-left text-dark group"
                           >
                             <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-xl bg-[#EEF5FB] group-hover:bg-white flex items-center justify-center text-accent-orange font-semibold border border-transparent group-hover:border-[#e2e8f0]/40 transition-colors">
+                              <div className="w-9 h-9 rounded-xl bg-[#EEF5FB] group-hover:bg-white flex items-center justify-center text-accent-orange font-semibold border border-transparent group-hover:border-[#e2e8f0]/40 transition-colors relative">
                                 <FiBell className="w-4 h-4" />
+                                {unreadCount > 0 && (
+                                  <span className="absolute top-[-2px] right-[-2px] w-2 h-2 bg-[#EF4444] rounded-full animate-ping" />
+                                )}
                               </div>
                               <div>
-                                <p className="text-sm font-semibold">Notifications</p>
+                                <div className="flex items-center gap-2">
+                                  <p className="text-sm font-semibold">Notifications</p>
+                                  {unreadCount > 0 && (
+                                    <span className="px-2 py-0.5 bg-[#EF4444]/10 text-[#EF4444] text-[9px] font-extrabold rounded-full font-sans">
+                                      {unreadCount} new
+                                    </span>
+                                  )}
+                                </div>
                                 <p className="text-[10px] text-secondaryText">Alerts and announcements</p>
                               </div>
                             </div>

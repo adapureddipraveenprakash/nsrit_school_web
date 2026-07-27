@@ -139,6 +139,8 @@ You can also follow the instructions from the [Data Connect documentation](https
   - [*GetExamAnalytics*](#getexamanalytics)
   - [*GetPublishedExamsForSection*](#getpublishedexamsforsection)
   - [*GetExamsBySection*](#getexamsbysection)
+  - [*GetScheduledNotificationsByBranch*](#getschedulednotificationsbybranch)
+  - [*GetPendingScheduledNotifications*](#getpendingschedulednotifications)
 - [**Mutations**](#mutations)
   - [*CreateBranch*](#createbranch)
   - [*UpdateBranch*](#updatebranch)
@@ -239,6 +241,9 @@ You can also follow the instructions from the [Data Connect documentation](https
   - [*UpdateCoordinator*](#updatecoordinator)
   - [*MigrateReceiptNumber*](#migratereceiptnumber)
   - [*UpsertReceiptSequence*](#upsertreceiptsequence)
+  - [*CreateScheduledNotification*](#createschedulednotification)
+  - [*UpdateScheduledNotificationStatus*](#updateschedulednotificationstatus)
+  - [*LockScheduledNotification*](#lockschedulednotification)
 
 # TanStack Query Firebase & TanStack React Query
 This SDK provides [React](https://react.dev/) hooks generated specific to your application, for the operations found in the connector `nsrit`. These hooks are generated using [TanStack Query Firebase](https://react-query-firebase.invertase.dev/) by our partners at Invertase, a library built on top of [TanStack React Query v5](https://tanstack.com/query/v5/docs/framework/react/overview).
@@ -392,6 +397,10 @@ export interface GetCurrentUserData {
     teacherProfile?: {
       id: UUIDString;
       branchId: UUIDString;
+      classTeacherAssignments: ({
+        id: UUIDString;
+        sectionId: UUIDString;
+      } & TeacherSectionAssignment_Key)[];
     } & Teacher_Key;
     accountantProfile?: {
       id: UUIDString;
@@ -7800,7 +7809,17 @@ export interface GetTeacherProfileData {
           id: UUIDString;
           studentId: string;
           fullName: string;
+          gender?: string | null;
+          phoneNumber?: string | null;
           status: string;
+          parent: {
+            id: UUIDString;
+            fullName: string;
+            fatherName?: string | null;
+            motherName?: string | null;
+            phoneNumber: string;
+            email?: string | null;
+          } & Parent_Key;
         } & Student_Key)[];
         profileSectionAttendance: ({
           id: UUIDString;
@@ -9564,6 +9583,7 @@ export interface GetFeeReportsData {
       name: string;
     } & Section_Key;
     branchId: UUIDString;
+    phoneNumber?: string | null;
     reportLinkedParents: ({
       userId: UUIDString;
     })[];
@@ -14382,6 +14402,193 @@ export default function GetExamsBySectionComponent() {
   // If the Query is successful, you can access the data returned using the `UseQueryResult.data` field.
   if (query.isSuccess) {
     console.log(query.data.examSections);
+  }
+  return <div>Query execution {query.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## GetScheduledNotificationsByBranch
+You can execute the `GetScheduledNotificationsByBranch` Query using the following Query hook function, which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts):
+
+```javascript
+useGetScheduledNotificationsByBranch(dc: DataConnect, vars: GetScheduledNotificationsByBranchVariables, options?: useDataConnectQueryOptions<GetScheduledNotificationsByBranchData>): UseDataConnectQueryResult<GetScheduledNotificationsByBranchData, GetScheduledNotificationsByBranchVariables>;
+```
+You can also pass in a `DataConnect` instance to the Query hook function.
+```javascript
+useGetScheduledNotificationsByBranch(vars: GetScheduledNotificationsByBranchVariables, options?: useDataConnectQueryOptions<GetScheduledNotificationsByBranchData>): UseDataConnectQueryResult<GetScheduledNotificationsByBranchData, GetScheduledNotificationsByBranchVariables>;
+```
+
+### Variables
+The `GetScheduledNotificationsByBranch` Query requires an argument of type `GetScheduledNotificationsByBranchVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface GetScheduledNotificationsByBranchVariables {
+  branchId: UUIDString;
+}
+```
+### Return Type
+Recall that calling the `GetScheduledNotificationsByBranch` Query hook function returns a `UseQueryResult` object. This object holds the state of your Query, including whether the Query is loading, has completed, or has succeeded/failed, and any data returned by the Query, among other things.
+
+To check the status of a Query, use the `UseQueryResult.status` field. You can also check for pending / success / error status using the `UseQueryResult.isPending`, `UseQueryResult.isSuccess`, and `UseQueryResult.isError` fields.
+
+To access the data returned by a Query, use the `UseQueryResult.data` field. The data for the `GetScheduledNotificationsByBranch` Query is of type `GetScheduledNotificationsByBranchData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface GetScheduledNotificationsByBranchData {
+  scheduledNotifications: ({
+    id: UUIDString;
+    branchId: UUIDString;
+    title: string;
+    message: string;
+    target: string;
+    scheduledTime: TimestampString;
+    status: string;
+    createdById?: UUIDString | null;
+    createdByRole?: string | null;
+    createdAt: TimestampString;
+    statsSent?: number | null;
+    statsFailed?: number | null;
+  } & ScheduledNotification_Key)[];
+}
+```
+
+To learn more about the `UseQueryResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useQuery).
+
+### Using `GetScheduledNotificationsByBranch`'s Query hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, GetScheduledNotificationsByBranchVariables } from '@dataconnect/generated';
+import { useGetScheduledNotificationsByBranch } from '@dataconnect/generated/react'
+
+export default function GetScheduledNotificationsByBranchComponent() {
+  // The `useGetScheduledNotificationsByBranch` Query hook requires an argument of type `GetScheduledNotificationsByBranchVariables`:
+  const getScheduledNotificationsByBranchVars: GetScheduledNotificationsByBranchVariables = {
+    branchId: ..., 
+  };
+
+  // You don't have to do anything to "execute" the Query.
+  // Call the Query hook function to get a `UseQueryResult` object which holds the state of your Query.
+  const query = useGetScheduledNotificationsByBranch(getScheduledNotificationsByBranchVars);
+  // Variables can be defined inline as well.
+  const query = useGetScheduledNotificationsByBranch({ branchId: ..., });
+
+  // You can also pass in a `DataConnect` instance to the Query hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const query = useGetScheduledNotificationsByBranch(dataConnect, getScheduledNotificationsByBranchVars);
+
+  // You can also pass in a `useDataConnectQueryOptions` object to the Query hook function.
+  const options = { staleTime: 5 * 1000 };
+  const query = useGetScheduledNotificationsByBranch(getScheduledNotificationsByBranchVars, options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectQueryOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = { staleTime: 5 * 1000 };
+  const query = useGetScheduledNotificationsByBranch(dataConnect, getScheduledNotificationsByBranchVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Query.
+  if (query.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (query.isError) {
+    return <div>Error: {query.error.message}</div>;
+  }
+
+  // If the Query is successful, you can access the data returned using the `UseQueryResult.data` field.
+  if (query.isSuccess) {
+    console.log(query.data.scheduledNotifications);
+  }
+  return <div>Query execution {query.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## GetPendingScheduledNotifications
+You can execute the `GetPendingScheduledNotifications` Query using the following Query hook function, which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts):
+
+```javascript
+useGetPendingScheduledNotifications(dc: DataConnect, vars: GetPendingScheduledNotificationsVariables, options?: useDataConnectQueryOptions<GetPendingScheduledNotificationsData>): UseDataConnectQueryResult<GetPendingScheduledNotificationsData, GetPendingScheduledNotificationsVariables>;
+```
+You can also pass in a `DataConnect` instance to the Query hook function.
+```javascript
+useGetPendingScheduledNotifications(vars: GetPendingScheduledNotificationsVariables, options?: useDataConnectQueryOptions<GetPendingScheduledNotificationsData>): UseDataConnectQueryResult<GetPendingScheduledNotificationsData, GetPendingScheduledNotificationsVariables>;
+```
+
+### Variables
+The `GetPendingScheduledNotifications` Query requires an argument of type `GetPendingScheduledNotificationsVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface GetPendingScheduledNotificationsVariables {
+  now: TimestampString;
+}
+```
+### Return Type
+Recall that calling the `GetPendingScheduledNotifications` Query hook function returns a `UseQueryResult` object. This object holds the state of your Query, including whether the Query is loading, has completed, or has succeeded/failed, and any data returned by the Query, among other things.
+
+To check the status of a Query, use the `UseQueryResult.status` field. You can also check for pending / success / error status using the `UseQueryResult.isPending`, `UseQueryResult.isSuccess`, and `UseQueryResult.isError` fields.
+
+To access the data returned by a Query, use the `UseQueryResult.data` field. The data for the `GetPendingScheduledNotifications` Query is of type `GetPendingScheduledNotificationsData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface GetPendingScheduledNotificationsData {
+  scheduledNotifications: ({
+    id: UUIDString;
+    branchId: UUIDString;
+    title: string;
+    message: string;
+    target: string;
+    scheduledTime: TimestampString;
+    status: string;
+    createdById?: UUIDString | null;
+    createdByRole?: string | null;
+  } & ScheduledNotification_Key)[];
+}
+```
+
+To learn more about the `UseQueryResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useQuery).
+
+### Using `GetPendingScheduledNotifications`'s Query hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, GetPendingScheduledNotificationsVariables } from '@dataconnect/generated';
+import { useGetPendingScheduledNotifications } from '@dataconnect/generated/react'
+
+export default function GetPendingScheduledNotificationsComponent() {
+  // The `useGetPendingScheduledNotifications` Query hook requires an argument of type `GetPendingScheduledNotificationsVariables`:
+  const getPendingScheduledNotificationsVars: GetPendingScheduledNotificationsVariables = {
+    now: ..., 
+  };
+
+  // You don't have to do anything to "execute" the Query.
+  // Call the Query hook function to get a `UseQueryResult` object which holds the state of your Query.
+  const query = useGetPendingScheduledNotifications(getPendingScheduledNotificationsVars);
+  // Variables can be defined inline as well.
+  const query = useGetPendingScheduledNotifications({ now: ..., });
+
+  // You can also pass in a `DataConnect` instance to the Query hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const query = useGetPendingScheduledNotifications(dataConnect, getPendingScheduledNotificationsVars);
+
+  // You can also pass in a `useDataConnectQueryOptions` object to the Query hook function.
+  const options = { staleTime: 5 * 1000 };
+  const query = useGetPendingScheduledNotifications(getPendingScheduledNotificationsVars, options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectQueryOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = { staleTime: 5 * 1000 };
+  const query = useGetPendingScheduledNotifications(dataConnect, getPendingScheduledNotificationsVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Query.
+  if (query.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (query.isError) {
+    return <div>Error: {query.error.message}</div>;
+  }
+
+  // If the Query is successful, you can access the data returned using the `UseQueryResult.data` field.
+  if (query.isSuccess) {
+    console.log(query.data.scheduledNotifications);
   }
   return <div>Query execution {query.isSuccess ? 'successful' : 'failed'}!</div>;
 }
@@ -24940,6 +25147,306 @@ export default function UpsertReceiptSequenceComponent() {
   // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
   if (mutation.isSuccess) {
     console.log(mutation.data.receiptSequence_upsert);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## CreateScheduledNotification
+You can execute the `CreateScheduledNotification` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useCreateScheduledNotification(options?: useDataConnectMutationOptions<CreateScheduledNotificationData, FirebaseError, CreateScheduledNotificationVariables>): UseDataConnectMutationResult<CreateScheduledNotificationData, CreateScheduledNotificationVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useCreateScheduledNotification(dc: DataConnect, options?: useDataConnectMutationOptions<CreateScheduledNotificationData, FirebaseError, CreateScheduledNotificationVariables>): UseDataConnectMutationResult<CreateScheduledNotificationData, CreateScheduledNotificationVariables>;
+```
+
+### Variables
+The `CreateScheduledNotification` Mutation requires an argument of type `CreateScheduledNotificationVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface CreateScheduledNotificationVariables {
+  branchId: UUIDString;
+  title: string;
+  message: string;
+  target: string;
+  scheduledTime: TimestampString;
+  createdById?: UUIDString | null;
+  createdByRole?: string | null;
+}
+```
+### Return Type
+Recall that calling the `CreateScheduledNotification` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `CreateScheduledNotification` Mutation is of type `CreateScheduledNotificationData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface CreateScheduledNotificationData {
+  scheduledNotification_insert: ScheduledNotification_Key;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `CreateScheduledNotification`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, CreateScheduledNotificationVariables } from '@dataconnect/generated';
+import { useCreateScheduledNotification } from '@dataconnect/generated/react'
+
+export default function CreateScheduledNotificationComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useCreateScheduledNotification();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useCreateScheduledNotification(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useCreateScheduledNotification(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useCreateScheduledNotification(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useCreateScheduledNotification` Mutation requires an argument of type `CreateScheduledNotificationVariables`:
+  const createScheduledNotificationVars: CreateScheduledNotificationVariables = {
+    branchId: ..., 
+    title: ..., 
+    message: ..., 
+    target: ..., 
+    scheduledTime: ..., 
+    createdById: ..., // optional
+    createdByRole: ..., // optional
+  };
+  mutation.mutate(createScheduledNotificationVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ branchId: ..., title: ..., message: ..., target: ..., scheduledTime: ..., createdById: ..., createdByRole: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(createScheduledNotificationVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.scheduledNotification_insert);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## UpdateScheduledNotificationStatus
+You can execute the `UpdateScheduledNotificationStatus` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useUpdateScheduledNotificationStatus(options?: useDataConnectMutationOptions<UpdateScheduledNotificationStatusData, FirebaseError, UpdateScheduledNotificationStatusVariables>): UseDataConnectMutationResult<UpdateScheduledNotificationStatusData, UpdateScheduledNotificationStatusVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useUpdateScheduledNotificationStatus(dc: DataConnect, options?: useDataConnectMutationOptions<UpdateScheduledNotificationStatusData, FirebaseError, UpdateScheduledNotificationStatusVariables>): UseDataConnectMutationResult<UpdateScheduledNotificationStatusData, UpdateScheduledNotificationStatusVariables>;
+```
+
+### Variables
+The `UpdateScheduledNotificationStatus` Mutation requires an argument of type `UpdateScheduledNotificationStatusVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface UpdateScheduledNotificationStatusVariables {
+  id: UUIDString;
+  status: string;
+  statsSent?: number | null;
+  statsFailed?: number | null;
+}
+```
+### Return Type
+Recall that calling the `UpdateScheduledNotificationStatus` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `UpdateScheduledNotificationStatus` Mutation is of type `UpdateScheduledNotificationStatusData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface UpdateScheduledNotificationStatusData {
+  scheduledNotification_update?: ScheduledNotification_Key | null;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `UpdateScheduledNotificationStatus`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, UpdateScheduledNotificationStatusVariables } from '@dataconnect/generated';
+import { useUpdateScheduledNotificationStatus } from '@dataconnect/generated/react'
+
+export default function UpdateScheduledNotificationStatusComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useUpdateScheduledNotificationStatus();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useUpdateScheduledNotificationStatus(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useUpdateScheduledNotificationStatus(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useUpdateScheduledNotificationStatus(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useUpdateScheduledNotificationStatus` Mutation requires an argument of type `UpdateScheduledNotificationStatusVariables`:
+  const updateScheduledNotificationStatusVars: UpdateScheduledNotificationStatusVariables = {
+    id: ..., 
+    status: ..., 
+    statsSent: ..., // optional
+    statsFailed: ..., // optional
+  };
+  mutation.mutate(updateScheduledNotificationStatusVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ id: ..., status: ..., statsSent: ..., statsFailed: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(updateScheduledNotificationStatusVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.scheduledNotification_update);
+  }
+  return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
+}
+```
+
+## LockScheduledNotification
+You can execute the `LockScheduledNotification` Mutation using the `UseMutationResult` object returned by the following Mutation hook function (which is defined in [dataconnect-generated/react/index.d.ts](./index.d.ts)):
+```javascript
+useLockScheduledNotification(options?: useDataConnectMutationOptions<LockScheduledNotificationData, FirebaseError, LockScheduledNotificationVariables>): UseDataConnectMutationResult<LockScheduledNotificationData, LockScheduledNotificationVariables>;
+```
+You can also pass in a `DataConnect` instance to the Mutation hook function.
+```javascript
+useLockScheduledNotification(dc: DataConnect, options?: useDataConnectMutationOptions<LockScheduledNotificationData, FirebaseError, LockScheduledNotificationVariables>): UseDataConnectMutationResult<LockScheduledNotificationData, LockScheduledNotificationVariables>;
+```
+
+### Variables
+The `LockScheduledNotification` Mutation requires an argument of type `LockScheduledNotificationVariables`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+
+```javascript
+export interface LockScheduledNotificationVariables {
+  id: UUIDString;
+}
+```
+### Return Type
+Recall that calling the `LockScheduledNotification` Mutation hook function returns a `UseMutationResult` object. This object holds the state of your Mutation, including whether the Mutation is loading, has completed, or has succeeded/failed, among other things.
+
+To check the status of a Mutation, use the `UseMutationResult.status` field. You can also check for pending / success / error status using the `UseMutationResult.isPending`, `UseMutationResult.isSuccess`, and `UseMutationResult.isError` fields.
+
+To execute the Mutation, call `UseMutationResult.mutate()`. This function executes the Mutation, but does not return the data from the Mutation.
+
+To access the data returned by a Mutation, use the `UseMutationResult.data` field. The data for the `LockScheduledNotification` Mutation is of type `LockScheduledNotificationData`, which is defined in [dataconnect-generated/index.d.ts](../index.d.ts). It has the following fields:
+```javascript
+export interface LockScheduledNotificationData {
+  scheduledNotification_update?: ScheduledNotification_Key | null;
+}
+```
+
+To learn more about the `UseMutationResult` object, see the [TanStack React Query documentation](https://tanstack.com/query/v5/docs/framework/react/reference/useMutation).
+
+### Using `LockScheduledNotification`'s Mutation hook function
+
+```javascript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, LockScheduledNotificationVariables } from '@dataconnect/generated';
+import { useLockScheduledNotification } from '@dataconnect/generated/react'
+
+export default function LockScheduledNotificationComponent() {
+  // Call the Mutation hook function to get a `UseMutationResult` object which holds the state of your Mutation.
+  const mutation = useLockScheduledNotification();
+
+  // You can also pass in a `DataConnect` instance to the Mutation hook function.
+  const dataConnect = getDataConnect(connectorConfig);
+  const mutation = useLockScheduledNotification(dataConnect);
+
+  // You can also pass in a `useDataConnectMutationOptions` object to the Mutation hook function.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useLockScheduledNotification(options);
+
+  // You can also pass both a `DataConnect` instance and a `useDataConnectMutationOptions` object.
+  const dataConnect = getDataConnect(connectorConfig);
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  const mutation = useLockScheduledNotification(dataConnect, options);
+
+  // After calling the Mutation hook function, you must call `UseMutationResult.mutate()` to execute the Mutation.
+  // The `useLockScheduledNotification` Mutation requires an argument of type `LockScheduledNotificationVariables`:
+  const lockScheduledNotificationVars: LockScheduledNotificationVariables = {
+    id: ..., 
+  };
+  mutation.mutate(lockScheduledNotificationVars);
+  // Variables can be defined inline as well.
+  mutation.mutate({ id: ..., });
+
+  // You can also pass in a `useDataConnectMutationOptions` object to `UseMutationResult.mutate()`.
+  const options = {
+    onSuccess: () => { console.log('Mutation succeeded!'); }
+  };
+  mutation.mutate(lockScheduledNotificationVars, options);
+
+  // Then, you can render your component dynamically based on the status of the Mutation.
+  if (mutation.isPending) {
+    return <div>Loading...</div>;
+  }
+
+  if (mutation.isError) {
+    return <div>Error: {mutation.error.message}</div>;
+  }
+
+  // If the Mutation is successful, you can access the data returned using the `UseMutationResult.data` field.
+  if (mutation.isSuccess) {
+    console.log(mutation.data.scheduledNotification_update);
   }
   return <div>Mutation execution {mutation.isSuccess ? 'successful' : 'failed'}!</div>;
 }

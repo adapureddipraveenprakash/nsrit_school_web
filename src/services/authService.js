@@ -73,7 +73,17 @@ const uniqueRoles = (roles) => {
     .filter(Boolean).filter((r) => { if (seen.has(r)) return false; seen.add(r); return true; });
 };
 
-const getProfileRoles = (profile) => uniqueRoles([...(profile?.roles || []), profile?.role]);
+const getProfileRoles = (profile) => {
+  let roles = uniqueRoles([...(profile?.roles || []), profile?.role]);
+  if (roles.includes('CLASS_TEACHER')) {
+    const assignments = profile?.teacherProfile?.classTeacherAssignments || [];
+    const hasActiveAssignment = assignments.length > 0;
+    if (!hasActiveAssignment) {
+      roles = roles.filter(r => r !== 'CLASS_TEACHER');
+    }
+  }
+  return roles;
+};
 const resolveDefaultRole = (roles) => USER_ROLE_PRIORITY.find((r) => roles.includes(r)) || roles[0] || null;
 const resolveActiveRole = (roles, preferred) => {
   const p = normalizeRole(preferred);
@@ -120,7 +130,11 @@ const hydrateRoleProfile = async (profile, preferredRole) => {
     const c = res.coordinators?.[0];
     base = { ...base, coordinatorId: c?.id || null, branchId: c?.branchId || base.branchId || null, wing: c?.wing || null };
   } else if (role === USER_ROLES.TEACHER || role === USER_ROLES.CLASS_TEACHER) {
-    base = { ...base, teacherId: profile.teacherId || null };
+    base = { 
+      ...base, 
+      teacherId: profile.teacherProfile?.id || profile.teacherId || null,
+      branchId: profile.teacherProfile?.branchId || base.branchId || null
+    };
   } else if (role === USER_ROLES.ACCOUNTANT) {
     const res = await dataConnectClient.query(Q.GET_ACCOUNTANT_BY_USER, { userId: profile.id });
     const a = res.accountants?.[0];
@@ -149,14 +163,7 @@ const hydrateRoleProfile = async (profile, preferredRole) => {
 const normalizeProfile = (profile, fallback = {}) => {
   const u = profile || {};
   const phone = u.phoneNumber || fallback.phoneNumber || '';
-  let roles = uniqueRoles(u.roles || fallback.roles || [u.role]);
-  if (phone.includes('9347339048')) {
-    roles = ['CLASS_TEACHER', 'TEACHER'];
-  } else if (phone.includes('8297191669')) {
-    roles = ['CLASS_TEACHER', 'COORDINATOR'];
-  } else if (phone.includes('9951335377')) {
-    roles = ['PARENT', 'ACCOUNTANT'];
-  }
+  const roles = uniqueRoles(u.roles || fallback.roles || [u.role]);
   return {
     id: u.id, uid: u.firebaseUID, firebaseUID: u.firebaseUID,
     fullName: u.fullName, name: u.fullName,

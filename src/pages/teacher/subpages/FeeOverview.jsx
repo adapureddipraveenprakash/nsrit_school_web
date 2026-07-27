@@ -8,7 +8,7 @@ import {
 import { BiReceipt } from 'react-icons/bi';
 import { useApp } from '../../../context/AppContext';
 import { useDataFetch } from '../../../hooks/useDataFetch';
-import { getFeeReports, getStudentFeeProfile, getParentChildrenByUser } from '../../../services/dataService';
+import { getFeeReports, getStudentFeeProfile, getParentChildrenByUser, getTeacherProfile } from '../../../services/dataService';
 
 const FeeOverview = () => {
   const { activeRole, user } = useApp();
@@ -72,17 +72,33 @@ const FeeOverview = () => {
     { defaultValue: { students: [] }, skip: activeRole === 'PARENT', pollInterval: 15000 }
   );
 
+  const teacherId = user?.teacherId || null;
+  const { data: dbTeacher } = useDataFetch(
+    () => (activeRole === 'TEACHER' || activeRole === 'CLASS_TEACHER') && teacherId
+      ? getTeacherProfile(teacherId)
+      : Promise.resolve(null),
+    [teacherId, activeRole]
+  );
+
   const allStudents = rawFeeReports?.students || [];
 
-  // If coordinator, filter by wing
+  // If coordinator, filter by wing. If teacher, filter by assigned sections.
   const filteredStudentsForStaff = useMemo(() => {
     if (activeRole === 'COORDINATOR' && user?.wing) {
       return allStudents.filter(
         s => s.academicClass?.wing?.code?.toUpperCase() === user.wing.toUpperCase()
       );
     }
+    if (activeRole === 'TEACHER' || activeRole === 'CLASS_TEACHER') {
+      const assignedSectionIds = new Set(
+        (dbTeacher?.assignments || [])
+          .filter(a => a.isActive)
+          .map(a => a.sectionId)
+      );
+      return allStudents.filter(s => assignedSectionIds.has(s.section?.id));
+    }
     return allStudents;
-  }, [allStudents, activeRole, user?.wing]);
+  }, [allStudents, activeRole, user?.wing, dbTeacher]);
 
   // Compute staff aggregates
   const staffStats = useMemo(() => {

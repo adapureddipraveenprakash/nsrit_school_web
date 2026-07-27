@@ -916,205 +916,7 @@ const AttendanceOverview = () => {
   }
 
   if (activeRole === 'TEACHER' || activeRole === 'CLASS_TEACHER') {
-    const presentCount = ATTENDANCE_LIST.filter(s => s.status === 'Present').length;
-    const absentCount = ATTENDANCE_LIST.filter(s => s.status === 'Absent').length;
-    const totalCount = ATTENDANCE_LIST.length;
-
-    // Fees statistics
-    const totalPaid = SECTION_FEES.reduce((sum, item) => sum + item.paid, 0);
-    const totalDue = SECTION_FEES.reduce((sum, item) => sum + item.due, 0);
-    const totalFees = totalPaid + totalDue;
-    const collectionRate = totalFees > 0 ? Math.round((totalPaid / totalFees) * 100) : 0;
-
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -15 }}
-        transition={{ duration: 0.3 }}
-        className="p-4 md:p-8 space-y-6 pb-20 md:pb-8 max-w-[640px] mx-auto animate-fade-in"
-      >
-        {/* Top Header Bar */}
-        <header className="flex items-center justify-between py-2 border-b border-[#e2e8f0]/40 shrink-0">
-          <button
-            onClick={() => navigate(-1)}
-            className="p-1.5 hover:bg-[#EEF5FB] rounded-full text-dark transition-colors cursor-pointer"
-          >
-            <FiArrowLeft className="w-5 h-5" />
-          </button>
-          <h1 className="text-sm font-bold text-dark pr-8 mx-auto">Class Reports</h1>
-        </header>
-
-        {/* Top curved blue header card */}
-        <div className="relative rounded-[32px] bg-gradient-to-br from-[#1597E5] to-[#00A1FF] p-6 text-white card-shadow overflow-hidden">
-          <div className="absolute top-[-30px] right-[-30px] w-36 h-36 rounded-full bg-white/10" />
-          <div className="absolute bottom-[-40px] left-[10%] w-48 h-48 rounded-full bg-white/5" />
-
-          {/* Subtitle */}
-          <div className="mb-1.5 relative z-10 select-none">
-            <span className="text-[10px] text-white/70 font-semibold tracking-wider uppercase">Class Teacher · Section 1-A</span>
-          </div>
-
-          {/* Title */}
-          <h2 className="text-xl font-bold mb-1 relative z-10">Class Reports</h2>
-          <p className="text-xs text-white/80 font-medium relative z-10">Manage and view section attendance and fee registry status.</p>
-
-          {/* Categories Tab Row */}
-          <div className="flex gap-2.5 mt-5 overflow-x-auto no-scrollbar relative z-10 select-none">
-            {[
-              { id: 'attendance', name: 'Attendance Logs' },
-              { id: 'fees', name: 'Section Fee Status' }
-            ].map((tab) => {
-              const isSelected = teacherTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setTeacherTab(tab.id)}
-                  className={`px-5 py-1.5 rounded-full text-[10px] font-extrabold transition-all cursor-pointer whitespace-nowrap ${
-                    isSelected
-                      ? 'bg-white text-[#1597E5] shadow-sm'
-                      : 'bg-white/15 text-white/90 hover:bg-white/20 border border-white/5'
-                  }`}
-                >
-                  {tab.name}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {teacherTab === 'attendance' ? (
-          <>
-            {/* Triple metrics card */}
-            <div className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-5 card-shadow flex items-center justify-between text-center select-none">
-              <div className="flex-1">
-                <p className="text-2xl font-black text-[#23C16B]">{presentCount}</p>
-                <p className="text-[10px] text-[#A0AEC0] font-bold mt-1 uppercase tracking-wide">Present</p>
-              </div>
-              <div className="w-[1px] h-8 bg-[#e2e8f0]" />
-              <div className="flex-1">
-                <p className="text-2xl font-black text-[#E53E3E]">{absentCount}</p>
-                <p className="text-[10px] text-[#A0AEC0] font-bold mt-1 uppercase tracking-wide">Absent</p>
-              </div>
-              <div className="w-[1px] h-8 bg-[#e2e8f0]" />
-              <div className="flex-1">
-                <p className="text-2xl font-black text-dark">{totalCount}</p>
-                <p className="text-[10px] text-[#A0AEC0] font-bold mt-1 uppercase tracking-wide">Total</p>
-              </div>
-            </div>
-
-            {/* Student rows list */}
-            <div className="space-y-3">
-              {ATTENDANCE_LIST.map((student) => {
-                const isPresent = student.status === 'Present';
-                const firstLetter = student.name.trim().charAt(0);
-
-                return (
-                  <div
-                    key={student.id}
-                    className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/15 transition-all cursor-pointer group active:scale-[0.99]"
-                  >
-                    <div className="flex items-center gap-4">
-                      {/* Status-colored Avatar */}
-                      <div className={`w-11 h-11 rounded-full flex items-center justify-center font-bold text-xs select-none ${
-                        isPresent 
-                          ? 'bg-[#E8F8F0] text-[#23C16B] border border-[#23C16B]/5' 
-                          : 'bg-red-50 text-[#E53E3E] border border-red-100'
-                      }`}>
-                        {firstLetter}
-                      </div>
-                      <div>
-                        <h3 className="text-xs font-extrabold text-dark leading-tight group-hover:text-brand-blue transition-colors">
-                          {student.name}
-                        </h3>
-                        <p className="text-[9px] text-[#A0AEC0] font-bold mt-1">
-                          {student.class} - {student.section} · {student.date}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Status Badge */}
-                    <span className={`px-2.5 py-1.5 rounded-lg text-[8px] font-extrabold tracking-wider shrink-0 ${
-                      isPresent ? 'bg-[#E8F8F0] text-[#23C16B]' : 'bg-red-50 text-[#E53E3E]'
-                    }`}>
-                      {student.status.toUpperCase()}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </>
-        ) : (
-          <>
-            {/* Fees metrics card */}
-            <div className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-5 card-shadow flex items-center justify-between text-center select-none font-sans">
-              <div className="flex-1">
-                <p className="text-sm font-black text-[#23C16B]">Rs {totalPaid.toLocaleString()}</p>
-                <p className="text-[10px] text-[#A0AEC0] font-bold mt-1 uppercase tracking-wide">Paid</p>
-              </div>
-              <div className="w-[1px] h-8 bg-[#e2e8f0]" />
-              <div className="flex-1">
-                <p className="text-sm font-black text-[#E53E3E]">Rs {totalDue.toLocaleString()}</p>
-                <p className="text-[10px] text-[#A0AEC0] font-bold mt-1 uppercase tracking-wide">Due</p>
-              </div>
-              <div className="w-[1px] h-8 bg-[#e2e8f0]" />
-              <div className="flex-1">
-                <p className="text-sm font-black text-brand-blue">{collectionRate}%</p>
-                <p className="text-[10px] text-[#A0AEC0] font-bold mt-1 uppercase tracking-wide">Rate</p>
-              </div>
-            </div>
-
-            {/* Fees list */}
-            <div className="space-y-3">
-              {SECTION_FEES.map((item, idx) => {
-                const initials = item.name.split(' ').map(n => n[0]).join('').slice(0, 2);
-                const isPaid = item.status === 'Paid';
-                const isUnpaid = item.status === 'Unpaid';
-                
-                return (
-                  <div
-                    key={idx}
-                    className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/15 transition-all cursor-pointer group"
-                  >
-                    <div className="flex items-center gap-4">
-                      {/* Avatar */}
-                      <div className={`w-11 h-11 rounded-full flex items-center justify-center font-bold text-xs select-none ${
-                        isPaid 
-                          ? 'bg-[#E8F8F0] text-[#23C16B]' 
-                          : isUnpaid 
-                            ? 'bg-red-50 text-[#E53E3E]' 
-                            : 'bg-amber-50 text-amber-600'
-                      }`}>
-                        {initials}
-                      </div>
-                      <div>
-                        <h3 className="text-xs font-extrabold text-dark leading-tight group-hover:text-brand-blue transition-colors">
-                          {item.name}
-                        </h3>
-                        <p className="text-[9px] text-[#A0AEC0] font-bold mt-1 font-sans">
-                          Roll {item.roll} · Paid: Rs {item.paid.toLocaleString()} · Due: Rs {item.due.toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Status Badge */}
-                    <span className={`px-2.5 py-1.5 rounded-lg text-[8px] font-extrabold tracking-wider shrink-0 ${
-                      isPaid 
-                        ? 'bg-[#E8F8F0] text-[#23C16B]' 
-                        : isUnpaid 
-                          ? 'bg-red-50 text-[#E53E3E]' 
-                          : 'bg-amber-50 text-amber-600'
-                    }`}>
-                      {item.status.toUpperCase()}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </>
-        )}
-      </motion.div>
-    );
+    return <TeacherAttendanceOverview />;
   }
 
   return (
@@ -1148,67 +950,403 @@ const AttendanceOverview = () => {
 
         {/* Title */}
         <h2 className="text-xl font-bold mb-1 relative z-10">All Attendance</h2>
-        <p className="text-xs text-white/80 font-medium relative z-10">Today's active logs, including student and...</p>
+        <p className="text-xs text-white/80 font-medium relative z-10">Select a section below to view attendance registry status.</p>
       </div>
 
-      {/* Triple metrics card */}
-      <div className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-5 card-shadow flex items-center justify-between text-center select-none">
-        <div className="flex-1">
-          <p className="text-2xl font-black text-[#23C16B]">{presentCount}</p>
-          <p className="text-[10px] text-[#A0AEC0] font-bold mt-1 uppercase tracking-wide">Present</p>
+      {/* Roster Header */}
+      <div className="px-1 text-[9.5px] font-extrabold text-secondaryText tracking-widest uppercase">
+        Please select a role with coordinator or teacher access to view reports.
+      </div>
+    </motion.div>
+  );
+};
+
+const TeacherAttendanceOverview = () => {
+  const { user, dataService } = useApp();
+  const navigate = useNavigate();
+  const teacherId = user?.teacherProfile?.id;
+  const branchId = user?.branchId || 'sontyam-branch-id';
+
+  const [teacherTab, setTeacherTab] = useState('attendance'); // 'attendance' | 'fees'
+  const [assignments, setAssignments] = useState([]);
+  const [selectedSectionId, setSelectedSectionId] = useState('');
+  
+  const [roster, setRoster] = useState([]);
+  const [feeStudents, setFeeStudents] = useState([]);
+  
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+
+  // Fetch assignments
+  useEffect(() => {
+    const fetchAssignments = async () => {
+      if (!teacherId) return;
+      try {
+        setLoading(true);
+        const dashRes = await dataService.getTeacherDashboard({ teacherId });
+        const ass = dashRes?.teacher?.assignments || [];
+        setAssignments(ass);
+        if (ass.length > 0) {
+          setSelectedSectionId(ass[0].sectionId);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAssignments();
+  }, [teacherId, dataService]);
+
+  // Fetch section data
+  useEffect(() => {
+    if (!selectedSectionId) return;
+    const fetchSectionData = async () => {
+      try {
+        setLoading(true);
+        const todayStr = new Date().toISOString().split('T')[0];
+        
+        // Fetch roster
+        const students = await dataService.getStudentsBySection(selectedSectionId);
+        
+        // Fetch today's attendance
+        const todayAttendance = await dataService.getAttendanceBySection({
+          sectionId: selectedSectionId,
+          date: todayStr
+        });
+
+        const mappedRoster = students.map(s => {
+          const existing = todayAttendance.find(att => att.studentId === s.id);
+          const initials = (s.fullName || '?').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+          return {
+            id: s.id,
+            name: s.fullName,
+            roll: s.studentId || 'N/A',
+            initials,
+            status: existing ? (existing.status === 'Present' || existing.status === 'PRESENT' ? 'Present' : 'Absent') : 'Present',
+            date: todayStr
+          };
+        });
+        setRoster(mappedRoster);
+
+        // Fetch fee reports
+        const feeRes = await dataService.getFeeReports({ branchId }).catch(() => null);
+        const filteredFeeStudents = (feeRes?.students || []).filter(s =>
+          s.sectionId === selectedSectionId || s.section?.id === selectedSectionId
+        ).map(s => {
+          const activePlans = (s.reportFeePlans || []).filter(fp => fp.isActive !== false);
+          let paid = 0;
+          let total = 0;
+          activePlans.forEach(plan => {
+            total += plan.totalAmount || 0;
+            paid += (plan.reportFeePayments || [])
+              .filter(p => String(p.status || 'RECORDED').toUpperCase() !== 'REVERSED')
+              .reduce((sum, p) => sum + Number(p.amount || 0), 0);
+          });
+          const due = Math.max(total - paid, 0);
+          let status = 'UNPAID';
+          if (total > 0) {
+            if (paid >= total) status = 'PAID';
+            else if (paid > 0) status = 'PARTIAL';
+          } else {
+            status = 'PAID';
+          }
+          return {
+            id: s.id,
+            name: s.fullName,
+            roll: s.studentId || 'N/A',
+            paid,
+            due,
+            status
+          };
+        });
+        setFeeStudents(filteredFeeStudents);
+
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSectionData();
+  }, [selectedSectionId, branchId, dataService]);
+
+  const filteredRoster = useMemo(() => {
+    return roster.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.roll.toLowerCase().includes(search.toLowerCase()));
+  }, [roster, search]);
+
+  const filteredFees = useMemo(() => {
+    return feeStudents.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.roll.toLowerCase().includes(search.toLowerCase()));
+  }, [feeStudents, search]);
+
+  // Metrics
+  const presentCount = roster.filter(s => s.status === 'Present').length;
+  const absentCount = roster.filter(s => s.status === 'Absent').length;
+  const totalCount = roster.length;
+
+  const totalPaid = feeStudents.reduce((sum, item) => sum + item.paid, 0);
+  const totalDue = feeStudents.reduce((sum, item) => sum + item.due, 0);
+  const totalFees = totalPaid + totalDue;
+  const collectionRate = totalFees > 0 ? Math.round((totalPaid / totalFees) * 100) : 0;
+
+  const selectedAssignment = assignments.find(a => a.sectionId === selectedSectionId);
+  const selectedSectionName = selectedAssignment
+    ? `${selectedAssignment.section?.academicClass?.name} - ${selectedAssignment.section?.name}`
+    : 'N/A';
+
+  if (!teacherId) {
+    return (
+      <div className="p-4 md:p-8 pb-20 md:pb-8 max-w-2xl mx-auto space-y-6 text-center select-none">
+        <div className="bg-[#FFF5F5] border border-[#FEF0F0] rounded-[24px] p-8 card-shadow flex flex-col items-center">
+          <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center text-red-500 mb-4">
+            <FiUser className="w-8 h-8" />
+          </div>
+          <h2 className="text-lg font-bold text-dark">No Teacher Profile</h2>
+          <p className="text-sm text-secondaryText mt-2 max-w-sm">
+            This account is not linked to any active teacher record in the database.
+          </p>
         </div>
-        <div className="w-[1px] h-8 bg-[#e2e8f0]" />
-        <div className="flex-1">
-          <p className="text-2xl font-black text-[#E53E3E]">{absentCount}</p>
-          <p className="text-[10px] text-[#A0AEC0] font-bold mt-1 uppercase tracking-wide">Absent</p>
+      </div>
+    );
+  }
+
+  if (loading && roster.length === 0) {
+    return (
+      <div className="p-4 md:p-8 space-y-6 pb-28 max-w-[640px] mx-auto animate-pulse select-none">
+        <header className="h-6 w-32 bg-gray-200 rounded mx-auto" />
+        <div className="h-44 bg-gray-200 rounded-[32px]" />
+        <div className="h-12 bg-gray-200 rounded-[24px]" />
+        <div className="space-y-3">
+          <div className="h-16 bg-gray-200 rounded-[24px]" />
+          <div className="h-16 bg-gray-200 rounded-[24px]" />
         </div>
-        <div className="w-[1px] h-8 bg-[#e2e8f0]" />
-        <div className="flex-1">
-          <p className="text-2xl font-black text-dark">{totalCount}</p>
-          <p className="text-[10px] text-[#A0AEC0] font-bold mt-1 uppercase tracking-wide">Total</p>
+      </div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.3 }}
+      className="p-4 md:p-8 space-y-6 pb-20 md:pb-8 max-w-[640px] mx-auto animate-fade-in select-none"
+    >
+      {/* Top Header Bar */}
+      <header className="flex items-center justify-between py-2 border-b border-[#e2e8f0]/40 shrink-0">
+        <button
+          onClick={() => navigate(-1)}
+          className="p-1.5 hover:bg-[#EEF5FB] rounded-full text-dark transition-colors cursor-pointer"
+        >
+          <FiArrowLeft className="w-5 h-5" />
+        </button>
+        <h1 className="text-sm font-bold text-dark pr-8 mx-auto">Class Reports</h1>
+      </header>
+
+      {/* Top curved blue header card */}
+      <div className="relative rounded-[32px] bg-gradient-to-br from-[#1597E5] to-[#00A1FF] p-6 text-white card-shadow overflow-hidden">
+        <div className="absolute top-[-30px] right-[-30px] w-36 h-36 rounded-full bg-white/10" />
+        <div className="absolute bottom-[-40px] left-[10%] w-48 h-48 rounded-full bg-white/5" />
+
+        {/* Subtitle */}
+        <div className="mb-1.5 relative z-10 select-none">
+          <span className="text-[10px] text-white/70 font-semibold tracking-wider uppercase">
+            Active Section: {selectedSectionName}
+          </span>
+        </div>
+
+        {/* Title */}
+        <h2 className="text-xl font-bold mb-1 relative z-10">Class Reports</h2>
+        <p className="text-xs text-white/80 font-medium relative z-10">Manage and view section attendance and fee registry status.</p>
+
+        {/* Categories Tab Row */}
+        <div className="flex gap-2.5 mt-5 overflow-x-auto no-scrollbar relative z-10 select-none">
+          {[
+            { id: 'attendance', name: 'Attendance Logs' },
+            { id: 'fees', name: 'Section Fee Status' }
+          ].map((tab) => {
+            const isSelected = teacherTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setTeacherTab(tab.id)}
+                className={`px-5 py-1.5 rounded-full text-[10px] font-extrabold transition-all cursor-pointer whitespace-nowrap ${
+                  isSelected
+                    ? 'bg-white text-[#1597E5] shadow-sm'
+                    : 'bg-white/15 text-white/90 hover:bg-white/20 border border-white/5'
+                }`}
+              >
+                {tab.name}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Student rows list */}
-      <div className="space-y-3">
-        {ATTENDANCE_LIST.map((student) => {
-          const isPresent = student.status === 'Present';
-          const firstLetter = student.name.trim().charAt(0);
+      {/* Section selectors */}
+      <div className="grid grid-cols-1">
+        <div>
+          <label className="text-[10px] font-extrabold text-[#A0AEC0] uppercase tracking-wider block mb-1.5 pl-1">Select Section</label>
+          <select
+            value={selectedSectionId}
+            onChange={(e) => setSelectedSectionId(e.target.value)}
+            className="w-full px-4 py-3 bg-white border border-[#e2e8f0] rounded-[18px] text-xs font-bold text-dark focus:outline-none focus:border-brand-blue/60"
+          >
+            {assignments.map(a => (
+              <option key={a.sectionId} value={a.sectionId}>
+                {a.section?.academicClass?.name} - {a.section?.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
 
-          return (
-            <div
-              key={student.id}
-              className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/15 transition-all cursor-pointer group active:scale-[0.99]"
-            >
-              <div className="flex items-center gap-4">
-                {/* Status-colored Avatar */}
-                <div className={`w-11 h-11 rounded-full flex items-center justify-center font-bold text-xs select-none ${
-                  isPresent 
-                    ? 'bg-[#E8F8F0] text-[#23C16B] border border-[#23C16B]/5' 
-                    : 'bg-red-50 text-[#E53E3E] border border-red-100'
-                }`}>
-                  {firstLetter}
-                </div>
-                <div>
-                  <h3 className="text-xs font-extrabold text-dark leading-tight group-hover:text-brand-blue transition-colors">
-                    {student.name}
-                  </h3>
-                  <p className="text-[9px] text-[#A0AEC0] font-bold mt-1">
-                    {student.class} - {student.section} · {student.date}
-                  </p>
-                </div>
-              </div>
+      {/* Search Bar */}
+      <div className="relative">
+        <input
+          type="text"
+          placeholder="Search by name or roll number"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full pl-10 pr-4 py-3 bg-white border border-[#e2e8f0] rounded-full card-shadow focus:outline-none focus:border-brand-blue/60 text-xs font-semibold text-dark placeholder:text-secondaryText/60"
+        />
+        <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1597E5]" />
+      </div>
 
-              {/* Status Badge */}
-              <span className={`px-2.5 py-1.5 rounded-lg text-[8px] font-extrabold tracking-wider shrink-0 ${
-                isPresent ? 'bg-[#E8F8F0] text-[#23C16B]' : 'bg-red-50 text-[#E53E3E]'
-              }`}>
-                {student.status.toUpperCase()}
-              </span>
+      {teacherTab === 'attendance' ? (
+        <>
+          {/* Triple metrics card */}
+          <div className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-5 card-shadow flex items-center justify-between text-center select-none">
+            <div className="flex-1">
+              <p className="text-2xl font-black text-[#23C16B]">{presentCount}</p>
+              <p className="text-[10px] text-[#A0AEC0] font-bold mt-1 uppercase tracking-wide">Present</p>
             </div>
-          );
-        })}
-      </div>
+            <div className="w-[1px] h-8 bg-[#e2e8f0]" />
+            <div className="flex-1">
+              <p className="text-2xl font-black text-[#E53E3E]">{absentCount}</p>
+              <p className="text-[10px] text-[#A0AEC0] font-bold mt-1 uppercase tracking-wide">Absent</p>
+            </div>
+            <div className="w-[1px] h-8 bg-[#e2e8f0]" />
+            <div className="flex-1">
+              <p className="text-2xl font-black text-dark">{totalCount}</p>
+              <p className="text-[10px] text-[#A0AEC0] font-bold mt-1 uppercase tracking-wide">Total</p>
+            </div>
+          </div>
+
+          {/* Student rows list */}
+          <div className="space-y-3">
+            {filteredRoster.map((student) => {
+              const isPresent = student.status === 'Present';
+              const firstLetter = (student.name || '?').trim().charAt(0).toUpperCase();
+
+              return (
+                <div
+                  key={student.id}
+                  className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/15 transition-all group"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`w-11 h-11 rounded-full flex items-center justify-center font-bold text-xs select-none ${
+                      isPresent 
+                        ? 'bg-[#E8F8F0] text-[#23C16B] border border-[#23C16B]/5' 
+                        : 'bg-red-50 text-[#E53E3E] border border-red-100'
+                    }`}>
+                      {firstLetter}
+                    </div>
+                    <div>
+                      <h3 className="text-xs font-extrabold text-dark leading-tight group-hover:text-brand-blue transition-colors">
+                        {student.name}
+                      </h3>
+                      <p className="text-[9px] text-[#A0AEC0] font-bold mt-1 font-sans">
+                        Roll: {student.roll} · {student.date}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Status Badge */}
+                  <span className={`px-2.5 py-1.5 rounded-lg text-[8px] font-extrabold tracking-wider shrink-0 ${
+                    isPresent ? 'bg-[#E8F8F0] text-[#23C16B]' : 'bg-red-50 text-[#E53E3E]'
+                  }`}>
+                    {student.status.toUpperCase()}
+                  </span>
+                </div>
+              );
+            })}
+            {filteredRoster.length === 0 && (
+              <p className="text-xs text-center text-secondaryText py-4">No roster found.</p>
+            )}
+          </div>
+        </>
+      ) : (
+        <>
+          {/* Fees metrics card */}
+          <div className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-5 card-shadow flex items-center justify-between text-center select-none font-sans">
+            <div className="flex-1">
+              <p className="text-sm font-black text-[#23C16B]">Rs {totalPaid.toLocaleString('en-IN')}</p>
+              <p className="text-[10px] text-[#A0AEC0] font-bold mt-1 uppercase tracking-wide">Paid</p>
+            </div>
+            <div className="w-[1px] h-8 bg-[#e2e8f0]" />
+            <div className="flex-1">
+              <p className="text-sm font-black text-[#E53E3E]">Rs {totalDue.toLocaleString('en-IN')}</p>
+              <p className="text-[10px] text-[#A0AEC0] font-bold mt-1 uppercase tracking-wide">Due</p>
+            </div>
+            <div className="w-[1px] h-8 bg-[#e2e8f0]" />
+            <div className="flex-1">
+              <p className="text-sm font-black text-brand-blue">{collectionRate}%</p>
+              <p className="text-[10px] text-[#A0AEC0] font-bold mt-1 uppercase tracking-wide">Rate</p>
+            </div>
+          </div>
+
+          {/* Fees list */}
+          <div className="space-y-3">
+            {filteredFees.map((item) => {
+              const initials = (item.name || '?').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+              const isPaid = item.status === 'PAID';
+              const isUnpaid = item.status === 'UNPAID';
+              
+              return (
+                <div
+                  key={item.id}
+                  className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-4 px-5 card-shadow flex items-center justify-between hover:border-brand-blue/15 transition-all group"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`w-11 h-11 rounded-full flex items-center justify-center font-bold text-xs select-none ${
+                      isPaid 
+                        ? 'bg-[#E8F8F0] text-[#23C16B]' 
+                        : isUnpaid 
+                          ? 'bg-red-50 text-[#E53E3E]' 
+                          : 'bg-amber-50 text-amber-600'
+                    }`}>
+                      {initials}
+                    </div>
+                    <div>
+                      <h3 className="text-xs font-extrabold text-dark leading-tight group-hover:text-brand-blue transition-colors">
+                        {item.name}
+                      </h3>
+                      <p className="text-[9px] text-[#A0AEC0] font-bold mt-1 font-sans">
+                        Roll {item.roll} · Paid: Rs {item.paid.toLocaleString('en-IN')} · Due: Rs {item.due.toLocaleString('en-IN')}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Status Badge */}
+                  <span className={`px-2.5 py-1.5 rounded-lg text-[8px] font-extrabold tracking-wider shrink-0 ${
+                    isPaid 
+                      ? 'bg-[#E8F8F0] text-[#23C16B]' 
+                      : isUnpaid 
+                        ? 'bg-red-50 text-[#E53E3E]' 
+                        : 'bg-amber-50 text-amber-600'
+                  }`}>
+                    {item.status.toUpperCase()}
+                  </span>
+                </div>
+              );
+            })}
+            {filteredFees.length === 0 && (
+              <p className="text-xs text-center text-secondaryText py-4">No records found.</p>
+            )}
+          </div>
+        </>
+      )}
     </motion.div>
   );
 };

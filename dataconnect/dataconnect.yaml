@@ -9,4 +9,4 @@ schemas:
         schemaValidation: "COMPATIBLE"
         cloudSql:
           instanceId: "nsrit-school-2b749-2-instance"
-connectorDirs: ["./example"]
+connectorDirs: ["./nsrit"]

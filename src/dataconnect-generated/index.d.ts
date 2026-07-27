@@ -613,6 +613,20 @@ export interface CreatePublicHolidayVariables {
   isSeeded: boolean;
 }
 
+export interface CreateScheduledNotificationData {
+  scheduledNotification_insert: ScheduledNotification_Key;
+}
+
+export interface CreateScheduledNotificationVariables {
+  branchId: UUIDString;
+  title: string;
+  message: string;
+  target: string;
+  scheduledTime: TimestampString;
+  createdById?: UUIDString | null;
+  createdByRole?: string | null;
+}
+
 export interface CreateSectionData {
   section_insert: Section_Key;
 }
@@ -2481,6 +2495,10 @@ export interface GetCurrentUserData {
     teacherProfile?: {
       id: UUIDString;
       branchId: UUIDString;
+      classTeacherAssignments: ({
+        id: UUIDString;
+        sectionId: UUIDString;
+      } & TeacherSectionAssignment_Key)[];
     } & Teacher_Key;
     accountantProfile?: {
       id: UUIDString;
@@ -2857,6 +2875,7 @@ export interface GetFeeReportsData {
       name: string;
     } & Section_Key;
     branchId: UUIDString;
+    phoneNumber?: string | null;
     reportLinkedParents: ({
       userId: UUIDString;
     })[];
@@ -3865,6 +3884,24 @@ export interface GetPaymentHistoryVariables {
   offset?: number | null;
 }
 
+export interface GetPendingScheduledNotificationsData {
+  scheduledNotifications: ({
+    id: UUIDString;
+    branchId: UUIDString;
+    title: string;
+    message: string;
+    target: string;
+    scheduledTime: TimestampString;
+    status: string;
+    createdById?: UUIDString | null;
+    createdByRole?: string | null;
+  } & ScheduledNotification_Key)[];
+}
+
+export interface GetPendingScheduledNotificationsVariables {
+  now: TimestampString;
+}
+
 export interface GetPrincipalDashboardData {
   students: ({
     id: UUIDString;
@@ -3969,6 +4006,27 @@ export interface GetReceiptSequenceData {
 export interface GetReceiptSequenceVariables {
   year: number;
   branchCode: string;
+}
+
+export interface GetScheduledNotificationsByBranchData {
+  scheduledNotifications: ({
+    id: UUIDString;
+    branchId: UUIDString;
+    title: string;
+    message: string;
+    target: string;
+    scheduledTime: TimestampString;
+    status: string;
+    createdById?: UUIDString | null;
+    createdByRole?: string | null;
+    createdAt: TimestampString;
+    statsSent?: number | null;
+    statsFailed?: number | null;
+  } & ScheduledNotification_Key)[];
+}
+
+export interface GetScheduledNotificationsByBranchVariables {
+  branchId: UUIDString;
 }
 
 export interface GetSectionsByClassAndYearData {
@@ -5134,7 +5192,17 @@ export interface GetTeacherProfileData {
           id: UUIDString;
           studentId: string;
           fullName: string;
+          gender?: string | null;
+          phoneNumber?: string | null;
           status: string;
+          parent: {
+            id: UUIDString;
+            fullName: string;
+            fatherName?: string | null;
+            motherName?: string | null;
+            phoneNumber: string;
+            email?: string | null;
+          } & Parent_Key;
         } & Student_Key)[];
         profileSectionAttendance: ({
           id: UUIDString;
@@ -5593,6 +5661,14 @@ export interface LinkStudentParentVariables {
   branchId: UUIDString;
 }
 
+export interface LockScheduledNotificationData {
+  scheduledNotification_update?: ScheduledNotification_Key | null;
+}
+
+export interface LockScheduledNotificationVariables {
+  id: UUIDString;
+}
+
 export interface MarkAllNotificationsReadData {
   notification_updateMany: number;
 }
@@ -5803,6 +5879,11 @@ export interface ReversePaymentVariables {
   actorRole?: string | null;
   oldValue?: string | null;
   newValue?: string | null;
+}
+
+export interface ScheduledNotification_Key {
+  id: UUIDString;
+  __typename?: 'ScheduledNotification_Key';
 }
 
 export interface SearchStudentsData {
@@ -6244,6 +6325,17 @@ export interface UpdatePaymentVariables {
   actorRole?: string | null;
   oldValue?: string | null;
   newValue?: string | null;
+}
+
+export interface UpdateScheduledNotificationStatusData {
+  scheduledNotification_update?: ScheduledNotification_Key | null;
+}
+
+export interface UpdateScheduledNotificationStatusVariables {
+  id: UUIDString;
+  status: string;
+  statsSent?: number | null;
+  statsFailed?: number | null;
 }
 
 export interface UpdateStudentData {
@@ -7640,6 +7732,42 @@ export const upsertReceiptSequenceRef: UpsertReceiptSequenceRef;
 
 export function upsertReceiptSequence(vars: UpsertReceiptSequenceVariables): MutationPromise<UpsertReceiptSequenceData, UpsertReceiptSequenceVariables>;
 export function upsertReceiptSequence(dc: DataConnect, vars: UpsertReceiptSequenceVariables): MutationPromise<UpsertReceiptSequenceData, UpsertReceiptSequenceVariables>;
+
+interface CreateScheduledNotificationRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: CreateScheduledNotificationVariables): MutationRef<CreateScheduledNotificationData, CreateScheduledNotificationVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: CreateScheduledNotificationVariables): MutationRef<CreateScheduledNotificationData, CreateScheduledNotificationVariables>;
+  operationName: string;
+}
+export const createScheduledNotificationRef: CreateScheduledNotificationRef;
+
+export function createScheduledNotification(vars: CreateScheduledNotificationVariables): MutationPromise<CreateScheduledNotificationData, CreateScheduledNotificationVariables>;
+export function createScheduledNotification(dc: DataConnect, vars: CreateScheduledNotificationVariables): MutationPromise<CreateScheduledNotificationData, CreateScheduledNotificationVariables>;
+
+interface UpdateScheduledNotificationStatusRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: UpdateScheduledNotificationStatusVariables): MutationRef<UpdateScheduledNotificationStatusData, UpdateScheduledNotificationStatusVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: UpdateScheduledNotificationStatusVariables): MutationRef<UpdateScheduledNotificationStatusData, UpdateScheduledNotificationStatusVariables>;
+  operationName: string;
+}
+export const updateScheduledNotificationStatusRef: UpdateScheduledNotificationStatusRef;
+
+export function updateScheduledNotificationStatus(vars: UpdateScheduledNotificationStatusVariables): MutationPromise<UpdateScheduledNotificationStatusData, UpdateScheduledNotificationStatusVariables>;
+export function updateScheduledNotificationStatus(dc: DataConnect, vars: UpdateScheduledNotificationStatusVariables): MutationPromise<UpdateScheduledNotificationStatusData, UpdateScheduledNotificationStatusVariables>;
+
+interface LockScheduledNotificationRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: LockScheduledNotificationVariables): MutationRef<LockScheduledNotificationData, LockScheduledNotificationVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: LockScheduledNotificationVariables): MutationRef<LockScheduledNotificationData, LockScheduledNotificationVariables>;
+  operationName: string;
+}
+export const lockScheduledNotificationRef: LockScheduledNotificationRef;
+
+export function lockScheduledNotification(vars: LockScheduledNotificationVariables): MutationPromise<LockScheduledNotificationData, LockScheduledNotificationVariables>;
+export function lockScheduledNotification(dc: DataConnect, vars: LockScheduledNotificationVariables): MutationPromise<LockScheduledNotificationData, LockScheduledNotificationVariables>;
 
 interface GetCurrentUserRef {
   /* Allow users to create refs without passing in DataConnect */
@@ -9104,4 +9232,28 @@ export const getExamsBySectionRef: GetExamsBySectionRef;
 
 export function getExamsBySection(vars: GetExamsBySectionVariables, options?: ExecuteQueryOptions): QueryPromise<GetExamsBySectionData, GetExamsBySectionVariables>;
 export function getExamsBySection(dc: DataConnect, vars: GetExamsBySectionVariables, options?: ExecuteQueryOptions): QueryPromise<GetExamsBySectionData, GetExamsBySectionVariables>;
+
+interface GetScheduledNotificationsByBranchRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: GetScheduledNotificationsByBranchVariables): QueryRef<GetScheduledNotificationsByBranchData, GetScheduledNotificationsByBranchVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: GetScheduledNotificationsByBranchVariables): QueryRef<GetScheduledNotificationsByBranchData, GetScheduledNotificationsByBranchVariables>;
+  operationName: string;
+}
+export const getScheduledNotificationsByBranchRef: GetScheduledNotificationsByBranchRef;
+
+export function getScheduledNotificationsByBranch(vars: GetScheduledNotificationsByBranchVariables, options?: ExecuteQueryOptions): QueryPromise<GetScheduledNotificationsByBranchData, GetScheduledNotificationsByBranchVariables>;
+export function getScheduledNotificationsByBranch(dc: DataConnect, vars: GetScheduledNotificationsByBranchVariables, options?: ExecuteQueryOptions): QueryPromise<GetScheduledNotificationsByBranchData, GetScheduledNotificationsByBranchVariables>;
+
+interface GetPendingScheduledNotificationsRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: GetPendingScheduledNotificationsVariables): QueryRef<GetPendingScheduledNotificationsData, GetPendingScheduledNotificationsVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: GetPendingScheduledNotificationsVariables): QueryRef<GetPendingScheduledNotificationsData, GetPendingScheduledNotificationsVariables>;
+  operationName: string;
+}
+export const getPendingScheduledNotificationsRef: GetPendingScheduledNotificationsRef;
+
+export function getPendingScheduledNotifications(vars: GetPendingScheduledNotificationsVariables, options?: ExecuteQueryOptions): QueryPromise<GetPendingScheduledNotificationsData, GetPendingScheduledNotificationsVariables>;
+export function getPendingScheduledNotifications(dc: DataConnect, vars: GetPendingScheduledNotificationsVariables, options?: ExecuteQueryOptions): QueryPromise<GetPendingScheduledNotificationsData, GetPendingScheduledNotificationsVariables>;
 

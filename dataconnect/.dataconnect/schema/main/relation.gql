@@ -3319,6 +3319,40 @@ extend type Branch {
     having: Parent_Having
   ): [Parent!]! @fdc_generated(from: "Parent.branch", purpose: QUERY_MULTIPLE_ONE_TO_MANY)
   """
+  ✨ List `ScheduledNotification` objects in a one-to-many relationship (where `ScheduledNotification`.`branch` is this object).
+  """
+  scheduledNotifications_on_branch(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: ScheduledNotification_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [ScheduledNotification_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: ScheduledNotification_Having
+  ): [ScheduledNotification!]! @fdc_generated(from: "ScheduledNotification.branch", purpose: QUERY_MULTIPLE_ONE_TO_MANY)
+  """
   ✨ List `Section` objects in a one-to-many relationship (where `Section`.`branch` is this object).
   """
   sections_on_branch(
@@ -6604,6 +6638,196 @@ extend type ReceiptSequence {
   A generated field that is used for caching results in SDKs.
   """
   _id: ID! @fdc_generated(from: "ReceiptSequence.year,branchCode", purpose: ENTITY_ID)
+}
+extend type ScheduledNotification {
+  """
+  Implicit metadata field that cannot be written. It provides extra information about query results.
+  """
+  _metadata: _Metadata @fdc_generated(from: "ScheduledNotification", purpose: METADATA_FIELD)
+  """
+  ✨ Count the number of rows in the `ScheduledNotification` table.
+  """
+  _count: Int! @fdc_generated(from: "ScheduledNotification.", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `ScheduledNotification` table where the `branchId` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  branchId_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "ScheduledNotification.branchId", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `ScheduledNotification` table where the `createdAt` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  createdAt_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "ScheduledNotification.createdAt", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `ScheduledNotification` table where the `createdById` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  createdById_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "ScheduledNotification.createdById", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `ScheduledNotification` table where the `createdByRole` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  createdByRole_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "ScheduledNotification.createdByRole", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `ScheduledNotification` table where the `id` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  id_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "ScheduledNotification.id", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `ScheduledNotification` table where the `message` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  message_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "ScheduledNotification.message", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `ScheduledNotification` table where the `scheduledTime` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  scheduledTime_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "ScheduledNotification.scheduledTime", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `ScheduledNotification` table where the `statsFailed` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  statsFailed_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "ScheduledNotification.statsFailed", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `ScheduledNotification` table where the `statsSent` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  statsSent_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "ScheduledNotification.statsSent", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `ScheduledNotification` table where the `status` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  status_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "ScheduledNotification.status", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `ScheduledNotification` table where the `target` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  target_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "ScheduledNotification.target", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `ScheduledNotification` table where the `title` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  title_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "ScheduledNotification.title", purpose: QUERY_COUNT)
+  """
+  ✨ Sum the `statsFailed` field in the `ScheduledNotification` table.
+  """
+  statsFailed_sum(
+    """
+    Set to true to sum the distinct values.
+    """
+    distinct: Boolean = false
+  ): Int @fdc_generated(from: "ScheduledNotification.statsFailed", purpose: QUERY_SUM)
+  """
+  ✨ Sum the `statsSent` field in the `ScheduledNotification` table.
+  """
+  statsSent_sum(
+    """
+    Set to true to sum the distinct values.
+    """
+    distinct: Boolean = false
+  ): Int @fdc_generated(from: "ScheduledNotification.statsSent", purpose: QUERY_SUM)
+  """
+  ✨ Average the `statsFailed` field in the `ScheduledNotification` table.
+  """
+  statsFailed_avg(
+    """
+    Set to true to average the distinct values.
+    """
+    distinct: Boolean = false
+  ): Float @fdc_generated(from: "ScheduledNotification.statsFailed", purpose: QUERY_AVG)
+  """
+  ✨ Average the `statsSent` field in the `ScheduledNotification` table.
+  """
+  statsSent_avg(
+    """
+    Set to true to average the distinct values.
+    """
+    distinct: Boolean = false
+  ): Float @fdc_generated(from: "ScheduledNotification.statsSent", purpose: QUERY_AVG)
+  """
+  ✨ Minimum of the `createdAt` field in the `ScheduledNotification` table.
+  """
+  createdAt_min: Timestamp @fdc_generated(from: "ScheduledNotification.createdAt", purpose: QUERY_MIN)
+  """
+  ✨ Minimum of the `scheduledTime` field in the `ScheduledNotification` table.
+  """
+  scheduledTime_min: Timestamp @fdc_generated(from: "ScheduledNotification.scheduledTime", purpose: QUERY_MIN)
+  """
+  ✨ Minimum of the `statsFailed` field in the `ScheduledNotification` table.
+  """
+  statsFailed_min: Int @fdc_generated(from: "ScheduledNotification.statsFailed", purpose: QUERY_MIN)
+  """
+  ✨ Minimum of the `statsSent` field in the `ScheduledNotification` table.
+  """
+  statsSent_min: Int @fdc_generated(from: "ScheduledNotification.statsSent", purpose: QUERY_MIN)
+  """
+  ✨ Maximum of the `createdAt` field in the `ScheduledNotification` table.
+  """
+  createdAt_max: Timestamp @fdc_generated(from: "ScheduledNotification.createdAt", purpose: QUERY_MAX)
+  """
+  ✨ Maximum of the `scheduledTime` field in the `ScheduledNotification` table.
+  """
+  scheduledTime_max: Timestamp @fdc_generated(from: "ScheduledNotification.scheduledTime", purpose: QUERY_MAX)
+  """
+  ✨ Maximum of the `statsFailed` field in the `ScheduledNotification` table.
+  """
+  statsFailed_max: Int @fdc_generated(from: "ScheduledNotification.statsFailed", purpose: QUERY_MAX)
+  """
+  ✨ Maximum of the `statsSent` field in the `ScheduledNotification` table.
+  """
+  statsSent_max: Int @fdc_generated(from: "ScheduledNotification.statsSent", purpose: QUERY_MAX)
+  """
+  A generated field that is used for caching results in SDKs.
+  """
+  _id: ID! @fdc_generated(from: "ScheduledNotification.id", purpose: ENTITY_ID)
 }
 extend type Section {
   """
@@ -12424,6 +12648,40 @@ extend type User {
     """
     having: Payment_Having
   ): [Payment!]! @fdc_generated(from: "Payment.uploadedBy", purpose: QUERY_MULTIPLE_ONE_TO_MANY)
+  """
+  ✨ List `ScheduledNotification` objects in a one-to-many relationship (where `ScheduledNotification`.`createdBy` is this object).
+  """
+  scheduledNotifications_on_createdBy(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: ScheduledNotification_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [ScheduledNotification_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: ScheduledNotification_Having
+  ): [ScheduledNotification!]! @fdc_generated(from: "ScheduledNotification.createdBy", purpose: QUERY_MULTIPLE_ONE_TO_MANY)
   """
   ✨ List `Section` objects in a one-to-many relationship (where `Section`.`classTeacher` is this object).
   """

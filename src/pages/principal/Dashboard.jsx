@@ -159,7 +159,7 @@ const PrincipalDashboard = () => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
       transition={{ duration: 0.3 }}
-      className="p-4 md:p-8 space-y-6 pb-20 md:pb-8 max-w-[640px] mx-auto animate-fade-in"
+      className="p-4 md:p-8 space-y-6 pb-20 md:pb-8 max-w-5xl mx-auto animate-fade-in"
     >
       {/* Top Header Bar */}
       <header className="flex items-center justify-between py-2 border-b border-[#e2e8f0]/40 shrink-0">
@@ -169,119 +169,125 @@ const PrincipalDashboard = () => {
         >
           <FiArrowLeft className="w-5 h-5" />
         </button>
-        <h1 className="text-sm font-bold text-dark pr-8 mx-auto">Principal</h1>
+        <h1 className="text-sm font-bold text-dark pr-8 mx-auto">Principal Portal</h1>
       </header>
 
-      {/* Hero statistics card */}
-      <div className="relative rounded-[32px] bg-gradient-to-br from-[#1597E5] to-[#00A1FF] p-6 text-white card-shadow overflow-hidden">
-        <div className="absolute top-[-30px] right-[-30px] w-36 h-36 rounded-full bg-white/10" />
-        <div className="absolute bottom-[-40px] left-[10%] w-48 h-48 rounded-full bg-white/5" />
+      {/* Grid wrapper for Hero card, Fee Health and Staff overview */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-6 flex flex-col justify-between">
+          {/* Hero statistics card */}
+          <div className="relative rounded-[32px] bg-gradient-to-br from-[#1597E5] to-[#00A1FF] p-6 text-white card-shadow overflow-hidden h-full flex flex-col justify-between min-h-[220px]">
+            <div className="absolute top-[-30px] right-[-30px] w-36 h-36 rounded-full bg-white/10 pointer-events-none" />
+            <div className="absolute bottom-[-40px] left-[10%] w-48 h-48 rounded-full bg-white/5 pointer-events-none" />
 
-        <div className="flex justify-between items-start mb-6">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsProfileOpen(true)}
-              className="w-12 h-12 rounded-full bg-white/20 border border-white/30 flex items-center justify-center text-xl font-bold select-none shrink-0"
-            >
-              <HiOutlineAcademicCap className="w-6 h-6 text-white" />
-            </button>
-            <div>
-              <p className="text-[9px] text-white/70 font-bold tracking-wider uppercase">GOOD EVENING,</p>
-              <h2 className="text-lg font-bold">B. Geetha</h2>
-              
-              {/* Principal Pill Badge */}
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-white/20 border border-white/20 rounded-full text-[9px] font-bold uppercase tracking-wide mt-1.5">
-                <span className="w-1 h-1 bg-[#23C16B] rounded-full" />
-                Principal
+            <div className="flex justify-between items-start mb-6">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setIsProfileOpen(true)}
+                  className="w-12 h-12 rounded-full bg-white/20 border border-white/30 flex items-center justify-center text-xl font-bold select-none shrink-0"
+                >
+                  <HiOutlineAcademicCap className="w-6 h-6 text-white" />
+                </button>
+                <div>
+                  <p className="text-[9px] text-white/70 font-bold tracking-wider uppercase">GOOD EVENING,</p>
+                  <h2 className="text-lg font-bold">B. Geetha</h2>
+                  
+                  {/* Principal Pill Badge */}
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-white/20 border border-white/20 rounded-full text-[9px] font-bold uppercase tracking-wide mt-1.5">
+                    <span className="w-1 h-1 bg-[#23C16B] rounded-full" />
+                    Principal
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col items-end gap-2.5 relative z-10">
+                <button
+                  onClick={() => setIsProfileOpen(true)}
+                  className="w-10 h-10 rounded-full bg-white/15 hover:bg-white/25 border border-white/20 flex items-center justify-center text-white transition-all cursor-pointer shadow-sm active:scale-95"
+                >
+                  <FiMoreVertical className="w-5 h-5" />
+                </button>
+                <span className="text-[9px] text-white/80 font-bold block">Tue, 23 Jun</span>
+              </div>
+            </div>
+
+            {/* Aggregate Stats Row */}
+            <div className="grid grid-cols-4 gap-1 pt-5 border-t border-white/15 text-center select-none">
+              <div className="border-r border-white/15 last:border-none">
+                <p className="text-base font-extrabold">{studentsCount}</p>
+                <p className="text-[8px] text-white/70 font-bold uppercase tracking-wider mt-0.5">Students</p>
+              </div>
+              <div className="border-r border-white/15 last:border-none">
+                <p className="text-base font-extrabold">{facultyCount}</p>
+                <p className="text-[8px] text-white/70 font-bold uppercase tracking-wider mt-0.5">Faculty & Staff</p>
+              </div>
+              <div className="border-r border-white/15 last:border-none">
+                <p className="text-base font-extrabold">{sectionsCount}</p>
+                <p className="text-[8px] text-white/70 font-bold uppercase tracking-wider mt-0.5">Sections</p>
+              </div>
+              <div>
+                <p className="text-base font-extrabold">{pendingCount}</p>
+                <p className="text-[8px] text-white/70 font-bold uppercase tracking-wider mt-0.5">Pending</p>
               </div>
             </div>
           </div>
-
-          <div className="flex flex-col items-end gap-2.5 relative z-10">
-            {/* Settings (3 dots) button for getting the sidebar */}
-            <button
-              onClick={() => setIsProfileOpen(true)}
-              className="w-10 h-10 rounded-full bg-white/15 hover:bg-white/25 border border-white/20 flex items-center justify-center text-white transition-all cursor-pointer shadow-sm active:scale-95"
-            >
-              <FiMoreVertical className="w-5 h-5" />
-            </button>
-            <span className="text-[9px] text-white/80 font-bold block">Tue, 23 Jun</span>
-          </div>
         </div>
 
-        {/* Aggregate Stats Row */}
-        <div className="grid grid-cols-4 gap-1 pt-5 border-t border-white/15 text-center select-none">
-          <div className="border-r border-white/15 last:border-none">
-            <p className="text-base font-extrabold">{studentsCount}</p>
-            <p className="text-[8px] text-white/70 font-bold uppercase tracking-wider mt-0.5">Students</p>
-          </div>
-          <div className="border-r border-white/15 last:border-none">
-            <p className="text-base font-extrabold">{facultyCount}</p>
-            <p className="text-[8px] text-white/70 font-bold uppercase tracking-wider mt-0.5">Faculty & Staff</p>
-          </div>
-          <div className="border-r border-white/15 last:border-none">
-            <p className="text-base font-extrabold">{sectionsCount}</p>
-            <p className="text-[8px] text-white/70 font-bold uppercase tracking-wider mt-0.5">Sections</p>
-          </div>
-          <div>
-            <p className="text-base font-extrabold">{pendingCount}</p>
-            <p className="text-[8px] text-white/70 font-bold uppercase tracking-wider mt-0.5">Pending</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Fee Health Warning Card */}
-      <div
-        onClick={() => navigate('/settings/fee-overview')}
-        className="bg-white rounded-[28px] p-5 card-shadow border border-[#e2e8f0]/40 space-y-4 cursor-pointer hover:border-brand-blue/20 transition-all active:scale-[0.99]"
-      >
-        <div className="flex justify-between items-center select-none">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#EEF5FB] flex items-center justify-center text-[#1597E5] border border-blue-50">
-              <BiReceipt className="w-5 h-5 text-[#1597E5]" />
-            </div>
-            <h3 className="text-sm font-extrabold text-dark">Fee Health</h3>
-          </div>
-          <button
-            className="text-[10px] font-bold text-brand-blue flex items-center gap-0.5 bg-[#EEF5FB] px-3.5 py-1.5 rounded-full pointer-events-none"
+        <div className="space-y-6 flex flex-col justify-between">
+          {/* Fee Health Warning Card */}
+          <div
+            onClick={() => navigate('/settings/fee-overview')}
+            className="bg-white rounded-[28px] p-6 card-shadow border border-[#e2e8f0]/40 space-y-4 cursor-pointer hover:border-brand-blue/20 transition-all active:scale-[0.99] flex flex-col justify-between h-full"
           >
-            View All <FiArrowRight className="w-3 h-3 ml-0.5" />
-          </button>
-        </div>
+            <div className="flex justify-between items-center select-none">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#EEF5FB] flex items-center justify-center text-[#1597E5] border border-blue-50">
+                  <BiReceipt className="w-5 h-5 text-[#1597E5]" />
+                </div>
+                <h3 className="text-sm font-extrabold text-dark">Fee Health</h3>
+              </div>
+              <button
+                className="text-[10px] font-bold text-brand-blue flex items-center gap-0.5 bg-[#EEF5FB] px-3.5 py-1.5 rounded-full pointer-events-none"
+              >
+                View All <FiArrowRight className="w-3 h-3 ml-0.5" />
+              </button>
+            </div>
 
-        {/* Row of stats: Collected, Pending, Waiver */}
-        <div className="grid grid-cols-3 gap-1 pt-1 text-center divide-x divide-[#e2e8f0]/70 select-none">
-          <div>
-            <p className="text-sm font-black text-[#23C16B]">₹{feeStats.collected.toLocaleString()}</p>
-            <p className="text-[8.5px] text-[#A0AEC0] font-black uppercase tracking-wider mt-1.5 leading-none">Collected</p>
-          </div>
-          <div>
-            <p className="text-sm font-black text-[#EF4444]">₹{feeStats.pending.toLocaleString()}</p>
-            <p className="text-[8.5px] text-[#A0AEC0] font-black uppercase tracking-wider mt-1.5 leading-none">Pending</p>
-          </div>
-          <div>
-            <p className="text-sm font-black text-[#8B5CF6]">₹{feeStats.waiver.toLocaleString()}</p>
-            <p className="text-[8.5px] text-[#A0AEC0] font-black uppercase tracking-wider mt-1.5 leading-none">Waiver</p>
-          </div>
-        </div>
+            {/* Row of stats: Collected, Pending, Waiver */}
+            <div className="grid grid-cols-3 gap-1 pt-1 text-center divide-x divide-[#e2e8f0]/70 select-none">
+              <div>
+                <p className="text-sm font-black text-[#23C16B]">₹{feeStats.collected.toLocaleString()}</p>
+                <p className="text-[8.5px] text-[#A0AEC0] font-black uppercase tracking-wider mt-1.5 leading-none">Collected</p>
+              </div>
+              <div>
+                <p className="text-sm font-black text-[#EF4444]">₹{feeStats.pending.toLocaleString()}</p>
+                <p className="text-[8.5px] text-[#A0AEC0] font-black uppercase tracking-wider mt-1.5 leading-none">Pending</p>
+              </div>
+              <div>
+                <p className="text-sm font-black text-[#8B5CF6]">₹{feeStats.waiver.toLocaleString()}</p>
+                <p className="text-[8.5px] text-[#A0AEC0] font-black uppercase tracking-wider mt-1.5 leading-none">Waiver</p>
+              </div>
+            </div>
 
-        {/* Collection Rate & Progress Bar */}
-        <div className="space-y-2 pt-1 select-none">
-          <div className="flex justify-between items-center text-[10px] font-bold text-[#A0AEC0] uppercase tracking-wider">
-            <span>Collection Rate</span>
-            <span className="text-amber-500 font-extrabold">{feeStats.percent}%</span>
-          </div>
-          <div className="w-full bg-[#EEF5FB] h-2.5 rounded-full overflow-hidden">
-            <div
-              className="bg-amber-500 h-full rounded-full transition-all duration-500"
-              style={{ width: `${feeStats.percent}%` }}
-            />
+            {/* Collection Rate & Progress Bar */}
+            <div className="space-y-2 pt-1 select-none">
+              <div className="flex justify-between items-center text-[10px] font-bold text-[#A0AEC0] uppercase tracking-wider">
+                <span>Collection Rate</span>
+                <span className="text-amber-500 font-extrabold">{feeStats.percent}%</span>
+              </div>
+              <div className="w-full bg-[#EEF5FB] h-2.5 rounded-full overflow-hidden">
+                <div
+                  className="bg-amber-500 h-full rounded-full transition-all duration-500"
+                  style={{ width: `${feeStats.percent}%` }}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Staff Overview Card */}
-      <div className="bg-white rounded-[28px] p-5 card-shadow border border-[#e2e8f0]/40 space-y-4">
+      <div className="bg-white rounded-[28px] p-6 card-shadow border border-[#e2e8f0]/40 space-y-4">
         <div className="flex items-center gap-3 select-none">
           <div className="w-10 h-10 rounded-full bg-[#EEF5FB] flex items-center justify-center text-brand-blue border border-brand-blue/5">
             <FiUsers className="w-5 h-5 text-[#1597E5]" />
@@ -306,33 +312,33 @@ const PrincipalDashboard = () => {
       </div>
 
       {/* 4. ACADEMIC List card */}
-      <div>
-        <div className="flex items-center gap-2 mb-3 px-1 select-none">
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 px-1 select-none">
           <div className="w-6 h-6 rounded-full bg-[#EEF5FB] flex items-center justify-center text-brand-blue">
             <HiOutlineAcademicCap className="w-3.5 h-3.5 text-[#1597E5]" />
           </div>
           <h2 className="text-[10px] font-bold text-secondaryText tracking-wider uppercase">Academic</h2>
         </div>
 
-        <div className="bg-white rounded-[28px] card-shadow border border-[#e2e8f0]/40 overflow-hidden divide-y divide-[#e2e8f0]/80">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 select-none animate-fade-in">
           {academicItems.map((item, idx) => (
             <div
               key={idx}
               onClick={() => handleListItemClick(item.title)}
-              className="flex justify-between items-center p-4 hover:bg-[#EEF5FB]/30 transition-all cursor-pointer group active:scale-[0.99]"
+              className="bg-white rounded-[24px] border border-[#e2e8f0]/40 p-5 card-shadow flex justify-between items-center cursor-pointer hover:border-brand-blue/20 transition-all group active:scale-[0.99]"
             >
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${item.color}`}>
+              <div className="flex items-center gap-3.5">
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${item.color}`}>
                   {item.icon}
                 </div>
                 <div>
                   <h3 className="text-xs font-bold text-dark group-hover:text-brand-blue transition-colors">{item.title}</h3>
-                  <p className="text-[10px] text-secondaryText mt-0.5 font-medium">{item.desc}</p>
+                  <p className="text-[10px] text-secondaryText mt-1 font-semibold leading-snug">{item.desc}</p>
                 </div>
               </div>
               
-              <div className="w-7 h-7 rounded-full bg-[#EEF5FB] group-hover:bg-[#1597E5]/10 flex items-center justify-center text-[#1597E5] transition-all">
-                <FiArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+              <div className="w-8 h-8 rounded-full bg-[#EEF5FB] group-hover:bg-[#1597E5]/10 flex items-center justify-center text-[#1597E5] transition-all shrink-0">
+                <FiArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
               </div>
             </div>
           ))}
@@ -340,33 +346,33 @@ const PrincipalDashboard = () => {
       </div>
 
       {/* 5. STAFF List card */}
-      <div>
-        <div className="flex items-center gap-2 mb-3 px-1 select-none">
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 px-1 select-none">
           <div className="w-6 h-6 rounded-full bg-[#EEF5FB] flex items-center justify-center text-brand-blue">
             <FiUsers className="w-3.5 h-3.5 text-[#1597E5]" />
           </div>
           <h2 className="text-[10px] font-bold text-secondaryText tracking-wider uppercase">Staff</h2>
         </div>
 
-        <div className="bg-white rounded-[28px] card-shadow border border-[#e2e8f0]/40 overflow-hidden divide-y divide-[#e2e8f0]/80">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 select-none animate-fade-in">
           {staffItems.map((item, idx) => (
             <div
               key={idx}
               onClick={() => handleListItemClick(item.title)}
-              className="flex justify-between items-center p-4 hover:bg-[#EEF5FB]/30 transition-all cursor-pointer group active:scale-[0.99]"
+              className="bg-white rounded-[24px] border border-[#e2e8f0]/40 p-5 card-shadow flex justify-between items-center cursor-pointer hover:border-brand-blue/20 transition-all group active:scale-[0.99]"
             >
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${item.color}`}>
+              <div className="flex items-center gap-3.5">
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${item.color}`}>
                   {item.icon}
                 </div>
                 <div>
                   <h3 className="text-xs font-bold text-dark group-hover:text-brand-blue transition-colors">{item.title}</h3>
-                  <p className="text-[10px] text-secondaryText mt-0.5 font-medium">{item.desc}</p>
+                  <p className="text-[10px] text-secondaryText mt-1 font-semibold leading-snug">{item.desc}</p>
                 </div>
               </div>
               
-              <div className="w-7 h-7 rounded-full bg-[#EEF5FB] group-hover:bg-[#1597E5]/10 flex items-center justify-center text-[#1597E5] transition-all">
-                <FiArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+              <div className="w-8 h-8 rounded-full bg-[#EEF5FB] group-hover:bg-[#1597E5]/10 flex items-center justify-center text-[#1597E5] transition-all shrink-0">
+                <FiArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
               </div>
             </div>
           ))}

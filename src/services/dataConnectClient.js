@@ -278,8 +278,8 @@ const executeConnectorOperation = async ({ operationName, variables = {}, type, 
           throw err;
         }
 
-        console.error('[DataConnect] Request failed:', { operationName, status: response.status, payload });
         const message = payload.errors?.[0]?.message || payload.error?.message || 'Data Connect request failed';
+        console.error(`[DataConnect] Request failed for ${operationName}: ${message}`, { status: response.status, payload });
         throw new Error(message);
       }
 

@@ -81,6 +81,8 @@ const Q = {
   GET_HOLIDAYS_BY_BRANCH: 'GetHolidaysByBranch',
   GET_ACTIVE_ACADEMIC_YEAR: 'GetActiveAcademicYear',
   GET_DUE_STUDENTS: 'GetDueStudents',
+  GET_SCHEDULED_NOTIFICATIONS_BY_BRANCH: 'GetScheduledNotificationsByBranch',
+  GET_PENDING_SCHEDULED_NOTIFICATIONS: 'GetPendingScheduledNotifications',
 };
 
 const M = {
@@ -150,6 +152,9 @@ const M = {
   UPSERT_TIMETABLE_PERIOD_FULL: 'UpsertTimetablePeriod',
   PUBLISH_TIMETABLE_SECTION: 'PublishTimetableSection',
   UNPUBLISH_TIMETABLE_SECTION: 'UnpublishTimetableSection',
+  CREATE_SCHEDULED_NOTIFICATION: 'CreateScheduledNotification',
+  UPDATE_SCHEDULED_NOTIFICATION_STATUS: 'UpdateScheduledNotificationStatus',
+  LOCK_SCHEDULED_NOTIFICATION: 'LockScheduledNotification',
 };
 
 // ─── Branches ─────────────────────────────────────────────────────────────────
@@ -588,6 +593,11 @@ export const getTimetableForSection = async (param) => {
   return res.timetablePeriods || [];
 };
 
+export const getTimetableForTeacher = async ({ teacherId, branchId }) => {
+  const res = await dataConnectClient.query(Q.GET_TIMETABLE_FOR_TEACHER, { teacherId, branchId });
+  return res.timetablePeriods || [];
+};
+
 export const getTimetablesForBranch = async (branchId) => {
   const res = await dataConnectClient.query(Q.GET_TIMETABLES_FOR_BRANCH, { branchId });
   return res.timetablePeriods || [];
@@ -816,4 +826,27 @@ export const unpublishTimetableSection = async (payload) => {
 export const getStaffIdsByPrefix = async ({ branchId, staffType, employeeIdPrefix }) => {
   const res = await dataConnectClient.query(Q.GET_STAFF_IDS_BY_PREFIX, { branchId, staffType, employeeIdPrefix });
   return res.users || [];
+};
+
+// ─── Scheduled Notifications ──────────────────────────────────────────────────
+export const getScheduledNotificationsByBranch = async ({ branchId }) => {
+  const res = await dataConnectClient.query(Q.GET_SCHEDULED_NOTIFICATIONS_BY_BRANCH, { branchId });
+  return res.scheduledNotifications || [];
+};
+
+export const getPendingScheduledNotifications = async ({ now }) => {
+  const res = await dataConnectClient.query(Q.GET_PENDING_SCHEDULED_NOTIFICATIONS, { now });
+  return res.scheduledNotifications || [];
+};
+
+export const createScheduledNotification = async (payload) => {
+  return dataConnectClient.mutate(M.CREATE_SCHEDULED_NOTIFICATION, payload);
+};
+
+export const updateScheduledNotificationStatus = async (payload) => {
+  return dataConnectClient.mutate(M.UPDATE_SCHEDULED_NOTIFICATION_STATUS, payload);
+};
+
+export const lockScheduledNotification = async (payload) => {
+  return dataConnectClient.mutate(M.LOCK_SCHEDULED_NOTIFICATION, payload);
 };

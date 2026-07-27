@@ -1096,3 +1096,24 @@ extend type MarksAuditLog {
   changedById: UUID!
 }
 
+# Tracks scheduled notification dispatches
+type ScheduledNotification @table(name: "scheduled_notifications", key: "id") {
+  id: UUID! @default(expr: "uuidV4()")
+  branch: Branch!
+  title: String! @col(dataType: "varchar(140)")
+  message: String!
+  target: String! @col(dataType: "varchar(30)")
+  scheduledTime: Timestamp! @col(name: "scheduled_time")
+  status: String! @col(dataType: "varchar(20)") @default(value: "pending")
+  createdBy: User
+  createdByRole: String @col(name: "created_by_role", dataType: "varchar(30)")
+  createdAt: Timestamp! @default(expr: "request.time")
+  statsSent: Int @col(name: "stats_sent")
+  statsFailed: Int @col(name: "stats_failed")
+}
+
+extend type ScheduledNotification {
+  branchId: UUID!
+  createdById: UUID
+}
+
