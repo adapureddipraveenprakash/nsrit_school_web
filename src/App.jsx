@@ -84,6 +84,8 @@ import CoordinatorDetails from './pages/principal/subpages/CoordinatorDetails';
 import PrincipalAccountantProfile from './pages/principal/subpages/AccountantProfile';
 import EditTeacher from './pages/principal/subpages/EditTeacher';
 import EditCoordinator from './pages/principal/subpages/EditCoordinator';
+import SectionAttendanceReport from './pages/teacher/subpages/SectionAttendanceReport';
+import StudentsWithDueFees from './pages/teacher/subpages/StudentsWithDueFees';
 
 // Role-Specific Imports to separate shared pages
 import PrincipalProfile from './pages/principal/subpages/MyProfile';
@@ -385,6 +387,8 @@ const AnimatedRoutes = () => {
           <Route path="/settings/class-teachers" element={<ClassTeachers />} />
           <Route path="/settings/teacher-students" element={<TeacherStudents />} />
           <Route path="/settings/attendance-overview" element={<AttendanceOverview />} />
+          <Route path="/settings/section-attendance-report" element={<SectionAttendanceReport />} />
+          <Route path="/settings/due-fees-report" element={<StudentsWithDueFees />} />
           <Route path="/settings/correct-attendance" element={<CorrectAttendance />} />
           <Route path="/settings/student-management" element={<StudentRecords />} />
           <Route path="/settings/fee-overview" element={<FeeOverview />} />

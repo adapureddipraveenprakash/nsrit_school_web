@@ -3,7 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { motion } from 'framer-motion';
 import {
   FiArrowRight, FiUsers, FiCalendar, FiActivity, FiSettings,
-  FiBookOpen, FiClock, FiClipboard, FiFileText, FiMoreVertical, FiChevronRight, FiCheckCircle, FiUser, FiBell
+  FiBookOpen, FiClock, FiClipboard, FiFileText, FiMoreVertical, FiChevronRight, FiCheckCircle, FiUser, FiBell, FiAlertCircle, FiTrendingUp
 } from 'react-icons/fi';
 import Drawer from '../../components/Drawer';
 import { useNavigate } from 'react-router-dom';
@@ -123,8 +123,10 @@ const TeacherDashboard = () => {
       navigate('/settings/teacher-students');
     } else if (item === 'Homework') {
       navigate('/settings/homework');
-    } else if (item === 'Class Reports') {
-      navigate('/settings/attendance-overview');
+    } else if (item === 'Section Attendance' || item === 'Class Reports') {
+      navigate('/settings/section-attendance-report');
+    } else if (item === 'Students with Due Fees') {
+      navigate('/settings/due-fees-report');
     } else if (item === 'My Timetable') {
       navigate('/settings/timetable');
     } else if (item === 'Notice Board') {
@@ -394,13 +396,22 @@ const TeacherDashboard = () => {
               show: activeRole === 'CLASS_TEACHER'
             },
             {
-              title: 'Class Reports',
-              val: 'View',
-              desc: 'Attendance and fee reports for assigned section',
-              icon: <FiFileText className="w-5.5 h-5.5 text-[#1597E5]" />,
+              title: 'Section Attendance',
+              val: 'This Month',
+              desc: 'Monthly attendance report for your section',
+              icon: <FiTrendingUp className="w-5.5 h-5.5 text-[#1597E5]" />,
               color: 'bg-[#EEF5FB]',
               textColor: 'text-[#1597E5]',
-              show: activeRole === 'CLASS_TEACHER'
+              show: activeRole === 'CLASS_TEACHER' || activeRole === 'TEACHER'
+            },
+            {
+              title: 'Students with Due Fees',
+              val: 'View',
+              desc: 'List of students in your section with outstanding dues',
+              icon: <FiAlertCircle className="w-5.5 h-5.5 text-[#FF3B30]" />,
+              color: 'bg-[#FFF5F5]',
+              textColor: 'text-[#FF3B30]',
+              show: activeRole === 'CLASS_TEACHER' || activeRole === 'TEACHER'
             },
             {
               title: 'My Timetable',

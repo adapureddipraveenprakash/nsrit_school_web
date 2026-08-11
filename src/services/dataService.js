@@ -43,6 +43,7 @@ const Q = {
   GET_ALL_FEE_RECORDS: 'GetAllFeeRecords',
   GET_FEE_RECORDS_BY_BRANCH: 'GetFeeRecordsByBranch',
   GET_ATTENDANCE_BY_SECTION: 'GetAttendanceBySection',
+  GET_ATTENDANCE_BY_SECTION_HISTORY: 'GetAttendanceBySectionHistory',
   GET_PARENT_BY_PHONE: 'GetParentByPhone',
   GET_ATTENDANCE_BY_MONTH: 'GetAttendanceByMonth',
   GET_ATTENDANCE_BY_BRANCH: 'GetAttendanceByBranch',
@@ -543,6 +544,16 @@ export const migrateReceiptNumber = async (payload) => {
 // ─── Attendance ───────────────────────────────────────────────────────────────
 export const getAttendanceBySection = async ({ sectionId, date }) => {
   const res = await dataConnectClient.query(Q.GET_ATTENDANCE_BY_SECTION, { sectionId, attendanceDate: date });
+  return res.attendances || [];
+};
+
+export const getAttendanceBySectionHistory = async ({ sectionId, fromDate, toDate, limit = 1000 }) => {
+  const res = await dataConnectClient.query(Q.GET_ATTENDANCE_BY_SECTION_HISTORY, {
+    sectionId,
+    fromDate: fromDate || null,
+    toDate: toDate || null,
+    limit
+  });
   return res.attendances || [];
 };
 
