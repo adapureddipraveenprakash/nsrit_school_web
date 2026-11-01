@@ -679,6 +679,7 @@ export interface GetStudentsByBranchData {
     serialNumber: number;
     fullName: string;
     gender?: string | null;
+    rollNumber?: string | null;
     dateOfBirth?: DateString | null;
     branchId: UUIDString;
     wingId?: UUIDString | null;

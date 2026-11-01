@@ -7,6 +7,15 @@ import { getJSON, setJSON, STORAGE_KEYS } from '../services/storage';
 
 const normalizeBranch = (b) => {
   if (!b) return null;
+  const createdAtValue = b.createdAt;
+  const isFormattedDate = /^\d{2}-\d{2}-\d{4}$/.test(String(createdAtValue || ''));
+  const parsedCreatedAt = createdAtValue && !isFormattedDate ? new Date(createdAtValue) : null;
+  const createdAt = isFormattedDate
+    ? createdAtValue
+    : parsedCreatedAt && !Number.isNaN(parsedCreatedAt.getTime())
+      ? parsedCreatedAt.toLocaleDateString('en-GB').replace(/\//g, '-')
+      : 'Not available';
+
   return {
     id: b.id,
     name: b.name || '',
@@ -18,11 +27,15 @@ const normalizeBranch = (b) => {
     contact: b.phone || b.contact || '',
     email: b.email || '',
     active: b.isActive ?? (b.status === 'ACTIVE' || (b.active ?? true)),
-    principal: b.principalName || b.principal || 'Unassigned',
-    createdAt: b.createdAt ? new Date(b.createdAt).toLocaleDateString('en-GB').replace(/\//g, '-') : new Date().toLocaleDateString('en-GB').replace(/\//g, '-'),
+    principal:
+      b.principal?.fullName ||
+      b.principalName ||
+      (typeof b.principal === 'string' ? b.principal : null) ||
+      'Unassigned',
+    createdAt,
     studentsCount: b.studentsCount || 0,
-    facultyCount: b.facultyCount || 0,
-    coordinatorsCount: b.coordinatorsCount || 0
+    facultyCount: b.branchTeachers?.length ?? b.facultyCount ?? 0,
+    coordinatorsCount: b.branchCoordinators?.length ?? b.coordinatorsCount ?? 0
   };
 };
 
@@ -118,20 +131,24 @@ export const AppProvider = ({ children }) => {
 
           // Map branches with counts computed dynamically from global reports data
           const rawBranches = data.branches || [];
-          const computedBranches = rawBranches.map(b => {
+          setBranches((currentBranches) => rawBranches.map((b) => {
+            const currentBranch = currentBranches.find((branch) => branch.id === b.id);
             const branchStudents = (data.students || []).filter(s => s.branchId === b.id && s.isActive !== false);
-            const branchTeachers = (data.users || []).filter(u => u.branchId === b.id && ['TEACHER', 'CLASS_TEACHER'].includes(u.role) && u.isActive !== false);
-            const branchCoordinators = (data.users || []).filter(u => u.branchId === b.id && u.role === 'COORDINATOR' && u.isActive !== false);
-            
-            return {
+            const branchCoordinators = (data.coordinators || []).filter(coordinator => coordinator.branchId === b.id);
+
+            return normalizeBranch({
               ...b,
               studentsCount: branchStudents.length,
-              facultyCount: branchTeachers.length,
-              coordinatorsCount: branchCoordinators.length
-            };
-          });
-
-          setBranches(computedBranches.map(normalizeBranch));
+              // GetBranches already derives this from active teacher profiles.
+              // Preserve that authoritative database count during report refreshes.
+              facultyCount: currentBranch?.facultyCount ?? 0,
+              coordinatorsCount: branchCoordinators.length,
+              // GetBranches includes the linked principal user; GlobalReports does not.
+              principal: currentBranch?.principal || 'Unassigned',
+              // Preserve the creation timestamp returned by GetBranches.
+              createdAt: currentBranch?.createdAt || null
+            });
+          }));
 
           const paidFees = feePlans.reduce(
             (sum, plan) =>

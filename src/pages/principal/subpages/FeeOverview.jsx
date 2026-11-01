@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -8,17 +8,20 @@ import {
 import { BiReceipt } from 'react-icons/bi';
 import { useApp } from '../../../context/AppContext';
 import { useDataFetch } from '../../../hooks/useDataFetch';
-import { getFeeReports, reversePayment } from '../../../services/dataService';
+import { getFeeReports } from '../../../services/dataService';
 
 
 const FeeOverview = () => {
-  const { activeRole, user, feeRefreshTrigger } = useApp();
+  const { activeRole, user, currentBranchContext, feeRefreshTrigger } = useApp();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('All'); // 'All' | 'Paid' | 'Partial' | 'Due' | 'Overdue'
+  const [selectedYear, setSelectedYear] = useState('ALL');
 
 
-  const branchId = user?.branchId || null;
+  const branchId = activeRole?.toUpperCase() === 'MAIN_ADMIN'
+    ? currentBranchContext?.id || null
+    : user?.branchId || null;
 
   // Fetch real-time student fee plans and payment history
   const { data: rawFeePlans } = useDataFetch(
@@ -27,15 +30,22 @@ const FeeOverview = () => {
     { defaultValue: { students: [] }, pollInterval: 15000, skip: !branchId }
   );
 
-  const studentsList = rawFeePlans?.students || [];
+  const studentsList = useMemo(() => rawFeePlans?.students || [], [rawFeePlans]);
 
+  const availableYears = useMemo(() => [...new Set(studentsList.flatMap((student) =>
+    (student.reportFeePlans || [])
+      .filter((plan) => plan.isActive !== false && plan.academicYear)
+      .map((plan) => Number(plan.academicYear))
+  ))].sort((a, b) => b - a), [studentsList]);
 
 
   // Parse actual student ledger records from DB
   const studentLedgers = useMemo(() => {
     return studentsList.map(s => {
-      const activePlan = (s.reportFeePlans || []).find(p => p.isActive !== false);
-      if (!activePlan) {
+      const activePlans = (s.reportFeePlans || []).filter((plan) =>
+        plan.isActive !== false && (selectedYear === 'ALL' || Number(plan.academicYear) === selectedYear)
+      );
+      if (!activePlans.length) {
         return {
           id: s.id,
           fullName: s.fullName,
@@ -44,45 +54,41 @@ const FeeOverview = () => {
           dueAmount: 0,
           totalAmount: 0,
           concessionAmount: 0,
-          status: 'PAID',
-          percent: 100
+          status: 'DUE',
+          percent: 0
         };
       }
 
-      let dbPaid = 0;
-      (activePlan.reportFeePayments || []).forEach(pay => {
-        if (String(pay.status || 'RECORDED').toUpperCase() !== 'REVERSED') {
-          dbPaid += pay.amount || 0;
-        }
-      });
+      const totals = activePlans.reduce((summary, plan) => {
+        const planPaid = (plan.reportFeePayments || []).reduce((sum, payment) =>
+          String(payment.status || 'RECORDED').toUpperCase() === 'REVERSED'
+            ? sum
+            : sum + Number(payment.amount || 0), 0);
+        summary.total += Number(plan.totalAmount || 0);
+        summary.paid += planPaid;
+        summary.concession += Number(plan.concessionAmount || 0);
+        return summary;
+      }, { total: 0, paid: 0, concession: 0 });
 
-      const due = Math.max((activePlan.totalAmount || 0) - dbPaid, 0);
-      const pct = activePlan.totalAmount > 0 ? Math.round((dbPaid / activePlan.totalAmount) * 100) : 0;
+      const due = Math.max(totals.total - totals.paid, 0);
+      const pct = totals.total > 0 ? Math.round((totals.paid / totals.total) * 100) : 0;
       let status = 'DUE';
       if (due === 0) status = 'PAID';
-      else if (dbPaid > 0) status = 'PARTIAL';
+      else if (totals.paid > 0) status = 'PARTIAL';
 
       return {
         id: s.id,
         fullName: s.fullName,
         className: `${s.academicClass?.name || ''} - ${s.section?.name || ''}`.trim().replace(/^-|-$/, ''),
-        paidAmount: dbPaid,
+        paidAmount: totals.paid,
         dueAmount: due,
-        totalAmount: activePlan.totalAmount || 0,
-        concessionAmount: activePlan.concessionAmount || 0,
+        totalAmount: totals.total,
+        concessionAmount: totals.concession,
         status,
         percent: pct
       };
     });
-  }, [studentsList]);
-
-  // Mock records from Screenshot 1 to serve as fallback if DB is unconfigured
-  const mockLedgers = [
-    { id: 'mock1', fullName: 'KORADA KARTHIKEYA', className: '7 - A', paidAmount: 0, dueAmount: 0, totalAmount: 0, concessionAmount: 0, status: 'DUE', percent: 0 },
-    { id: 'mock2', fullName: 'KORADA BHARGAVSAI', className: '5 - A', paidAmount: 25000, dueAmount: 27000, totalAmount: 52000, concessionAmount: 0, status: 'PARTIAL', percent: 48 },
-    { id: 'mock3', fullName: 'GANDARDDI MANJUSHA', className: '4 - A', paidAmount: 0, dueAmount: 50000, totalAmount: 50000, concessionAmount: 0, status: 'DUE', percent: 0 },
-    { id: 'mock4', fullName: 'GONTHINA POORVESH', className: '4 - A', paidAmount: 0, dueAmount: 25000, totalAmount: 25000, concessionAmount: 0, status: 'DUE', percent: 0 },
-  ];
+  }, [studentsList, selectedYear]);
 
   // Aggregated values calculation (collected, pending, waiver, and percentage)
   const aggregatedStats = useMemo(() => {
@@ -181,14 +187,16 @@ const FeeOverview = () => {
         <p className="text-xs text-white/80 font-medium relative z-10">Collection, dues, and student ledger overview</p>
       </div>
 
-      {/* AY 2026 and All Years Pills */}
+      {/* Academic year filters */}
       <div className="flex gap-2.5 select-none">
-        <span className="px-5 py-2 rounded-full text-[10px] font-extrabold bg-[#1597E5] text-white shadow-sm border border-[#1597E5]">
+        <button onClick={() => setSelectedYear('ALL')} className={`px-5 py-2 rounded-full text-[10px] font-extrabold shadow-sm border ${selectedYear === 'ALL' ? 'bg-[#1597E5] text-white border-[#1597E5]' : 'bg-white border-[#e2e8f0] text-secondaryText'}`}>
           All Years
-        </span>
-        <span className="px-5 py-2 rounded-full text-[10px] font-extrabold bg-white border border-[#e2e8f0] text-secondaryText">
-          AY 2026
-        </span>
+        </button>
+        {availableYears.map((year) => (
+          <button key={year} onClick={() => setSelectedYear(year)} className={`px-5 py-2 rounded-full text-[10px] font-extrabold shadow-sm border ${selectedYear === year ? 'bg-[#1597E5] text-white border-[#1597E5]' : 'bg-white border-[#e2e8f0] text-secondaryText'}`}>
+            AY {year}
+          </button>
+        ))}
       </div>
 
       {/* Collection Rate Summary Card */}
@@ -286,65 +294,49 @@ const FeeOverview = () => {
 
         {/* Student Cards List */}
         <div className="space-y-4">
-          {filteredLedgers.map((ledger) => (
-            <div
-              key={ledger.id}
-              className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-5 card-shadow flex flex-col gap-4 relative overflow-hidden"
-            >
-              <div className="flex justify-between items-start">
-                <div>
-                  <h4 className="text-xs font-black text-[#0F172A] leading-tight">
-                    {ledger.fullName}
-                  </h4>
-                  <p className="text-[10px] text-secondaryText font-bold mt-0.5">
-                    {ledger.className}
-                  </p>
-                </div>
+          {filteredLedgers.map((ledger) => {
+            const accent = ledger.status === 'PAID' || ledger.dueAmount === 0 ? 'bg-[#20B98B]' : 'bg-[#F5A400]';
+            return (
+              <article key={ledger.id} className="relative min-h-[250px] overflow-hidden rounded-[30px] border border-[#B8DDF5] bg-white px-7 pb-7 pt-8 shadow-[0_8px_20px_rgba(34,136,201,0.14)] sm:px-8">
+                <span className={`absolute inset-x-0 top-0 h-[5px] ${accent}`} />
 
-                {/* Status Badge */}
-                <span className={`px-2.5 py-1 text-[8.5px] font-black rounded-lg uppercase tracking-wider border ${
-                  ledger.status === 'PAID' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                  ledger.status === 'PARTIAL' ? 'bg-amber-50 text-amber-600 border-amber-100' :
-                  'bg-red-50 text-rose-500 border-red-100'
-                }`}>
-                  • {ledger.status.toLowerCase()}
-                </span>
-              </div>
-
-              {/* Progress Bar (Only visible if status is PARTIAL) */}
-              {ledger.status === 'PARTIAL' && (
-                <div className="w-full bg-[#EEF5FB] h-1.5 rounded-full overflow-hidden">
-                  <div
-                    className="bg-[#FF9F1C] h-full rounded-full"
-                    style={{ width: `${ledger.percent}%` }}
-                  />
-                </div>
-              )}
-
-              {/* Columns: Paid, Due, Percent */}
-              <div className="grid grid-cols-3 gap-2 text-center text-xs pt-1.5 border-t border-slate-50 font-sans items-center">
-                <div>
-                  <span className="text-[9.5px] font-bold text-secondaryText uppercase tracking-wider block">Paid</span>
-                  <p className="text-xs font-black text-emerald-500 mt-1">Rs {ledger.paidAmount.toLocaleString()}</p>
-                </div>
-                <div>
-                  <span className="text-[9.5px] font-bold text-secondaryText uppercase tracking-wider block">Due</span>
-                  <p className={`text-xs font-black mt-1 ${ledger.dueAmount > 0 ? 'text-rose-500' : 'text-dark'}`}>
-                    Rs {ledger.dueAmount.toLocaleString()}
-                  </p>
-                </div>
-                <div className="flex justify-center">
-                  <span className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black leading-none ${
-                    ledger.status === 'PAID' ? 'bg-emerald-50 text-emerald-600' :
-                    ledger.status === 'PARTIAL' ? 'bg-amber-50 text-amber-600' :
-                    'bg-[#EEF5FB] text-[#1597E5]'
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <h4 className="truncate text-[13px] font-black uppercase leading-tight tracking-[0.08em] text-[#111827] sm:text-sm">{ledger.fullName}</h4>
+                    <p className="mt-2 text-[12px] font-semibold text-[#64748B] sm:text-sm">{ledger.className}</p>
+                  </div>
+                  <span className={`inline-flex shrink-0 items-center gap-2 rounded-full px-5 py-3 text-xs font-extrabold capitalize ${
+                    ledger.status === 'PAID' ? 'bg-[#E4F8EF] text-[#18A875]' :
+                    ledger.status === 'PARTIAL' ? 'bg-[#FFF1D5] text-[#D88C00]' :
+                    'bg-[#FFE4E6] text-[#EF476F]'
                   }`}>
-                    {ledger.percent}%
+                    <span className={`h-2 w-2 rounded-full ${ledger.status === 'PAID' ? 'bg-[#20B98B]' : ledger.status === 'PARTIAL' ? 'bg-[#F5A400]' : 'bg-[#FF445D]'}`} />
+                    {ledger.status.toLowerCase()}
                   </span>
                 </div>
-              </div>
-            </div>
-          ))}
+
+                <div className="mt-7 h-3 w-full overflow-hidden rounded-full bg-[#E3F0FF]">
+                  {ledger.percent > 0 && <div className={`h-full rounded-full ${accent}`} style={{ width: `${ledger.percent}%` }} />}
+                </div>
+
+                <div className="mt-7 grid grid-cols-[1fr_1fr_auto] items-end gap-4 font-sans">
+                  <div className="text-left">
+                    <span className="block text-[10px] font-extrabold uppercase tracking-[0.16em] text-[#475569]">Paid</span>
+                    <p className="mt-3 text-[25px] font-black leading-none text-[#20B98B]">Rs {ledger.paidAmount.toLocaleString('en-IN')}</p>
+                  </div>
+                  <div className="text-left">
+                    <span className="block text-[10px] font-extrabold uppercase tracking-[0.16em] text-[#475569]">Due</span>
+                    <p className={`mt-3 text-[25px] font-black leading-none ${ledger.dueAmount > 0 ? 'text-[#F04444]' : 'text-[#111827]'}`}>Rs {ledger.dueAmount.toLocaleString('en-IN')}</p>
+                  </div>
+                  <span className={`mb-[-2px] flex min-w-[68px] items-center justify-center rounded-full px-4 py-3 text-sm font-black leading-none ${
+                    ledger.status === 'PAID' ? 'bg-[#E4F8EF] text-[#18A875]' :
+                    ledger.status === 'PARTIAL' ? 'bg-[#F2F8FC] text-[#F5A400]' :
+                    'bg-[#F2F8FC] text-[#20B98B]'
+                  }`}>{ledger.percent}%</span>
+                </div>
+              </article>
+            );
+          })}
 
           {filteredLedgers.length === 0 && (
             <div className="bg-white rounded-[32px] border border-[#e2e8f0]/40 p-12 card-shadow text-center flex flex-col items-center justify-center space-y-4 min-h-[260px]">

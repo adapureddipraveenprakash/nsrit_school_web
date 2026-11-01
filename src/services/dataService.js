@@ -10,6 +10,7 @@ import { STORAGE_KEYS } from './storage';
 const Q = {
   GET_BRANCHES: 'GetBranches',
   GET_BRANCH_DETAILS: 'GetBranchDetails',
+  GET_CLASS_DETAILS: 'GetClassDetails',
   GET_DASHBOARD_STATISTICS: 'GetDashboardStatistics',
   GET_WINGS_BY_BRANCH: 'GetWingsByBranch',
   GET_GLOBAL_STUDENTS: 'GetGlobalStudents',
@@ -167,6 +168,14 @@ export const getBranches = async ({ limit = 200, offset = 0 } = {}) => {
 export const getBranchDetails = async (branchId) => {
   const res = await dataConnectClient.query(Q.GET_BRANCH_DETAILS, { branchId });
   return res.branch || null;
+};
+
+export const getBranchOverview = async (branchId) => {
+  return dataConnectClient.query(Q.GET_BRANCH_DETAILS, { branchId });
+};
+
+export const getClassDetails = async (sectionId) => {
+  return dataConnectClient.query(Q.GET_CLASS_DETAILS, { sectionId });
 };
 
 export const createBranch = async (payload) => {

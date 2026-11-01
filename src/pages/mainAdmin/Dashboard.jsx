@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useDataFetch } from '../../hooks/useDataFetch';
 import { getDashboardStatistics } from '../../services/dataService';
@@ -7,10 +7,11 @@ import {
   FiGrid, FiUsers, FiSettings, FiGlobe, FiDollarSign, FiLayers,
   FiTrendingUp, FiActivity, FiArrowUpRight, FiArrowRight, FiSliders,
   FiBriefcase, FiPlus, FiBookOpen, FiClock, FiPercent, FiMoreVertical,
-  FiUser, FiBell, FiSend, FiLogOut
+  FiCalendar, FiFileText, FiList, FiTag
 } from 'react-icons/fi';
 import {
-  HiOutlineBuildingOffice2, HiOutlineUserGroup, HiOutlineCalendarDays
+  HiOutlineBuildingOffice2, HiOutlineUserGroup, HiOutlineCalendarDays,
+  HiOutlineUserPlus, HiOutlineAcademicCap, HiOutlineClipboardDocumentList
 } from 'react-icons/hi2';
 import Drawer from '../../components/Drawer';
 import { useNavigate } from 'react-router-dom';
@@ -33,37 +34,15 @@ const Dashboard = () => {
   const {
     user,
     branches,
-    users,
     fees,
-    auditLogs,
     activeRole,
     currentBranchContext,
-    setCurrentBranchContext,
-    logout
+    setCurrentBranchContext
   } = useApp();
 
   const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [showThreeDotsMenu, setShowThreeDotsMenu] = useState(false);
-
-  if (activeRole === 'BRANCH_ADMIN') {
-    return <BranchAdminDashboard />;
-  }
-  if (activeRole === 'PRINCIPAL') {
-    return <PrincipalDashboard />;
-  }
-  if (activeRole === 'COORDINATOR') {
-    return <CoordinatorDashboard />;
-  }
-  if (activeRole === 'TEACHER' || activeRole === 'CLASS_TEACHER') {
-    return <TeacherDashboard />;
-  }
-  if (activeRole === 'PARENT') {
-    return <ParentDashboard />;
-  }
-  if (activeRole === 'ACCOUNTANT') {
-    return <AccountantDashboard />;
-  }
 
   // Modal Control States
   const [activeModal, setActiveModal] = useState(null); // 'branch_context' | 'create_branch' | 'create_user' | 'students' | 'fee_setup' | 'audit_logs'
@@ -86,22 +65,33 @@ const Dashboard = () => {
   }, [stats, contextBranchId, currentBranchContext, branches]);
 
   const facultyCount = useMemo(() => {
-    if (!stats?.users) return currentBranchContext?.facultyCount ?? branches.reduce((s, b) => s + (b.facultyCount || 0), 0);
+    if (!stats?.teachers) return currentBranchContext?.facultyCount ?? branches.reduce((s, b) => s + (b.facultyCount || 0), 0);
     if (contextBranchId) {
-      return stats.users.filter(u => u.branchId === contextBranchId && ['TEACHER', 'CLASS_TEACHER'].includes(u.role)).length;
+      return stats.teachers.filter((teacher) => teacher.branchId === contextBranchId).length;
     }
-    return stats.users.filter(u => ['TEACHER', 'CLASS_TEACHER'].includes(u.role)).length;
-  }, [stats, contextBranchId, currentBranchContext, branches]);
-
-  const coordinatorsCount = useMemo(() => {
-    if (!stats?.users) return currentBranchContext?.coordinatorsCount ?? branches.reduce((s, b) => s + (b.coordinatorsCount || 0), 0);
-    if (contextBranchId) {
-      return stats.users.filter(u => u.branchId === contextBranchId && u.role === 'COORDINATOR').length;
-    }
-    return stats.users.filter(u => u.role === 'COORDINATOR').length;
+    return stats.teachers.length;
   }, [stats, contextBranchId, currentBranchContext, branches]);
 
   const branchesCount = contextBranchId ? 1 : branches.length;
+  const now = new Date();
+  const currentDateLabel = now.toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  });
+  const currentHour = now.getHours();
+  const greeting = currentHour < 12
+    ? 'Good Morning'
+    : currentHour < 17
+      ? 'Good Afternoon'
+      : 'Good Evening';
+
+  if (activeRole === 'BRANCH_ADMIN') return <BranchAdminDashboard />;
+  if (activeRole === 'PRINCIPAL') return <PrincipalDashboard />;
+  if (activeRole === 'COORDINATOR') return <CoordinatorDashboard />;
+  if (activeRole === 'TEACHER' || activeRole === 'CLASS_TEACHER') return <TeacherDashboard />;
+  if (activeRole === 'PARENT') return <ParentDashboard />;
+  if (activeRole === 'ACCOUNTANT') return <AccountantDashboard />;
 
   const handleListItemClick = (item) => {
     if (item === 'Branch Context') navigate('/settings/branch-context');
@@ -112,6 +102,52 @@ const Dashboard = () => {
     else if (item === 'Class Fee Setup') navigate('/settings/class-fee-templates');
     else if (item === 'Audit Logs') navigate('/settings/audit-logs');
     else if (item === 'Global Analytics') navigate('/reports');
+    else if (item === 'Add Student') navigate('/settings/create-student');
+    else if (item === 'Manage Students') navigate('/settings/global-students');
+    else if (item === 'View Attendance') navigate('/settings/attendance-overview');
+    else if (item === 'Academic Structure') navigate('/settings/classes');
+    else if (item === 'Promotion Management') navigate('/settings/promotions');
+    else if (item === 'Graduate Students') navigate('/settings/graduate-students');
+    else if (item === 'Timetable') navigate('/settings/timetable');
+    else if (item === 'Notice Board') navigate('/settings/notice-board');
+    else if (item === 'Holiday Management') navigate('/settings/holidays');
+    else if (item === 'Academic Year') navigate('/settings/academic-year');
+    else if (item === 'Year Management') navigate('/settings/year-management');
+    else if (item === 'Exams & Marks') navigate('/settings/exams-marks');
+    else if (item === 'Teachers') navigate('/settings/teachers');
+    else if (item === 'Coordinators') navigate('/settings/coordinators');
+    else if (item === 'Accountants') navigate('/settings/accountants');
+    else if (item === 'Assign Class Teacher') navigate('/settings/class-teachers');
+  };
+
+  const branchAcademicItems = [
+    { title: 'Add Student', desc: 'Enrol a student in this branch', icon: <HiOutlineUserPlus className="w-5 h-5" />, color: 'text-[#23C16B] bg-[#E8F8F0]' },
+    { title: 'Manage Students', desc: 'View and edit student records', icon: <FiUsers className="w-5 h-5" />, color: 'text-[#1597E5] bg-[#EEF5FB]' },
+    { title: 'View Attendance', desc: 'Review branch-wide attendance', icon: <FiCalendar className="w-5 h-5" />, color: 'text-accent-purple bg-[#F3E8FF]' },
+    { title: 'Academic Structure', desc: 'Manage classes and sections', icon: <FiGrid className="w-5 h-5" />, color: 'text-brand-blue bg-[#EEF5FB]' },
+    { title: 'Promotion Management', desc: 'Run year-end promotions', icon: <FiTrendingUp className="w-5 h-5" />, color: 'text-[#FF9F1C] bg-[#FFF8EE]' },
+    { title: 'Graduate Students', desc: 'Manage graduating students', icon: <HiOutlineAcademicCap className="w-5 h-5" />, color: 'text-emerald-500 bg-[#E8F8F0]' },
+    { title: 'Timetable', desc: 'Configure weekly schedules', icon: <FiClock className="w-5 h-5" />, color: 'text-brand-blue bg-[#EEF5FB]' },
+    { title: 'Notice Board', desc: 'Publish notices to the branch', icon: <FiFileText className="w-5 h-5" />, color: 'text-cyan-500 bg-cyan-50' },
+    { title: 'Holiday Management', desc: 'Manage school holidays', icon: <FiCalendar className="w-5 h-5" />, color: 'text-rose-500 bg-rose-50' },
+    { title: 'Academic Year', desc: 'Review year status and rollover', icon: <FiSliders className="w-5 h-5" />, color: 'text-amber-500 bg-[#FFF8EE]' },
+    { title: 'Year Management', desc: 'Create, activate and close years', icon: <FiCalendar className="w-5 h-5" />, color: 'text-sky-500 bg-sky-50' },
+    { title: 'Exams & Marks', desc: 'Manage exams, marks and results', icon: <FiList className="w-5 h-5" />, color: 'text-purple-500 bg-purple-50' }
+  ];
+
+  const branchStaffItems = [
+    { title: 'Teachers', desc: 'Roster, assignments and subjects', icon: <HiOutlineAcademicCap className="w-5 h-5" />, color: 'text-accent-purple bg-[#F3E8FF]' },
+    { title: 'Coordinators', desc: 'Manage wing supervisors', icon: <FiUsers className="w-5 h-5" />, color: 'text-brand-blue bg-[#EEF5FB]' },
+    { title: 'Accountants', desc: 'Manage fee desk operators', icon: <FiTag className="w-5 h-5" />, color: 'text-[#FF9F1C] bg-[#FFF8EE]' },
+    { title: 'Assign Class Teacher', desc: 'Assign teachers to sections', icon: <HiOutlineClipboardDocumentList className="w-5 h-5" />, color: 'text-brand-blue bg-[#EEF5FB]' }
+  ];
+
+  const openBranchFeature = (title) => {
+    if (!currentBranchContext) {
+      navigate('/settings/branch-context');
+      return;
+    }
+    handleListItemClick(title);
   };
 
   return (
@@ -141,7 +177,7 @@ const Dashboard = () => {
               {user?.name ? user.name.split(' ').map(n=>n[0]).join('') : 'MA'}
             </button>
             <div>
-              <p className="text-[10px] text-white/70 font-semibold tracking-wider uppercase">Good Afternoon</p>
+              <p className="text-[10px] text-white/70 font-semibold tracking-wider uppercase">{greeting}</p>
               <h1 className="text-xl font-bold md:text-2xl">{user?.name || 'Main Admin'}</h1>
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-white/20 border border-white/25 rounded-full mt-1.5 text-[10px] font-bold tracking-wide uppercase">
                 <span className="w-1.5 h-1.5 rounded-full bg-accent-green" />
@@ -159,7 +195,9 @@ const Dashboard = () => {
               <FiMoreVertical className="w-5 h-5" />
             </button>
 
-            <span className="text-[11px] font-bold text-white/70 uppercase">21 JUN 2026</span>
+            <time dateTime={now.toISOString()} className="text-[11px] font-bold text-white/70 uppercase">
+              {currentDateLabel}
+            </time>
             {/* Context indicator */}
             {currentBranchContext && (
               <button
@@ -183,7 +221,7 @@ const Dashboard = () => {
             <p className="text-[8px] sm:text-[9.5px] md:text-xs text-white/60 font-semibold uppercase tracking-wider mt-0.5 whitespace-nowrap">Students</p>
           </div>
           <div className="border-r border-white/10 last:border-none px-0.5">
-            <p className="text-base sm:text-lg md:text-2xl font-bold">{facultyCount + coordinatorsCount}</p>
+            <p className="text-base sm:text-lg md:text-2xl font-bold">{facultyCount}</p>
             <p className="text-[8px] sm:text-[9.5px] md:text-xs text-white/60 font-semibold uppercase tracking-wider mt-0.5 whitespace-nowrap">Faculty & Staff</p>
           </div>
           <div className="px-0.5">
@@ -422,6 +460,88 @@ const Dashboard = () => {
       </div>
       </div> {/* End Right Area wrapper */}
       </div> {/* End grid layout wrapper */}
+
+      {/* Principal feature set, scoped to the branch selected by Main Admin */}
+      <section className="mt-6 space-y-6">
+        <div className="flex flex-col gap-3 rounded-[24px] border border-[#1597E5]/15 bg-white p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5 card-shadow">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#EEF5FB] text-brand-blue">
+              <HiOutlineAcademicCap className="h-6 w-6" />
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-sm font-extrabold text-dark">Branch Administration</h2>
+              <p className="mt-0.5 text-[10px] font-medium leading-relaxed text-secondaryText sm:text-xs">
+                {currentBranchContext
+                  ? `Principal-level tools for ${currentBranchContext.name}`
+                  : 'Select a branch to use academic and staff management tools.'}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate('/settings/branch-context')}
+            className="w-full shrink-0 rounded-xl bg-brand-blue px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-brand-secondary active:scale-[0.98] sm:w-auto"
+          >
+            {currentBranchContext ? 'Change Branch' : 'Select Branch'}
+          </button>
+        </div>
+
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 px-1">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#EEF5FB] text-brand-blue">
+              <HiOutlineAcademicCap className="h-3.5 w-3.5" />
+            </div>
+            <h2 className="text-[10px] font-bold uppercase tracking-wider text-secondaryText">Academic</h2>
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {branchAcademicItems.map((item) => (
+              <button
+                type="button"
+                key={item.title}
+                onClick={() => openBranchFeature(item.title)}
+                className="group flex min-h-[92px] w-full items-center justify-between rounded-[22px] border border-[#e2e8f0]/50 bg-white p-4 text-left card-shadow transition-all hover:-translate-y-0.5 hover:border-brand-blue/25 active:scale-[0.99]"
+              >
+                <span className="flex min-w-0 items-center gap-3">
+                  <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${item.color}`}>{item.icon}</span>
+                  <span className="min-w-0">
+                    <span className="block text-xs font-bold text-dark transition-colors group-hover:text-brand-blue">{item.title}</span>
+                    <span className="mt-1 block text-[10px] font-medium leading-snug text-secondaryText">{item.desc}</span>
+                  </span>
+                </span>
+                <FiArrowRight className="ml-2 h-4 w-4 shrink-0 text-brand-blue transition-transform group-hover:translate-x-0.5" />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 px-1">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#EEF5FB] text-brand-blue">
+              <FiUsers className="h-3.5 w-3.5" />
+            </div>
+            <h2 className="text-[10px] font-bold uppercase tracking-wider text-secondaryText">Staff</h2>
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {branchStaffItems.map((item) => (
+              <button
+                type="button"
+                key={item.title}
+                onClick={() => openBranchFeature(item.title)}
+                className="group flex min-h-[92px] w-full items-center justify-between rounded-[22px] border border-[#e2e8f0]/50 bg-white p-4 text-left card-shadow transition-all hover:-translate-y-0.5 hover:border-brand-blue/25 active:scale-[0.99]"
+              >
+                <span className="flex min-w-0 items-center gap-3">
+                  <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${item.color}`}>{item.icon}</span>
+                  <span className="min-w-0">
+                    <span className="block text-xs font-bold text-dark transition-colors group-hover:text-brand-blue">{item.title}</span>
+                    <span className="mt-1 block text-[10px] font-medium leading-snug text-secondaryText">{item.desc}</span>
+                  </span>
+                </span>
+                <FiArrowRight className="ml-2 h-4 w-4 shrink-0 text-brand-blue transition-transform group-hover:translate-x-0.5" />
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Left drawer for profile menu items */}
       <Drawer isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />

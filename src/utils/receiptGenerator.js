@@ -191,28 +191,31 @@ export const getReceiptHtml = (payment) => {
       <title>Fee Receipt</title>
       <style>
         @page {
-          size: A4 landscape;
+          size: A4 portrait;
           margin: 0;
         }
 
         html,
         body {
-          width: 297mm;
-          height: 210mm;
+          width: 210mm;
+          height: 297mm;
           margin: 0;
           padding: 0;
           overflow: hidden;
           background-color: #ffffff;
           font-family: 'Outfit', 'Inter', sans-serif;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
         .container {
-          width: 277mm;
-          height: 190mm;
-          margin: 10mm auto;
-          border: 3px solid #0f5132;
-          border-radius: 16px;
-          padding: 24px;
+          width: 180mm;
+          height: 90mm;
+          margin: 0;
+          border: 1.2px solid #0f5132;
+          border-radius: 3mm;
+          padding: 3mm;
           box-sizing: border-box;
           background-color: #ffffff;
           display: flex;
@@ -226,11 +229,22 @@ export const getReceiptHtml = (payment) => {
 
         /* Header styling */
         .header {
+          position: relative;
           display: flex;
           align-items: center;
-          border-bottom: 2px solid #0f5132;
-          padding-bottom: 12px;
-          margin-bottom: 16px;
+          min-height: 18mm;
+          border-bottom: 1px solid #0f5132;
+          padding-bottom: 2mm;
+          margin-bottom: 2mm;
+        }
+        .school-logo {
+          position: absolute;
+          left: 17mm;
+          top: 50%;
+          width: 12mm;
+          height: 12mm;
+          object-fit: contain;
+          transform: translateY(-50%);
         }
 
         .header-center {
@@ -239,42 +253,42 @@ export const getReceiptHtml = (payment) => {
           box-sizing: border-box;
         }
         .school-name {
-          font-size: 24px;
+          font-size: 11px;
           font-weight: 800;
           color: #0c2340;
           margin: 0;
-          letter-spacing: 2px;
-          line-height: 1.1;
-        }
-        .school-sub {
-          font-size: 13px;
-          font-weight: 700;
-          color: #0c2340;
-          margin: 4px 0 2px 0;
           letter-spacing: 1px;
           line-height: 1.1;
         }
+        .school-sub {
+          font-size: 8px;
+          font-weight: 700;
+          color: #0c2340;
+          margin: 1.2mm 0 0.7mm;
+          letter-spacing: 0.7px;
+          line-height: 1.1;
+        }
         .motto-bar {
-          font-size: 9px;
+          font-size: 6.5px;
           font-weight: 800;
           color: #198754;
-          margin: 4px 0;
-          letter-spacing: 1.5px;
+          margin: 0.7mm 0;
+          letter-spacing: 1px;
           line-height: 1.1;
         }
         .motto-sanskrit {
-          font-size: 11px;
+          font-size: 7px;
           font-weight: 700;
           color: #333;
-          margin: 4px 0;
+          margin: 0.7mm 0;
           line-height: 1.1;
         }
         .motto-translation {
-          font-size: 8.5px;
+          font-size: 6px;
           font-style: italic;
           font-weight: 700;
           color: #198754;
-          margin: 2px 0 0 0;
+          margin: 0.5mm 0 0;
           line-height: 1.1;
         }
 
@@ -283,8 +297,8 @@ export const getReceiptHtml = (payment) => {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 20px;
-          font-size: 13px;
+          margin-bottom: 1.5mm;
+          font-size: 7px;
         }
         .meta-item-container {
           display: flex;
@@ -296,10 +310,10 @@ export const getReceiptHtml = (payment) => {
           padding-right: 6px;
         }
         .meta-value-dotted {
-          border-bottom: 1.5px dotted #333;
+          border-bottom: 0.7px dotted #333;
           padding-bottom: 1px;
           padding-left: 8px;
-          min-width: 220px;
+          min-width: 38mm;
           font-weight: bold;
           color: #000;
           display: inline-block;
@@ -308,14 +322,14 @@ export const getReceiptHtml = (payment) => {
         /* Heading Pill */
         .title-container {
           text-align: center;
-          margin-bottom: 24px;
+          margin-bottom: 2mm;
         }
         .title-badge {
           background-color: #0c2340;
           color: white;
-          padding: 6px 28px;
-          border-radius: 20px;
-          font-size: 13px;
+          padding: 1.3mm 7mm;
+          border-radius: 8mm;
+          font-size: 7px;
           font-weight: 800;
           display: inline-block;
           letter-spacing: 1px;
@@ -323,41 +337,41 @@ export const getReceiptHtml = (payment) => {
 
         /* Details Section */
         .details-section {
-          margin-bottom: 24px;
+          margin-bottom: 1.7mm;
           width: 100%;
         }
         .detail-row {
           display: flex;
           align-items: baseline;
-          margin-bottom: 16px;
+          margin-bottom: 1.3mm;
         }
         .detail-label {
           font-weight: bold;
-          font-size: 13px;
+          font-size: 7px;
           color: #000;
           white-space: nowrap;
           padding-right: 6px;
         }
         .detail-value {
           flex-grow: 1;
-          border-bottom: 1.5px dotted #333;
+          border-bottom: 0.7px dotted #333;
           padding-left: 8px;
-          font-size: 13px;
+          font-size: 7px;
           font-weight: bold;
           color: #000;
         }
 
         /* Paragraph details */
         .receipt-paragraph {
-          font-size: 13px;
-          line-height: 2.2;
-          text-align: justify;
-          margin-bottom: 24px;
+          font-size: 7px;
+          line-height: 1.9;
+          text-align: left;
+          margin-bottom: 1.5mm;
           color: #000;
         }
         .inline-underline-value {
-          border-bottom: 1.5px dotted #333;
-          padding: 0 8px;
+          border-bottom: 0.7px dotted #333;
+          padding: 0 1.5mm;
           font-weight: bold;
           color: #000;
           display: inline-block;
@@ -366,7 +380,9 @@ export const getReceiptHtml = (payment) => {
 
         /* Received By Section */
         .received-by-section {
-          margin-bottom: 24px;
+          margin-bottom: 1.5mm;
+          padding-top: 1.5mm;
+          border-top: 1px solid #0f5132;
         }
         .received-by-row {
           display: flex;
@@ -374,16 +390,16 @@ export const getReceiptHtml = (payment) => {
         }
         .received-by-label {
           font-weight: bold;
-          font-size: 13px;
+          font-size: 7px;
           color: #000;
           white-space: nowrap;
           padding-right: 6px;
         }
         .received-by-value {
-          width: 250px;
-          border-bottom: 1.5px dotted #333;
+          width: 65mm;
+          border-bottom: 0.7px dotted #333;
           padding-left: 8px;
-          font-size: 13px;
+          font-size: 7px;
           font-weight: bold;
           color: #000;
         }
@@ -393,11 +409,11 @@ export const getReceiptHtml = (payment) => {
           margin-top: auto;
         }
         .address-row {
-          font-size: 9.5px;
+          font-size: 5.5px;
           font-weight: bold;
           color: #333;
           text-align: center;
-          margin-bottom: 12px;
+          margin-bottom: 1.2mm;
           display: flex;
           justify-content: center;
           align-items: center;
@@ -406,11 +422,11 @@ export const getReceiptHtml = (payment) => {
         .footer-bar {
           background: linear-gradient(90deg, #0c2340 0%, #0c2340 80%, #198754 100%);
           color: white;
-          padding: 8px 16px;
-          border-radius: 8px;
+          padding: 1.5mm 4mm;
+          border-radius: 1mm;
           display: flex;
           justify-content: space-around;
-          font-size: 9.5px;
+          font-size: 5.5px;
           font-weight: bold;
         }
         .footer-item {
@@ -425,9 +441,10 @@ export const getReceiptHtml = (payment) => {
         <div>
           <!-- Header with School Info -->
           <div class="header">
+            <img class="school-logo" src="/nsrit-logo.png" alt="NSRIT logo" />
             <div class="header-center">
               <div class="school-name">NSRIT</div>
-              <div class="school-sub">AI ALGO</div>
+              <div class="school-sub">ENGLISH MEDIUM SCHOOL</div>
               <div class="motto-bar">UNITY • LEARNING • GROWTH</div>
               <div class="motto-sanskrit">ज्ञानं परमं बलम्</div>
               <div class="motto-translation">Knowledge is the supreme strength</div>
@@ -470,13 +487,13 @@ export const getReceiptHtml = (payment) => {
           <!-- Receipt Paragraph -->
           <div class="receipt-paragraph">
             Received the sum of rupees 
-            <span class="inline-underline-value" style="min-width: 280px;">${amountWords} (${amountCurrency})</span> 
+            <span class="inline-underline-value" style="min-width: 65mm;">${amountWords} (${amountCurrency})</span> 
             for the 
-            <span class="inline-underline-value" style="min-width: 140px;">${installment}</span> 
+            <span class="inline-underline-value" style="min-width: 24mm;">${installment}</span> 
             installment from 
-            <span class="inline-underline-value" style="min-width: 200px;">${receivedFrom}</span> 
+            <span class="inline-underline-value" style="min-width: 32mm;">${receivedFrom}</span> 
             on 
-            <span class="inline-underline-value" style="min-width: 120px;">${date}</span>.
+            <span class="inline-underline-value" style="min-width: 20mm;">${date}</span>.
           </div>
         </div>
         
@@ -484,7 +501,7 @@ export const getReceiptHtml = (payment) => {
         <div class="footer">
           <div class="received-by-section">
             <div class="received-by-row">
-              <span class="received-by-label">Recorded by:</span>
+              <span class="received-by-label">Received by:</span>
               <span class="received-by-value">${receivedBy}</span>
             </div>
           </div>
@@ -493,7 +510,7 @@ export const getReceiptHtml = (payment) => {
             <svg width="11" height="11" viewBox="0 0 24 24" fill="#333" style="display:inline-block; vertical-align:middle; margin-right:4px;">
               <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
             </svg>
-            NSRIT AI ALGO, Sontyam village, Visakhapatnam, Andhra Pradesh - 531173
+            NSRIT English Medium School, Sontyam village, Visakhapatnam, Andhra Pradesh - 531173
           </div>
           
           <div class="footer-bar">
@@ -531,11 +548,11 @@ export const downloadReceiptPdf = (payment) => {
   const element = tempContainer.querySelector('.container');
   
   const opt = {
-    margin:       0,
+    margin:       [50, 15, 157, 15],
     filename:     `Receipt_${receiptNo}.pdf`,
     image:        { type: 'jpeg', quality: 0.98 },
     html2canvas:  { scale: 2, useCORS: true, logging: false },
-    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
   
   return html2pdf()

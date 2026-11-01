@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -7,7 +7,6 @@ import {
   FiEdit2,
   FiTrash2,
   FiUser,
-  FiCheck,
   FiChevronDown
 } from 'react-icons/fi';
 import { useApp } from '../../../context/AppContext';
@@ -194,8 +193,8 @@ const ClassTeachers = () => {
           sectionId: targetSec.id,
           teacherId: currentAssignment.teacherId,
           branchId,
-          sectionAuditId: `sec-rm-${Date.now()}`,
-          teacherAuditId: `teach-rm-${Date.now()}`
+          sectionAuditId: targetSec.id,
+          teacherAuditId: currentAssignment.teacherId
         });
       }
 
@@ -205,8 +204,8 @@ const ClassTeachers = () => {
         teacherId: targetTeacher.id,
         teacherUserId: targetTeacher.userId,
         branchId,
-        sectionAuditId: `sec-add-${Date.now()}`,
-        teacherAuditId: `teach-add-${Date.now()}`
+        sectionAuditId: targetSec.id,
+        teacherAuditId: targetTeacher.id
       });
 
       await refetchAssignments();
@@ -249,8 +248,8 @@ const ClassTeachers = () => {
         sectionId: targetSec.id,
         teacherId: currentAssignment.teacherId,
         branchId,
-        sectionAuditId: `sec-rm-${Date.now()}`,
-        teacherAuditId: `teach-rm-${Date.now()}`
+        sectionAuditId: targetSec.id,
+        teacherAuditId: currentAssignment.teacherId
       });
       await refetchAssignments();
       alert('Class teacher assignment removed successfully!');

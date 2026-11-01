@@ -1,10 +1,9 @@
-import React from 'react';
 import { useApp } from '../../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiArrowLeft, FiCheck, FiAlertCircle, FiTag, FiUsers } from 'react-icons/fi';
 import {
-  HiOutlineBuildingOffice2, HiOutlineUserGroup, HiOutlineCalendarDays
+  HiOutlineBuildingOffice2, HiOutlineCalendarDays
 } from 'react-icons/hi2';
 
 const RevenueOverview = () => {
@@ -14,7 +13,6 @@ const RevenueOverview = () => {
   // Stats calculation
   const totalStudents = branches.reduce((sum, b) => sum + b.studentsCount, 0);
   const facultyCount = branches.reduce((sum, b) => sum + b.facultyCount, 0);
-  const coordinatorsCount = branches.reduce((sum, b) => sum + b.coordinatorsCount, 0);
 
   const totalFeeAggregate = fees.collected + fees.pending + fees.concession;
   const collectedPercentage = totalFeeAggregate > 0 ? Math.round((fees.collected / totalFeeAggregate) * 100) : 0;
@@ -165,7 +163,7 @@ const RevenueOverview = () => {
               </div>
               <span className="text-xs font-bold text-dark">Faculty & Staff</span>
             </div>
-            <span className="text-xs font-extrabold text-brand-blue">{facultyCount + coordinatorsCount}</span>
+            <span className="text-xs font-extrabold text-brand-blue">{facultyCount}</span>
           </div>
 
           <div className="flex justify-between items-center py-3 last:pb-0">

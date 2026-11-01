@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { FiGrid, FiUsers, FiSettings, FiHome, FiCalendar, FiBell, FiUser, FiDollarSign, FiLayers, FiMoreVertical } from 'react-icons/fi';
 import { BiBuildingHouse, BiReceipt } from 'react-icons/bi';
@@ -6,7 +6,7 @@ import { HiOutlinePresentationChartLine } from 'react-icons/hi2';
 import { useApp } from '../context/AppContext';
 
 const Sidebar = () => {
-  const { logout, activeRole, user, switchRole } = useApp();
+  const { activeRole, user, switchRole } = useApp();
   const navigate = useNavigate();
   const [showSwitchMenu, setShowSwitchMenu] = useState(false);
 
@@ -64,8 +64,13 @@ const Sidebar = () => {
     <aside className="hidden md:flex flex-col w-72 bg-white border-r border-[#e2e8f0] h-screen sticky top-0 py-6 px-4 shrink-0 z-20">
       {/* Brand Header */}
       <div className="flex items-center gap-3 mb-10 px-2">
-        <div className="w-10 h-10 rounded-xl bg-[#EEF5FB] flex items-center justify-center border border-[#1597E5]/20 shadow-sm">
-          <span className="text-[#1597E5] text-xl font-bold font-sans">🎓</span>
+        <div className="w-11 h-11 rounded-xl bg-[#F8F9FD] flex items-center justify-center border border-[#1597E5]/20 shadow-sm overflow-hidden p-1">
+          <img
+            src="/nsrit-logo.png"
+            alt="NSRIT school logo"
+            className="h-full w-full object-contain"
+            draggable="false"
+          />
         </div>
         <div>
           <h1 className="text-lg font-bold text-dark tracking-tight">NSRIT Connect</h1>

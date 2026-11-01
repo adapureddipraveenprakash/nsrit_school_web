@@ -1,4 +1,4 @@
-import React,{ useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useApp } from './context/AppContext';
 import { AnimatePresence } from 'framer-motion';
@@ -8,6 +8,7 @@ import { FiMenu } from 'react-icons/fi';
 import Sidebar from './components/Sidebar';
 import BottomNav from './components/BottomNav';
 import Drawer from './components/Drawer';
+import SplashScreen from './components/SplashScreen';
 
 // Pages
 import Login from './pages/shared/Login';
@@ -39,6 +40,9 @@ import CoordinatorFeeLedger from './pages/coordinator/subpages/FeeLedger';
 import ParentFeeLedger from './pages/parent/subpages/FeeLedger';
 import TeacherFeeLedger from './pages/teacher/subpages/FeeLedger';
 import BranchAnalytics from './pages/branchAdmin/subpages/BranchAnalytics';
+import ClassDetails from './pages/mainAdmin/subpages/ClassDetails';
+import BranchOperations from './pages/mainAdmin/subpages/BranchOperations';
+import BranchStudents from './pages/mainAdmin/subpages/BranchStudents';
 import BranchSettings from './pages/branchAdmin/subpages/BranchSettings';
 import EditBranch from './pages/mainAdmin/subpages/EditBranch';
 import PromotionManagement from './pages/principal/subpages/PromotionManagement';
@@ -59,7 +63,6 @@ import BranchAdminFeeCollection from './pages/branchAdmin/subpages/FeeCollection
 import CoordinatorFeeCollection from './pages/coordinator/subpages/FeeCollection';
 import ParentFeeCollection from './pages/parent/subpages/FeeCollection';
 import TeacherFeeCollection from './pages/teacher/subpages/FeeCollection';
-import FeeReports from './pages/accountant/subpages/FeeReports';
 import AccountantFeeHistory from './pages/accountant/subpages/FeeHistory';
 import PrincipalFeeHistory from './pages/principal/subpages/FeeHistory';
 import BranchAdminFeeHistory from './pages/branchAdmin/subpages/FeeHistory';
@@ -191,6 +194,7 @@ const NoticeBoard = () => {
 const AttendanceOverview = () => {
   const { activeRole } = useApp();
   const r = activeRole?.toUpperCase();
+  if (r === 'MAIN_ADMIN') return <PrincipalAttendance />;
   if (r === 'BRANCH_ADMIN') return <BranchAdminAttendance />;
   if (r === 'PRINCIPAL') return <PrincipalAttendance />;
   if (r === 'COORDINATOR') return <CoordinatorAttendance />;
@@ -401,6 +405,9 @@ const AnimatedRoutes = () => {
           <Route path="/settings/edit-student/:studentId" element={<EditStudent />} />
           <Route path="/settings/ledger" element={<FeeLedger />} />
           <Route path="/settings/branch-analytics" element={<BranchAnalytics />} />
+          <Route path="/settings/branch-operations" element={<BranchOperations />} />
+          <Route path="/settings/branch-students" element={<BranchStudents />} />
+          <Route path="/settings/class-details/:sectionId" element={<ClassDetails />} />
           <Route path="/settings/branch-settings" element={<BranchSettings />} />
           <Route path="/settings/edit-branch" element={<EditBranch />} />
           <Route path="/settings/timetable" element={<Timetable />} />
@@ -443,10 +450,22 @@ const AnimatedRoutes = () => {
 };
 
 function App() {
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    const splashTimer = setTimeout(() => setShowSplash(false), 2600);
+    return () => clearTimeout(splashTimer);
+  }, []);
+
   return (
-    <BrowserRouter>
-      <AnimatedRoutes />
-    </BrowserRouter>
+    <>
+      <AnimatePresence mode="wait">
+        {showSplash && <SplashScreen key="splash" />}
+      </AnimatePresence>
+      <BrowserRouter>
+        <AnimatedRoutes />
+      </BrowserRouter>
+    </>
   );
 }
 

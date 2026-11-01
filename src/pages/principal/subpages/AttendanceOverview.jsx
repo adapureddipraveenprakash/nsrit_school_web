@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiArrowLeft, FiCalendar, FiSearch, FiChevronRight, FiGrid, FiUsers, FiClock, FiCheckCircle, FiInbox } from 'react-icons/fi';
@@ -103,17 +103,25 @@ const SECTION_FEES = [
   { name: 'PILLA TRIVED', roll: '26SO0102', paid: 45000, due: 0, status: 'Paid' }
 ];
 
+const getLocalISODate = () => {
+  const now = new Date();
+  const offset = now.getTimezoneOffset() * 60 * 1000;
+  return new Date(now.getTime() - offset).toISOString().split('T')[0];
+};
+
 const AttendanceOverview = () => {
-  const { activeRole, user } = useApp();
+  const { activeRole, user, currentBranchContext } = useApp();
   const navigate = useNavigate();
   const [attendanceTab, setAttendanceTab] = useState('Month'); // 'Month' | 'AcademicYear'
   const [search, setSearch] = useState('');
   const [teacherTab, setTeacherTab] = useState('attendance'); // 'attendance' | 'fees'
   const [selectedClass, setSelectedClass] = useState(null);
   const [selectedSection, setSelectedSection] = useState(null);
-  const [selectedDate, setSelectedDate] = useState('2026-07-03');
+  const [selectedDate, setSelectedDate] = useState(getLocalISODate);
+  const [sectionSubmissionStatus, setSectionSubmissionStatus] = useState({});
 
-  const branchId = user?.branchId || null;
+  const isMainAdmin = activeRole?.toUpperCase() === 'MAIN_ADMIN';
+  const branchId = isMainAdmin ? currentBranchContext?.id || null : user?.branchId || null;
 
   // State to hold academic classes
   const [classesList, setClassesList] = useState([]);
@@ -143,7 +151,7 @@ const AttendanceOverview = () => {
   );
 
   // Fetch real attendance records for selected section and date
-  const { data: dbAttendanceRecords = [], loading: loadingAttendance } = useDataFetch(
+  const { data: dbAttendanceRecords = [] } = useDataFetch(
     () => {
       if (!selectedSection) return Promise.resolve([]);
       return getAttendanceBySection({ sectionId: selectedSection.id, date: selectedDate });
@@ -152,7 +160,10 @@ const AttendanceOverview = () => {
     { defaultValue: [], skip: !selectedSection }
   );
 
-  const classesOrder = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7'];
+  const classesOrder = useMemo(() => [...classesList]
+    .filter((academicClass) => academicClass.isActive !== false)
+    .sort((a, b) => Number(a.displayOrder || 999) - Number(b.displayOrder || 999) || a.name.localeCompare(b.name, undefined, { numeric: true }))
+    .map((academicClass) => academicClass.name), [classesList]);
 
   // Global present, absent, total counts for fallback return
   const globalPresentCount = useMemo(() => ATTENDANCE_LIST.filter(s => s.status === 'Present').length, []);
@@ -171,54 +182,56 @@ const AttendanceOverview = () => {
     return dbSections.filter(s => s.academicClassId === currentClassObj.id);
   }, [currentClassObj, dbSections]);
 
-  // If no sections in DB, fallback to a mock section to match Screenshot 1 Nursery-A
-  const resolvedSections = useMemo(() => {
-    if (classSections.length > 0) {
-      return classSections;
+  const resolvedSections = classSections;
+
+  useEffect(() => {
+    let active = true;
+    if (!selectedClass || classSections.length === 0) {
+      return () => { active = false; };
     }
-    return [{ id: 'mock-sec-a-id', name: 'A', academicClassId: currentClassObj?.id || 'mock-class' }];
-  }, [classSections, currentClassObj]);
+
+    Promise.all(classSections.map(async (section) => {
+      const records = await getAttendanceBySection({ sectionId: section.id, date: selectedDate });
+      return [section.id, records.length > 0];
+    }))
+      .then((entries) => {
+        if (active) setSectionSubmissionStatus(Object.fromEntries(entries));
+      })
+      .catch((err) => {
+        console.error('Error checking section attendance submissions:', err);
+        if (active) setSectionSubmissionStatus({});
+      });
+
+    return () => { active = false; };
+  }, [selectedClass, selectedDate, classSections]);
 
   // Determine students in the selected class/section
   const classAttendanceRecords = useMemo(() => {
     if (!selectedClass || !selectedSection) return [];
     
     // Check if we have real database students in this class/section
-    const sectionStudents = dbStudents.filter(s => 
-      s.academicClass?.name?.toUpperCase() === selectedClass.toUpperCase() &&
-      s.section?.id === selectedSection.id
+    const sectionStudents = dbStudents.filter(s =>
+      (s.academicClassId === currentClassObj?.id || s.academicClass?.name?.toUpperCase() === selectedClass.toUpperCase()) &&
+      (s.sectionId === selectedSection.id || s.section?.id === selectedSection.id)
     );
 
     if (sectionStudents.length > 0 && dbAttendanceRecords.length > 0) {
       return sectionStudents.map(student => {
         const record = dbAttendanceRecords.find(a => a.studentId === student.id);
+        const rawStatus = String(record?.status || 'Not Marked').toLowerCase();
+        const status = rawStatus === 'present' ? 'Present' : rawStatus === 'absent' ? 'Absent' : 'Not Marked';
         return {
           id: student.id,
           name: student.fullName || student.name || 'Unknown Student',
-          class: `${student.academicClass?.name || ''} - ${student.section?.name || ''}`.trim().replace(/^-|-$/, ''),
-          status: record?.status || 'Absent',
-          date: selectedDate
-        };
-      });
-    }
-
-    // Demo / fallback students
-    if (dbAttendanceRecords.length > 0) {
-      // Mock some attendance records matches
-      return STUDENT_NAMES.slice(0, 10).map((name, idx) => {
-        const rec = dbAttendanceRecords[idx];
-        return {
-          id: idx + 1,
-          name,
           class: `${selectedClass} - ${selectedSection.name}`,
-          status: rec?.status || (idx % 8 === 0 ? 'Absent' : 'Present'),
+          status,
           date: selectedDate
         };
       });
     }
 
     return [];
-  }, [selectedClass, selectedSection, dbStudents, dbAttendanceRecords, selectedDate]);
+  }, [selectedClass, selectedSection, dbStudents, dbAttendanceRecords, selectedDate, currentClassObj]);
 
   const [attendanceFilter, setAttendanceFilter] = useState('All'); // 'All' | 'Present' | 'Absent'
 
@@ -251,7 +264,7 @@ const AttendanceOverview = () => {
     setSelectedDate(d.toISOString().split('T')[0]);
   };
 
-  if (activeRole?.toUpperCase() === 'PRINCIPAL' || activeRole?.toUpperCase() === 'BRANCH_ADMIN') {
+  if (isMainAdmin || activeRole?.toUpperCase() === 'PRINCIPAL' || activeRole?.toUpperCase() === 'BRANCH_ADMIN') {
     if (selectedClass) {
       if (!selectedSection) {
         // SCREENSHOT 1: SELECT SECTION VIEW
@@ -300,8 +313,7 @@ const AttendanceOverview = () => {
             {/* Sections cards list matching Screenshot 1 */}
             <div className="space-y-3 pt-1">
               {resolvedSections.map((sec) => {
-                // If it is mock or has no submissions in database, label as Pending
-                const isPending = true; // By default shows Pending matching Screenshot 1
+                const isPending = sectionSubmissionStatus[sec.id] !== true;
                 return (
                   <div
                     key={sec.id}
@@ -336,6 +348,11 @@ const AttendanceOverview = () => {
                 );
               })}
             </div>
+            {!resolvedSections.length && (
+              <div className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-8 card-shadow text-center text-xs font-semibold text-secondaryText">
+                No active sections found for {selectedClass}.
+              </div>
+            )}
           </motion.div>
         );
       }
@@ -344,7 +361,7 @@ const AttendanceOverview = () => {
       const presentCnt = classAttendanceRecords.filter(s => s.status === 'Present').length;
       const absentCnt = classAttendanceRecords.filter(s => s.status === 'Absent').length;
       const totalCnt = classAttendanceRecords.length;
-      const isToday = selectedDate === '2026-07-03' || selectedDate === new Date().toISOString().split('T')[0];
+      const isToday = selectedDate === getLocalISODate();
 
       return (
         <motion.div
@@ -560,7 +577,7 @@ const AttendanceOverview = () => {
           <div className="absolute top-[-30px] right-[-30px] w-36 h-36 rounded-full bg-white/10" />
           <div className="absolute bottom-[-40px] left-[10%] w-48 h-48 rounded-full bg-white/5" />
           <div className="mb-2 relative z-10">
-            <span className="text-[10px] text-white/70 font-semibold tracking-wider uppercase font-sans">PRINCIPAL</span>
+            <span className="text-[10px] text-white/70 font-semibold tracking-wider uppercase font-sans">{isMainAdmin ? 'MAIN ADMIN' : 'PRINCIPAL'}</span>
           </div>
           <h2 className="text-xl font-bold mb-1 relative z-10 font-sans">View Attendance</h2>
           <p className="text-xs text-white/85 font-medium relative z-10 font-sans">
@@ -588,6 +605,11 @@ const AttendanceOverview = () => {
               <FiChevronRight className="w-4 h-4 text-[#A0AEC0] group-hover:translate-x-0.5 transition-transform" />
             </div>
           ))}
+          {!classesOrder.length && (
+            <div className="bg-white rounded-[24px] border border-[#e2e8f0]/45 p-8 card-shadow text-center text-xs font-semibold text-secondaryText">
+              No active classes found for this branch.
+            </div>
+          )}
         </div>
       </motion.div>
     );
@@ -743,10 +765,6 @@ const AttendanceOverview = () => {
       </motion.div>
     );
   }
-
-  const presentCount = ATTENDANCE_LIST.filter(s => s.status === 'Present').length;
-  const absentCount = ATTENDANCE_LIST.filter(s => s.status === 'Absent').length;
-  const totalCount = ATTENDANCE_LIST.length;
 
   // Monthly breakdown data for AY 2026-2027 matching screenshot
   const monthlyBreakdown = [

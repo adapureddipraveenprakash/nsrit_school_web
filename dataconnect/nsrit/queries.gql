@@ -153,6 +153,7 @@ query GetStudentsByBranch($branchId: UUID!, $limit: Int = 50, $offset: Int = 0) 
     serialNumber
     fullName
     gender
+    rollNumber
     dateOfBirth
     branchId
     wingId
